@@ -3,7 +3,7 @@
 export const TICKS_PER_SPAWN_CHECK = 10;
 export const SPAWN_PROBABILITY = 0.6;
 export const MAX_NEARBY = 5;
-export const CREATURE_LINGER_MS = 15 * 60 * 1000;  // 15 minutes
+export const CREATURE_LINGER_MS = 30 * 60 * 1000;  // 30 minutes
 export const MAX_CATCH_ATTEMPTS = 3;
 
 export const SESSION_GAP_MS = 15 * 60 * 1000;

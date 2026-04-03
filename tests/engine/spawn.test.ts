@@ -74,7 +74,7 @@ describe("cleanupDespawned", () => {
     const now = Date.now();
     const state = makeState({
       nearby: [
-        { creatureId: "glitchlet", spawnedAt: now - 999999, failedAttempts: 0, maxAttempts: 3 },
+        { creatureId: "glitchlet", spawnedAt: now - 2000000, failedAttempts: 0, maxAttempts: 3 },
         { creatureId: "nullbyte", spawnedAt: now - 1000, failedAttempts: 0, maxAttempts: 3 },
       ],
     });
