@@ -191,25 +191,35 @@ export class SimpleTextRenderer implements Renderer {
       return "Evolution failed.";
     }
 
-    let out = `${result.from.name} evolved into ${result.to.name}!\n\n`;
+    let out = `╔════════════════════════════════╗\n`;
+    out += `║ ★ EVOLUTION COMPLETE! ★${" ".repeat(Math.max(0, 7))}║\n`;
+    out += `╠════════════════════════════════╣\n`;
+    out += `║ ${result.from.name} → ${result.to.name}${" ".repeat(Math.max(0, 28 - result.from.name.length - result.to.name.length - 3))}║\n`;
+    out += `╠════════════════════════════════╣\n`;
     const art = result.to.art.simple.map((line) => "  " + line).join("\n");
-    out += art + "\n\n";
-    out += result.to.description;
+    out += art + "\n";
+    out += `║${" ".repeat(32)}║\n`;
+    out += `║ ${result.to.description}${" ".repeat(Math.max(0, 30 - result.to.description.length))}║\n`;
     if (result.catalystUsed) {
-      out += `\n(Used: ${result.catalystUsed})`;
+      out += `║ (Used: ${result.catalystUsed})${" ".repeat(Math.max(0, 24 - result.catalystUsed.length))}║\n`;
     }
+    out += `╚════════════════════════════════╝`;
     return out;
   }
 
   renderStatus(result: StatusResult): string {
     const p = result.profile;
-    let out = "STATUS\n\n";
-    out += `Level ${p.level} (${p.xp} XP)\n`;
-    out += `Total catches: ${p.totalCatches}\n`;
-    out += `Collection: ${result.collectionCount}/${result.totalCreatures}\n`;
-    out += `Streak: ${p.currentStreak} days (best: ${p.longestStreak})\n`;
-    out += `Nearby: ${result.nearbyCount} creatures\n`;
-    out += `Total ticks: ${p.totalTicks}`;
+    let out = `┌──────────────────────────────────┐\n`;
+    out += `│ STATUS${" ".repeat(27)}│\n`;
+    out += `├──────────────────────────────────┤\n`;
+    out += `│ Level ${p.level}${" ".repeat(Math.max(0, 26 - p.level.toString().length))}│\n`;
+    out += `│ XP: ${p.xp}${" ".repeat(Math.max(0, 26 - p.xp.toString().length))}│\n`;
+    out += `│ Total catches: ${p.totalCatches}${" ".repeat(Math.max(0, 17 - p.totalCatches.toString().length))}│\n`;
+    out += `│ Collection: ${result.collectionCount}/${result.totalCreatures}${" ".repeat(Math.max(0, 18 - result.collectionCount.toString().length - result.totalCreatures.toString().length))}│\n`;
+    out += `│ Streak: ${p.currentStreak} days (best: ${p.longestStreak})${" ".repeat(Math.max(0, 11 - p.currentStreak.toString().length - p.longestStreak.toString().length))}│\n`;
+    out += `│ Nearby: ${result.nearbyCount} creatures${" ".repeat(Math.max(0, 21 - result.nearbyCount.toString().length))}│\n`;
+    out += `│ Total ticks: ${p.totalTicks}${" ".repeat(Math.max(0, 18 - p.totalTicks.toString().length))}│\n`;
+    out += `└──────────────────────────────────┘`;
     return out;
   }
 
