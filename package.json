@@ -12,13 +12,20 @@
     "test:watch": "jest --watch",
     "dev": "tsc --watch"
   },
-  "keywords": ["cli", "game", "terminal", "claude-code", "plugin"],
+  "keywords": [
+    "cli",
+    "game",
+    "terminal",
+    "claude-code",
+    "plugin"
+  ],
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "@types/node": "^20.14.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.4",
+    "ts-node": "^10.9.2",
     "typescript": "^5.5.0"
   }
 }
