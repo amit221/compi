@@ -4,7 +4,8 @@ import {
   CreatureDefinition,
   ItemDefinition,
 } from "../types";
-import { XP_PER_CATCH, XP_PER_LEVEL } from "../config/constants";
+import { XP_PER_CATCH, XP_PER_LEVEL, PASSIVE_DRIP_ITEMS } from "../config/constants";
+import { getItemMap } from "../config/items";
 
 export function attemptCatch(
   state: GameState,
@@ -75,6 +76,17 @@ export function attemptCatch(
       ? entry.fragments >= creature.evolution.fragmentCost
       : false;
 
+    // 10% chance of bonus item drop
+    let bonusItem: { item: ItemDefinition; count: number } | undefined;
+    if (rng() < 0.1) {
+      const allItems = getItemMap();
+      const bonus = allItems.get("bytetrap");
+      if (bonus) {
+        bonusItem = { item: bonus, count: 1 };
+        state.inventory["bytetrap"] = (state.inventory["bytetrap"] || 0) + 1;
+      }
+    }
+
     return {
       success: true,
       creature,
@@ -82,6 +94,7 @@ export function attemptCatch(
       fragmentsEarned: 1,
       totalFragments: entry.fragments,
       xpEarned: xp,
+      bonusItem,
       fled: false,
       evolutionReady,
     };

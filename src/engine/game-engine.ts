@@ -16,7 +16,7 @@ import { processNewTick } from "./ticks";
 import { processSpawns, cleanupDespawned } from "./spawn";
 import { attemptCatch } from "./catch";
 import { evolveCreature } from "./evolution";
-import { processPassiveDrip, checkMilestones } from "./inventory";
+import { processPassiveDrip, processSessionReward, checkMilestones } from "./inventory";
 
 export class GameEngine {
   private creatures: Map<string, CreatureDefinition>;
@@ -69,15 +69,27 @@ export class GameEngine {
       });
     }
 
+    // Session reward when event is a session-end signal
+    if (tick.eventType === "Stop") {
+      const sessionItems = processSessionReward(this.state, rng);
+      itemsEarned.push(...sessionItems);
+    }
+
+    // Notify evolution_ready only for creatures that just became ready this tick
     for (const entry of this.state.collection) {
       if (entry.evolved) continue;
       const creature = this.creatures.get(entry.creatureId);
       if (!creature?.evolution) continue;
       if (entry.fragments >= creature.evolution.fragmentCost) {
-        notifications.push({
-          type: "evolution_ready",
-          message: `${creature.name} has enough fragments to evolve!`,
-        });
+        // Only notify if not already notified (tracked in claimedMilestones with evo_ prefix)
+        const evoKey = `evo_ready_${entry.creatureId}`;
+        if (!this.state.claimedMilestones.includes(evoKey)) {
+          this.state.claimedMilestones.push(evoKey);
+          notifications.push({
+            type: "evolution_ready",
+            message: `${creature.name} has enough fragments to evolve!`,
+          });
+        }
       }
     }
 
