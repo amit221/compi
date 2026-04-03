@@ -5,7 +5,7 @@
   "author": {
     "name": "termomon"
   },
-  "repository": "",
+  "repository": "https://github.com/amit221/termomon",
   "license": "MIT",
   "keywords": ["game", "terminal", "creatures", "collection", "pokemon"]
 }

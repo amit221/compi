@@ -26,7 +26,7 @@ termomon status
 **From source (development):**
 
 ```bash
-git clone <repo-url> termomon
+git clone https://github.com/amit221/termomon.git termomon
 cd termomon
 npm install
 npm run build
@@ -42,7 +42,7 @@ To reload after changes: `/reload-plugins`
 ### Option 3: Standalone CLI from source
 
 ```bash
-git clone <repo-url> termomon
+git clone https://github.com/amit221/termomon.git termomon
 cd termomon
 npm install
 npm run build
@@ -171,7 +171,7 @@ Create a marketplace repo with `.claude-plugin/marketplace.json`:
       "name": "termomon",
       "source": {
         "source": "github",
-        "repo": "<owner>/termomon"
+        "repo": "amit221/termomon"
       },
       "description": "Terminal creature collection game",
       "version": "0.1.0"
