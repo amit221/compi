@@ -12,20 +12,20 @@ describe("SimpleTextRenderer", () => {
       nearby: [
         {
           index: 0,
-          creature: creatures.get("glitchlet")!,
+          creature: creatures.get("mousebyte")!,
           spawnedAt: Date.now(),
           catchRate: 0.8,
         },
         {
           index: 1,
-          creature: creatures.get("hexashade")!,
+          creature: creatures.get("foxfire")!,
           spawnedAt: Date.now(),
           catchRate: 0.55,
         },
       ],
     });
-    expect(result).toContain("Glitchlet");
-    expect(result).toContain("Hexashade");
+    expect(result).toContain("Mousebyte");
+    expect(result).toContain("Foxfire");
     expect(result).toContain("[1]");
     expect(result).toContain("[2]");
     expect(result).toContain("/catch");
@@ -39,7 +39,7 @@ describe("SimpleTextRenderer", () => {
   test("renderCatch shows success", () => {
     const result = renderer.renderCatch({
       success: true,
-      creature: creatures.get("glitchlet")!,
+      creature: creatures.get("mousebyte")!,
       itemUsed: items.get("bytetrap")!,
       fragmentsEarned: 1,
       totalFragments: 3,
@@ -48,14 +48,14 @@ describe("SimpleTextRenderer", () => {
       evolutionReady: false,
     });
     expect(result).toContain("Caught");
-    expect(result).toContain("Glitchlet");
+    expect(result).toContain("Mousebyte");
     expect(result).toContain("3");
   });
 
   test("renderCatch shows failure", () => {
     const result = renderer.renderCatch({
       success: false,
-      creature: creatures.get("glitchlet")!,
+      creature: creatures.get("mousebyte")!,
       itemUsed: items.get("bytetrap")!,
       fragmentsEarned: 0,
       totalFragments: 0,
@@ -69,7 +69,7 @@ describe("SimpleTextRenderer", () => {
   test("renderCatch shows fled", () => {
     const result = renderer.renderCatch({
       success: false,
-      creature: creatures.get("glitchlet")!,
+      creature: creatures.get("mousebyte")!,
       itemUsed: items.get("bytetrap")!,
       fragmentsEarned: 0,
       totalFragments: 0,
@@ -83,11 +83,11 @@ describe("SimpleTextRenderer", () => {
   test("renderCollection shows creatures with fragment counts", () => {
     const result = renderer.renderCollection(
       [
-        { creatureId: "glitchlet", fragments: 3, totalCaught: 5, firstCaughtAt: 1000, evolved: false },
+        { creatureId: "mousebyte", fragments: 3, totalCaught: 5, firstCaughtAt: 1000, evolved: false },
       ],
       creatures
     );
-    expect(result).toContain("Glitchlet");
+    expect(result).toContain("Mousebyte");
     expect(result).toContain("3");
   });
 

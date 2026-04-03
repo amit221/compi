@@ -25,13 +25,13 @@ describe("evolveCreature", () => {
   test("evolves when fragments and catalyst are sufficient", () => {
     const state = makeState({
       collection: [
-        { creatureId: "glitchlet", fragments: 6, totalCaught: 6, firstCaughtAt: 1000, evolved: false },
+        { creatureId: "mousebyte", fragments: 6, totalCaught: 6, firstCaughtAt: 1000, evolved: false },
       ],
     });
-    const result = evolveCreature(state, "glitchlet", creatures);
+    const result = evolveCreature(state, "mousebyte", creatures);
     expect(result.success).toBe(true);
-    expect(result.from.id).toBe("glitchlet");
-    expect(result.to.id).toBe("glitchform");
+    expect(result.from.id).toBe("mousebyte");
+    expect(result.to.id).toBe("circuitmouse");
     expect(result.fragmentsSpent).toBe(5);
     expect(state.collection[0].evolved).toBe(true);
     expect(state.collection[0].fragments).toBe(1);
@@ -40,42 +40,42 @@ describe("evolveCreature", () => {
   test("fails when not enough fragments", () => {
     const state = makeState({
       collection: [
-        { creatureId: "glitchlet", fragments: 3, totalCaught: 3, firstCaughtAt: 1000, evolved: false },
+        { creatureId: "mousebyte", fragments: 3, totalCaught: 3, firstCaughtAt: 1000, evolved: false },
       ],
     });
-    expect(() => evolveCreature(state, "glitchlet", creatures)).toThrow("Not enough fragments");
+    expect(() => evolveCreature(state, "mousebyte", creatures)).toThrow("Not enough fragments");
   });
 
   test("fails when already evolved", () => {
     const state = makeState({
       collection: [
-        { creatureId: "glitchlet", fragments: 10, totalCaught: 10, firstCaughtAt: 1000, evolved: true },
+        { creatureId: "mousebyte", fragments: 10, totalCaught: 10, firstCaughtAt: 1000, evolved: true },
       ],
     });
-    expect(() => evolveCreature(state, "glitchlet", creatures)).toThrow("Already evolved");
+    expect(() => evolveCreature(state, "mousebyte", creatures)).toThrow("Already evolved");
   });
 
   test("fails when creature has no evolution", () => {
     const state = makeState({
       collection: [
-        { creatureId: "overflux", fragments: 10, totalCaught: 10, firstCaughtAt: 1000, evolved: false },
+        { creatureId: "leviathrex", fragments: 10, totalCaught: 10, firstCaughtAt: 1000, evolved: false },
       ],
     });
-    expect(() => evolveCreature(state, "overflux", creatures)).toThrow("Cannot evolve");
+    expect(() => evolveCreature(state, "leviathrex", creatures)).toThrow("Cannot evolve");
   });
 
   test("fails when creature not in collection", () => {
     const state = makeState();
-    expect(() => evolveCreature(state, "glitchlet", creatures)).toThrow("not in collection");
+    expect(() => evolveCreature(state, "mousebyte", creatures)).toThrow("not in collection");
   });
 
   test("consumes catalyst item when required", () => {
     const state = makeState({
       collection: [
-        { creatureId: "voidmoth", fragments: 12, totalCaught: 12, firstCaughtAt: 1000, evolved: false },
+        { creatureId: "hawktrace", fragments: 12, totalCaught: 12, firstCaughtAt: 1000, evolved: false },
       ],
     });
-    const result = evolveCreature(state, "voidmoth", creatures);
+    const result = evolveCreature(state, "hawktrace", creatures);
     expect(result.success).toBe(true);
     expect(result.catalystUsed).toBe("shard");
     expect(state.inventory["shard"]).toBe(1);
@@ -84,10 +84,10 @@ describe("evolveCreature", () => {
   test("fails when catalyst is missing", () => {
     const state = makeState({
       collection: [
-        { creatureId: "voidmoth", fragments: 12, totalCaught: 12, firstCaughtAt: 1000, evolved: false },
+        { creatureId: "hawktrace", fragments: 12, totalCaught: 12, firstCaughtAt: 1000, evolved: false },
       ],
       inventory: {},
     });
-    expect(() => evolveCreature(state, "voidmoth", creatures)).toThrow("Missing catalyst");
+    expect(() => evolveCreature(state, "hawktrace", creatures)).toThrow("Missing catalyst");
   });
 });

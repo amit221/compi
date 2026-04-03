@@ -16,7 +16,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     collection: [],
     inventory: { bytetrap: 5, netsnare: 2 },
     nearby: [
-      { creatureId: "glitchlet", spawnedAt: Date.now(), failedAttempts: 0, maxAttempts: 3 },
+      { creatureId: "mousebyte", spawnedAt: Date.now(), failedAttempts: 0, maxAttempts: 3 },
     ],
     recentTicks: [],
     claimedMilestones: [],
@@ -30,12 +30,12 @@ describe("attemptCatch", () => {
     const state = makeState();
     const result = attemptCatch(state, 0, "bytetrap", creatures, items, () => 0.1);
     expect(result.success).toBe(true);
-    expect(result.creature.id).toBe("glitchlet");
+    expect(result.creature.id).toBe("mousebyte");
     expect(result.fragmentsEarned).toBe(1);
     expect(result.fled).toBe(false);
     expect(state.nearby).toHaveLength(0);
     expect(state.collection).toHaveLength(1);
-    expect(state.collection[0].creatureId).toBe("glitchlet");
+    expect(state.collection[0].creatureId).toBe("mousebyte");
     expect(state.collection[0].fragments).toBe(1);
     expect(state.inventory["bytetrap"]).toBe(4);
     expect(state.profile.xp).toBeGreaterThan(0);
@@ -82,7 +82,7 @@ describe("attemptCatch", () => {
   test("adds fragments to existing collection entry on duplicate catch", () => {
     const state = makeState();
     state.collection.push({
-      creatureId: "glitchlet", fragments: 3, totalCaught: 3,
+      creatureId: "mousebyte", fragments: 3, totalCaught: 3,
       firstCaughtAt: 1000, evolved: false,
     });
     const result = attemptCatch(state, 0, "bytetrap", creatures, items, () => 0.1);

@@ -31,22 +31,22 @@ describe("GameEngine", () => {
     const now = Date.now();
     const state = makeState({
       nearby: [
-        { creatureId: "glitchlet", spawnedAt: now, failedAttempts: 0, maxAttempts: 3 },
-        { creatureId: "nullbyte", spawnedAt: now, failedAttempts: 0, maxAttempts: 3 },
+        { creatureId: "mousebyte", spawnedAt: now, failedAttempts: 0, maxAttempts: 3 },
+        { creatureId: "buglet", spawnedAt: now, failedAttempts: 0, maxAttempts: 3 },
       ],
     });
     const engine = new GameEngine(state);
     const result = engine.scan();
     expect(result.nearby).toHaveLength(2);
-    expect(result.nearby[0].creature.id).toBe("glitchlet");
-    expect(result.nearby[1].creature.id).toBe("nullbyte");
+    expect(result.nearby[0].creature.id).toBe("mousebyte");
+    expect(result.nearby[1].creature.id).toBe("buglet");
   });
 
   test("catch uses engine and returns result", () => {
     const now = Date.now();
     const state = makeState({
       nearby: [
-        { creatureId: "glitchlet", spawnedAt: now, failedAttempts: 0, maxAttempts: 3 },
+        { creatureId: "mousebyte", spawnedAt: now, failedAttempts: 0, maxAttempts: 3 },
       ],
     });
     const engine = new GameEngine(state);
@@ -57,13 +57,13 @@ describe("GameEngine", () => {
   test("evolve delegates to evolution engine", () => {
     const state = makeState({
       collection: [
-        { creatureId: "glitchlet", fragments: 6, totalCaught: 6, firstCaughtAt: 1000, evolved: false },
+        { creatureId: "mousebyte", fragments: 6, totalCaught: 6, firstCaughtAt: 1000, evolved: false },
       ],
     });
     const engine = new GameEngine(state);
-    const result = engine.evolve("glitchlet");
+    const result = engine.evolve("mousebyte");
     expect(result.success).toBe(true);
-    expect(result.to.id).toBe("glitchform");
+    expect(result.to.id).toBe("circuitmouse");
   });
 
   test("status returns player profile summary", () => {
