@@ -1,5 +1,6 @@
 ---
 name: settings
+model: claude-haiku-4-5-20251001
 description: View or change game settings (renderer, notifications)
 ---
 
