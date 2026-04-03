@@ -110,7 +110,9 @@ export interface ScanResult {
     creature: CreatureDefinition;
     spawnedAt: number;
     catchRate: number;
+    attemptsRemaining?: number;  // New: attempts left for this creature (maxAttempts - failedAttempts)
   }>;
+  totalCatchItems?: number;  // New: total count of bytetrap + netsnare + corelock
 }
 
 export interface CatchResult {

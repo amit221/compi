@@ -105,6 +105,10 @@ export class GameEngine {
     const now = Date.now();
     cleanupDespawned(this.state, now);
 
+    // Calculate total catch items
+    const catchItems = ["bytetrap", "netsnare", "corelock"];
+    const totalCatchItems = catchItems.reduce((sum, id) => sum + (this.state.inventory[id] || 0), 0);
+
     return {
       nearby: this.state.nearby.map((n, i) => {
         const creature = this.creatures.get(n.creatureId)!;
@@ -113,8 +117,10 @@ export class GameEngine {
           creature,
           spawnedAt: n.spawnedAt,
           catchRate: creature.baseCatchRate,
+          attemptsRemaining: n.maxAttempts - n.failedAttempts,  // New
         };
       }),
+      totalCatchItems,  // New
     };
   }
 

@@ -26,15 +26,24 @@ export class SimpleTextRenderer implements Renderer {
       return "No signals detected — nothing nearby right now.";
     }
 
-    let out = `NEARBY SIGNALS — ${result.nearby.length} detected\n\n`;
+    let out = `┌──────────────────────────────────┐\n`;
+    out += `│ NEARBY SIGNALS — ${result.nearby.length} detected${" ".repeat(Math.max(0, 12 - result.nearby.length.toString().length))}│\n`;
+    if (result.totalCatchItems !== undefined) {
+      out += `│ Catch items: ${result.totalCatchItems}${" ".repeat(Math.max(0, 18 - result.totalCatchItems.toString().length))}│\n`;
+    }
+    out += `└──────────────────────────────────┘\n\n`;
 
     for (const entry of result.nearby) {
       const c = entry.creature;
       const art = c.art.simple.map((line) => "    " + line).join("\n");
-      out += `[${entry.index + 1}] ${c.name}\n`;
+      out += `┌─ [${entry.index + 1}] ${c.name}${"─".repeat(Math.max(0, 22 - entry.index.toString().length - c.name.length))}┐\n`;
       out += art + "\n";
-      out += `    ${stars(c.rarity)} ${rarityLabel(c.rarity)}\n`;
-      out += `    Catch rate: ${Math.round(entry.catchRate * 100)}%\n\n`;
+      out += `│ ${stars(c.rarity)} ${rarityLabel(c.rarity)}${" ".repeat(Math.max(0, 28 - rarityLabel(c.rarity).length))}│\n`;
+      out += `│ Catch rate: ${Math.round(entry.catchRate * 100)}%${" ".repeat(Math.max(0, 20 - Math.round(entry.catchRate * 100).toString().length))}│\n`;
+      if (entry.attemptsRemaining !== undefined) {
+        out += `│ Attempts: ${entry.attemptsRemaining}/3${" ".repeat(Math.max(0, 21 - entry.attemptsRemaining.toString().length))}│\n`;
+      }
+      out += `└──────────────────────────────────┘\n\n`;
     }
 
     out += "Use /catch [number] to attempt capture";
