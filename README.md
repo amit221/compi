@@ -6,44 +6,47 @@ The game runs passively in the background — hooks track your activity, creatur
 
 ## Installation
 
-### As a Claude Code Plugin
+### Option 1: npm (global CLI)
 
 ```bash
-# Clone the repo
-git clone <repo-url> termomon
-cd termomon
-
-# Install dependencies and build
-npm install
-npm run build
-
-# Launch Claude Code with the plugin loaded
-claude --plugin-dir ./claude-plugin
-```
-
-The `--plugin-dir` flag loads the plugin for that session. Hooks will automatically track your activity and slash commands (`/scan`, `/catch`, etc.) become available.
-
-To reload after making changes, run `/reload-plugins` inside the Claude Code session.
-
-### Standalone CLI (any terminal)
-
-```bash
-git clone <repo-url> termomon
-cd termomon
-npm install
-npm run build
-
-# Run commands directly
-node dist/cli.js status
-node dist/cli.js scan
-```
-
-You can also link it globally:
-
-```bash
-npm link
+npm install -g termomon
 termomon status
-termomon scan
+```
+
+### Option 2: Claude Code Plugin
+
+**From a marketplace:**
+
+```bash
+# Inside Claude Code:
+/plugin marketplace add <owner>/<marketplace-repo>
+/plugin install termomon
+```
+
+**From source (development):**
+
+```bash
+git clone <repo-url> termomon
+cd termomon
+npm install
+npm run build
+
+# Launch Claude Code with the plugin
+claude --plugin-dir .
+```
+
+The `--plugin-dir .` flag loads the project root as a plugin. Hooks auto-track your activity and slash commands (`/scan`, `/catch`, etc.) become available.
+
+To reload after changes: `/reload-plugins`
+
+### Option 3: Standalone CLI from source
+
+```bash
+git clone <repo-url> termomon
+cd termomon
+npm install
+npm run build
+node dist/cli.js status
 ```
 
 ## How It Works
@@ -69,15 +72,19 @@ Each creature has a base form and an evolved form. Catch duplicates to earn frag
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `/scan` | Show nearby creatures with art, rarity, catch rate |
-| `/catch [number]` | Catch creature #N from the scan list |
-| `/collection` | Browse your creatures, fragments, evolution progress |
-| `/inventory` | View your items |
-| `/evolve [creature-id]` | Evolve a creature with enough fragments |
-| `/status` | Your profile — level, catches, streak, ticks |
-| `/settings` | Configure renderer and notification level |
+In Claude Code, use slash commands. In standalone CLI, use `termomon <command>`.
+
+| Slash Command | CLI | Description |
+|---------------|-----|-------------|
+| `/scan` | `termomon scan` | Show nearby creatures |
+| `/catch [n]` | `termomon catch [n]` | Catch creature #N |
+| `/collection` | `termomon collection` | Your caught creatures |
+| `/inventory` | `termomon inventory` | Your items |
+| `/evolve [id]` | `termomon evolve [id]` | Evolve a creature |
+| `/status` | `termomon status` | Your profile and stats |
+| `/settings` | `termomon settings` | Configure game settings |
+
+Add `--json` to any CLI command for machine-readable output.
 
 ## Items
 
@@ -92,27 +99,7 @@ Each creature has a base form and an evolved form. Catch duplicates to earn frag
 
 Items come from passive activity drip, milestone rewards, and session completion.
 
-## Standalone CLI
-
-You can also run Termomon directly from your terminal:
-
-```bash
-# Build first
-npm run build
-
-# Then use the CLI
-node dist/cli.js status
-node dist/cli.js tick
-node dist/cli.js scan
-node dist/cli.js catch 1
-node dist/cli.js collection
-node dist/cli.js inventory
-node dist/cli.js evolve glitchlet
-node dist/cli.js settings
-
-# JSON output for scripting
-node dist/cli.js scan --json
-```
+## Data
 
 Game state is saved to `~/.termomon/state.json`. Override with `TERMOMON_STATE_PATH` env var.
 
@@ -144,21 +131,63 @@ The game engine is fully decoupled from rendering. Adding new renderers (rich te
 ## Project Structure
 
 ```
-src/
-  types.ts              All TypeScript types
-  config/               Game data (creatures, items, balance constants)
-  state/                State persistence (JSON file)
-  engine/               Game logic (ticks, spawn, catch, evolve, inventory)
-  renderers/            Display layer (simple text renderer)
-  cli.ts                CLI entry point
+.claude-plugin/
+  plugin.json             Claude Code plugin manifest
+skills/                   Slash command skills (Claude Code)
+hooks/
+  hooks.json              Hook event configuration
 scripts/
-  tick-hook.js          Claude Code hook script
-claude-plugin/
-  manifest.json         Plugin metadata
-  hooks.json            Hook event configuration
-  skills/               Slash command definitions
-tests/                  63 tests covering all modules
+  tick-hook.js            Hook script for passive tick recording
+src/
+  types.ts                All TypeScript types
+  config/                 Game data (creatures, items, balance constants)
+  state/                  State persistence (JSON file)
+  engine/                 Game logic (ticks, spawn, catch, evolve, inventory)
+  renderers/              Display layer (simple text renderer)
+  cli.ts                  CLI entry point
+tests/                    63 tests covering all modules
 ```
+
+## Publishing
+
+### npm
+
+```bash
+npm login
+npm publish
+```
+
+Users install with `npm install -g termomon`.
+
+### Claude Code Marketplace
+
+Create a marketplace repo with `.claude-plugin/marketplace.json`:
+
+```json
+{
+  "name": "your-marketplace",
+  "plugins": [
+    {
+      "name": "termomon",
+      "source": {
+        "source": "github",
+        "repo": "<owner>/termomon"
+      },
+      "description": "Terminal creature collection game",
+      "version": "0.1.0"
+    }
+  ]
+}
+```
+
+Users add the marketplace and install:
+
+```bash
+/plugin marketplace add <owner>/<marketplace-repo>
+/plugin install termomon
+```
+
+Or submit to the official marketplace at [claude.ai/settings/plugins/submit](https://claude.ai/settings/plugins/submit).
 
 ## License
 
