@@ -56,7 +56,7 @@ export class SimpleTextRenderer implements Renderer {
 
     if (result.success) {
       let out = `╔════════════════════════════════╗\n`;
-      out += `║ ✓✓✓ CAUGHT! ✓✓✓${" ".repeat(Math.max(0, 13))}║\n`;
+      out += `║ ✓✓✓ CAUGHT! ✓✓✓${" ".repeat(Math.max(0, 14))}║\n`;
       out += `╠════════════════════════════════╣\n`;
       out += `║ ${c.name} captured with ${result.itemUsed.name}${" ".repeat(Math.max(0, 30 - c.name.length - result.itemUsed.name.length))}║\n`;
       out += `╠════════════════════════════════╣\n`;
@@ -79,19 +79,19 @@ export class SimpleTextRenderer implements Renderer {
 
     if (result.fled) {
       let out = `╔════════════════════════════════╗\n`;
-      out += `║ ✕ FLED!${" ".repeat(Math.max(0, 23))}║\n`;
+      out += `║ ✕ FLED!${" ".repeat(Math.max(0, 22))}║\n`;
       out += `╠════════════════════════════════╣\n`;
-      out += `║ ${c.name} slipped away for good.${" ".repeat(Math.max(0, 30 - c.name.length - 20))}║\n`;
+      out += `║ ${c.name} slipped away for good.${" ".repeat(Math.max(0, 30 - c.name.length - 22))}║\n`;
       out += `║ The ${result.itemUsed.name} was used.${" ".repeat(Math.max(0, 30 - result.itemUsed.name.length - 14))}║\n`;
       out += `╚════════════════════════════════╝`;
       return out;
     }
 
     let out = `╔════════════════════════════════╗\n`;
-    out += `║ ✗ ESCAPED${" ".repeat(Math.max(0, 20))}║\n`;
+    out += `║ ✗ ESCAPED${" ".repeat(Math.max(0, 21))}║\n`;
     out += `╠════════════════════════════════╣\n`;
-    out += `║ ${c.name} broke free!${" ".repeat(Math.max(0, 30 - c.name.length - 12))}║\n`;
-    out += `║ Try again with another ${result.itemUsed.name}${" ".repeat(Math.max(0, 30 - result.itemUsed.name.length - 18))}║\n`;
+    out += `║ ${c.name} broke free!${" ".repeat(Math.max(0, 30 - c.name.length - 11))}║\n`;
+    out += `║ Try again with another ${result.itemUsed.name}${" ".repeat(Math.max(0, 30 - result.itemUsed.name.length - 24))}║\n`;
     out += `╚════════════════════════════════╝`;
     return out;
   }
