@@ -1,0 +1,92 @@
+{
+  "spawning": {
+    "ticksPerSpawnCheck": 10,
+    "spawnProbability": 0.6,
+    "maxNearby": 10,
+    "initialSpawnCount": 3,
+    "creatureLingerMs": 1800000,
+    "maxCatchAttempts": 3,
+    "spawnWeights": {
+      "common": 0.45,
+      "uncommon": 0.25,
+      "rare": 0.15,
+      "epic": 0.10,
+      "legendary": 0.05
+    },
+    "timeOfDay": {
+      "morning": [6, 12],
+      "afternoon": [12, 17],
+      "evening": [17, 21],
+      "night": [21, 6]
+    }
+  },
+  "catching": {
+    "maxCatchRate": 1.0,
+    "bonusItemDropChance": 0.1,
+    "bonusItemId": "bytetrap",
+    "fragmentsPerCatch": 1,
+    "xpPerCatch": {
+      "common": 10,
+      "uncommon": 25,
+      "rare": 50,
+      "epic": 100,
+      "legendary": 250
+    }
+  },
+  "progression": {
+    "xpPerLevel": 100,
+    "sessionGapMs": 900000,
+    "tickPruneCount": 500
+  },
+  "rewards": {
+    "passiveDripInterval": 25,
+    "passiveDripItems": [
+      { "id": "bytetrap", "count": 2, "probability": 0.7 },
+      { "id": "netsnare", "count": 1, "probability": 0.25 },
+      { "id": "corelock", "count": 1, "probability": 0.05 }
+    ],
+    "sessionRewardItems": [
+      { "id": "bytetrap", "count": 3, "probability": 0.6 },
+      { "id": "netsnare", "count": 1, "probability": 0.3 },
+      { "id": "shard", "count": 1, "probability": 0.1 }
+    ],
+    "milestones": [
+      {
+        "id": "first_catch",
+        "label": "First catch!",
+        "condition": { "type": "totalCatches", "threshold": 1 },
+        "reward": { "id": "bytetrap", "count": 3 }
+      },
+      {
+        "id": "ten_catches",
+        "label": "10 catches",
+        "condition": { "type": "totalCatches", "threshold": 10 },
+        "reward": { "id": "netsnare", "count": 2 }
+      },
+      {
+        "id": "first_evolution",
+        "label": "First evolution",
+        "condition": { "type": "totalEvolutions", "threshold": 1 },
+        "reward": { "id": "shard", "count": 1 }
+      },
+      {
+        "id": "level_5",
+        "label": "Reach level 5",
+        "condition": { "type": "playerLevel", "threshold": 5 },
+        "reward": { "id": "corelock", "count": 1 }
+      },
+      {
+        "id": "collection_10",
+        "label": "10 unique creatures",
+        "condition": { "type": "uniqueSpecies", "threshold": 10 },
+        "reward": { "id": "netsnare", "count": 3 }
+      },
+      {
+        "id": "level_10",
+        "label": "Reach level 10",
+        "condition": { "type": "playerLevel", "threshold": 10 },
+        "reward": { "id": "prism", "count": 1 }
+      }
+    ]
+  }
+}
