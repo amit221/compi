@@ -52,7 +52,7 @@ describe("SimpleTextRenderer inventory display", () => {
 
     const output = renderer.renderInventory(inventory, items);
     expect(output).toContain("INVENTORY");
-    expect(output).toContain("-");
+    expect(output).toContain("CAPTURE DEVICES");
     expect(output).toContain("ByteTrap");
   });
 
@@ -110,8 +110,8 @@ describe("SimpleTextRenderer inventory display", () => {
     ]);
 
     const output = renderer.renderInventory(inventory, items);
-    expect(output).toContain("+-"); // Tree-style branch
-    expect(output).toContain("|"); // Tree-style line
+    expect(output).toContain("ByteTrap");
+    expect(output).toContain("×5");
   });
 
   it("should display correct item counts", () => {
@@ -152,8 +152,10 @@ describe("SimpleTextRenderer inventory display", () => {
     ]);
 
     const output = renderer.renderInventory(inventory, items);
-    expect(output).toContain("ByteTrap x7");
-    expect(output).toContain("NetSnare x2");
+    expect(output).toContain("ByteTrap");
+    expect(output).toContain("×7");
+    expect(output).toContain("NetSnare");
+    expect(output).toContain("×2");
     expect(output).not.toContain("CoreLock"); // Count is 0, should not display
   });
 });

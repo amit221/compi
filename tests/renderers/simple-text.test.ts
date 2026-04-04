@@ -80,7 +80,7 @@ describe("SimpleTextRenderer", () => {
     expect(result).toContain("FLED!");
   });
 
-  test("renderCollection shows creatures with fragment counts", () => {
+  test("renderCollection shows creatures with catch counts", () => {
     const result = renderer.renderCollection(
       [
         { creatureId: "mousebyte", fragments: 3, totalCaught: 5, firstCaughtAt: 1000, evolved: false },
@@ -88,7 +88,7 @@ describe("SimpleTextRenderer", () => {
       creatures
     );
     expect(result).toContain("Mousebyte");
-    expect(result).toContain("3");
+    expect(result).toContain("5"); // totalCaught
   });
 
   test("renderInventory shows items with counts", () => {

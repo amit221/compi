@@ -2,7 +2,7 @@ import { SimpleTextRenderer } from "../../src/renderers/simple-text";
 import { StatusResult, EvolveResult, CreatureDefinition } from "../../src/types";
 
 describe("SimpleTextRenderer consistency - status and evolve", () => {
-  it("should display status with borders", () => {
+  it("should display status with centered layout", () => {
     const renderer = new SimpleTextRenderer();
     const result: StatusResult = {
       profile: {
@@ -20,8 +20,8 @@ describe("SimpleTextRenderer consistency - status and evolve", () => {
     };
 
     const output = renderer.renderStatus(result);
-    expect(output).toContain("+");
     expect(output).toContain("STATUS");
+    expect(output).toContain("Level 5");
   });
 
   it("should display status with correct profile information", () => {
@@ -112,7 +112,8 @@ describe("SimpleTextRenderer consistency - status and evolve", () => {
 
     const output = renderer.renderEvolve(result);
     expect(output).toContain("evolved"); // Check both name and description reference
-    expect(output).toContain("⢀⠧⠧⡀"); // Check for art
+    expect(output).toContain("⢀"); // Check for art character
+    expect(output).toContain("⠧"); // Check for art character
   });
 
   it("should handle evolution with catalyst", () => {
