@@ -165,3 +165,58 @@ export interface Renderer {
   renderStatus(result: StatusResult): string;
   renderNotification(notification: Notification): string;
 }
+
+// --- Config ---
+
+export interface MilestoneCondition {
+  type: "totalCatches" | "currentStreak" | "totalTicks";
+  threshold: number;
+}
+
+export interface MilestoneConfig {
+  id: string;
+  description: string;
+  condition: MilestoneCondition;
+  reward: Array<{ itemId: string; count: number }>;
+  oneTime: boolean;
+}
+
+export interface WeightedItem {
+  itemId: string;
+  count: number;
+  weight: number;
+}
+
+export interface BalanceConfig {
+  spawning: {
+    ticksPerSpawnCheck: number;
+    spawnProbability: number;
+    maxNearby: number;
+    initialSpawnCount: number;
+    creatureLingerMs: number;
+    maxCatchAttempts: number;
+    spawnWeights: Record<string, number>;
+    timeOfDay: Record<string, [number, number]>;
+  };
+  catching: {
+    maxCatchRate: number;
+    bonusItemDropChance: number;
+    bonusItemId: string;
+    fragmentsPerCatch: number;
+    xpPerCatch: Record<string, number>;
+  };
+  progression: {
+    xpPerLevel: number;
+    sessionGapMs: number;
+    tickPruneCount: number;
+  };
+  rewards: {
+    passiveDripInterval: number;
+    passiveDripItems: WeightedItem[];
+    sessionRewardItems: WeightedItem[];
+    milestones: MilestoneConfig[];
+  };
+  creatures: CreatureDefinition[];
+  items: ItemDefinition[];
+  messages: Record<string, Record<string, string>>;
+}
