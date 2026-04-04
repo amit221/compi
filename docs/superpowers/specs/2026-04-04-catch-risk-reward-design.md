@@ -16,86 +16,73 @@ All creatures are the same base species (axolotl, using cat placeholder art unti
 
 ### Trait System
 
-Every creature has **4 trait slots**. Each trait has a **rarity tier** and a **merge modifier**.
+Every creature has **6 trait slots**. Each trait has a **rarity tier** and a **merge modifier**.
 
 **Trait Slots:**
 - Eyes (visual: changes eye characters in art)
 - Mouth (visual: changes mouth character in art)
 - Tail (visual: changes tail character in art)
-- Ears/Gills (visual: changes top of art)
+- Gills (visual: changes gill characters on sides)
+- Pattern (visual: body markings/decorations)
+- Aura (visual: decorative frame around creature)
 
-**Rarity Tiers & Spawn Weights:**
-- Common (60% spawn chance)
-- Uncommon (25%)
-- Rare (10%)
-- Legendary (5%)
+**Rarity Tiers (pyramid distribution):**
 
-Each slot has 8 trait variants (2 per rarity tier). Full reference spreadsheet: `2026-04-04-catch-traits-reference.csv`.
+| Rarity | Traits per Slot | Spawn Weight |
+|---|---|---|
+| Common | 16 | 30% |
+| Uncommon | 10 | 22% |
+| Rare | 8 | 17% |
+| Epic | 5 | 13% |
+| Legendary | 4 | 8% |
+| Mythic | 3 | 5% |
+| Ancient | 2 | 3% |
+| Void | 2 | 2% |
+| **Total** | **50 per slot** | **100%** |
 
-**Complete Trait Table:**
+**6 slots × 50 traits = 300 total traits. 50⁶ ≈ 15.6 billion possible combinations.**
 
-#### Eyes Slot
-| Trait ID | Name | Rarity | Art | Modifier Type | Modifier Value |
-|---|---|---|---|---|---|
-| dot | Dot Eyes | Common | o.o | Stable | +0.10 |
-| dash | Dash Eyes | Common | -.– | Stable | +0.08 |
-| wide | Wide Eyes | Uncommon | ◉.◉ | Catalyst | +0.15 |
-| wink | Wink Eyes | Uncommon | ◉.o | Stable | +0.05 |
-| star | Star Eyes | Rare | ★.★ | Volatile | -0.15 |
-| cross | Cross Eyes | Rare | ×.× | Volatile | -0.10 |
-| void | Void Eyes | Legendary | ⊙.⊙ | Volatile | -0.20 |
-| glitch | Glitch Eyes | Legendary | ⊘.⊘ | Catalyst | +0.20 |
+Full trait reference: `2026-04-04-catch-traits-reference.csv`.
 
-#### Mouth Slot
-| Trait ID | Name | Rarity | Art | Modifier Type | Modifier Value |
-|---|---|---|---|---|---|
-| omega | Omega | Common | ω | Stable | +0.10 |
-| dot | Dot | Common | · | Stable | +0.08 |
-| triangle | Triangle | Uncommon | △ | Stable | +0.05 |
-| wave | Wave | Uncommon | ~ | Catalyst | +0.12 |
-| bolt | Bolt | Rare | ⚡ | Volatile | -0.15 |
-| diamond | Diamond | Rare | ◆ | Volatile | -0.10 |
-| flame | Flame | Legendary | ♦ | Volatile | -0.20 |
-| null | Null | Legendary | ∅ | Catalyst | +0.25 |
+**Sample Traits (full 300-trait reference in CSV):**
 
-#### Tail Slot
-| Trait ID | Name | Rarity | Art | Modifier Type | Modifier Value |
-|---|---|---|---|---|---|
-| curl | Curly | Common | ^ | Stable | +0.10 |
-| short | Short | Common | . | Stable | +0.08 |
-| wave | Wavy | Uncommon | ~ | Stable | +0.05 |
-| fork | Forked | Uncommon | ¥ | Catalyst | +0.12 |
-| bolt | Lightning | Rare | ⚡ | Volatile | -0.15 |
-| spike | Spiked | Rare | ↑ | Volatile | -0.10 |
-| sparkle | Sparkle | Legendary | ✦ | Volatile | -0.20 |
-| void | Void | Legendary | ∞ | Catalyst | +0.22 |
+#### Eyes Slot (50 traits)
+| Rarity | Sample Traits | Art Examples |
+|---|---|---|
+| Common (16) | Dot, Dash, Bead, Sleepy, Squint, Blink, Round, Oval, Pebble, Button, Seed, Grain, Simple, Plain, Basic, Soft | o.o  -.–  •.•  -.- |
+| Uncommon (10) | Wide, Wink, Bright, Alert, Curious, Keen, Sharp, Gleam, Spark, Focus | ◉.◉  ◉.o  °.° |
+| Rare (8) | Star, Cross, Diamond, Flame, Storm, Crystal, Prism, Flash | ★.★  ×.×  ◆.◆ |
+| Epic (5) | Void, Glitch, Nebula, Eclipse, Phantom | ⊙.⊙  ⊘.⊘  ⊛.⊛ |
+| Legendary (4) | Cosmos, Infinity, Singularity, Omega | ∞.∞  Ω.Ω |
+| Mythic (3) | Timeless, Primordial, Eternal | ✧.✧  ☽.☾ |
+| Ancient (2) | Genesis, Origin | ◈.◈  ❖.❖ |
+| Void (2) | Null, Oblivion | ∅.∅  ⊬.⊬ |
 
-#### Ears/Gills Slot
-| Trait ID | Name | Rarity | Art | Modifier Type | Modifier Value |
-|---|---|---|---|---|---|
-| round | Round | Common | /\_/\ | Stable | +0.10 |
-| flat | Flat | Common | /---\ | Stable | +0.08 |
-| pointed | Pointed | Uncommon | /\^/\ | Catalyst | +0.12 |
-| droop | Droopy | Uncommon | \___/ | Stable | +0.05 |
-| spike | Spiked | Rare | /⚡_⚡\ | Volatile | -0.15 |
-| horn | Horned | Rare | /!_!\ | Volatile | -0.10 |
-| crown | Crown | Legendary | ♛___♛ | Volatile | -0.20 |
-| halo | Halo | Legendary | °\_/° | Catalyst | +0.22 |
+#### Additional Slots (Mouth, Tail, Gills, Pattern, Aura)
+Each follows the same 16/10/8/5/4/3/2/2 pyramid structure. Full definitions in `2026-04-04-catch-traits-reference.csv`.
 
 **Merge Modifier Types:**
-- **Stable**: +0.05 to +0.10 merge success. Decreases mutation chance by 0.03-0.05 per trait. Safe, predictable.
-- **Volatile**: -0.10 to -0.20 merge success. Increases mutation chance by 0.05-0.10 per trait. Risky but chaotic.
-- **Catalyst**: +0.12 to +0.25 merge success. Bonus increases further when paired with a specific synergy partner (see Catalyst Synergies below).
+- **Stable**: +0.03 to +0.08 merge success. Decreases mutation chance by 0.02-0.04 per trait. Safe, predictable. Most common/uncommon traits.
+- **Volatile**: -0.05 to -0.15 merge success. Increases mutation chance by 0.03-0.08 per trait. Risky but chaotic. Most epic+ traits.
+- **Catalyst**: +0.05 to +0.15 merge success. Bonus increases further when paired with a specific synergy partner. Spread across all rarities.
 
-**Catalyst Synergies (bonus applied when both traits present across parents):**
-| Trait A | Trait B | Synergy Bonus | Theme |
+**Modifier value ranges by rarity:**
+
+| Rarity | Stable Range | Volatile Range | Catalyst Range |
 |---|---|---|---|
-| Wide Eyes (◉.◉) | Wave Mouth (~) | +0.15 | Calm |
-| Wide Eyes (◉.◉) | Wavy Tail (~) | +0.10 | Water |
-| Glitch Eyes (⊘.⊘) | Null Mouth (∅) | +0.25 | Void |
-| Pointed Ears (/\^/\) | Forked Tail (¥) | +0.12 | Sharp |
-| Halo Ears (°\_/°) | Void Tail (∞) | +0.22 | Celestial |
-| Wave Mouth (~) | Wavy Tail (~) | +0.10 | Water |
+| Common | +0.06 to +0.08 | n/a | +0.05 to +0.07 |
+| Uncommon | +0.05 to +0.07 | -0.05 to -0.06 | +0.06 to +0.08 |
+| Rare | +0.04 to +0.06 | -0.06 to -0.08 | +0.07 to +0.10 |
+| Epic | +0.03 to +0.05 | -0.08 to -0.10 | +0.08 to +0.12 |
+| Legendary | n/a | -0.10 to -0.12 | +0.10 to +0.13 |
+| Mythic | n/a | -0.12 to -0.13 | +0.12 to +0.15 |
+| Ancient | n/a | -0.13 to -0.15 | +0.13 to +0.15 |
+| Void | n/a | -0.15 | +0.15 |
+
+Note: With 12 traits total across 2 parents (6 slots each), modifier sums range from roughly +0.96 (all max stable) to -1.80 (all max volatile). Base merge rate of 0.50 means all-stable caps at 0.90 and all-volatile floors at 0.05.
+
+**Catalyst Synergies:**
+Synergy pairs are defined in the trait reference CSV. When both traits of a synergy pair are present across the two parents being merged, an additional bonus (+0.05 to +0.20) is applied to merge success rate. There are approximately 30 synergy pairs spread across all slots and rarities.
 
 ### Composable Art
 
@@ -117,35 +104,40 @@ Art design (final axolotl art with composable regions) is a separate task from t
 - **Single resource: Energy**
 - Earn 1 Energy passively every 30 minutes
 - Catching costs Energy based on the creature's trait rarity
-- Cost formula: sum of trait rarity values (Common=0, Uncommon=1, Rare=2, Legendary=3) across all 4 slots, then add 1. Range: 1 energy (all common, 0+1) to 13 energy (all legendary, 12+1). Examples: all-common=1E, two uncommon+two common=3E, one rare+three common=3E, all-rare=9E
+- Cost formula: sum of trait rarity values (Common=0, Uncommon=1, Rare=2, Legendary=3) across all 6 slots, then add 1. Range: 1 energy (all common, 0+1) to 13 energy (all legendary, 12+1). Examples: all-common=1E, two uncommon+two common=3E, one rare+three common=3E, all-rare=9E
 
 **Energy Cost Formula:**
 ```
-energy_cost = 1 + sum(rarity_value for each trait slot)
-  where: Common=0, Uncommon=1, Rare=2, Legendary=3
+energy_cost = 1 + sum(rarity_value for each of 6 trait slots)
+  where: Common=0, Uncommon=1, Rare=2, Epic=3, Legendary=4, Mythic=5, Ancient=6, Void=7
 ```
 
 **Energy Cost Table:**
-| Traits | Rarity Sum | Energy Cost |
+| Traits (6 slots) | Rarity Sum | Energy Cost |
 |---|---|---|
-| 4× Common | 0 | **1** |
-| 3C + 1U | 1 | **2** |
-| 2C + 2U | 2 | **3** |
-| 4× Uncommon | 4 | **5** |
-| 2C + 2R | 4 | **5** |
-| 4× Rare | 8 | **9** |
-| 2R + 2L | 10 | **11** |
-| 4× Legendary | 12 | **13** |
+| 6× Common | 0 | **1** |
+| 4C + 2U | 2 | **3** |
+| 6× Uncommon | 6 | **7** |
+| 3U + 3R | 9 | **10** |
+| 6× Rare | 12 | **13** |
+| 6× Epic | 18 | **19** |
+| 6× Legendary | 24 | **25** |
+| 6× Mythic | 30 | **31** |
+| 6× Ancient | 36 | **37** |
+| 6× Void | 42 | **43** |
+| Typical mixed (3C+2U+1R) | 4 | **5** |
+| Good mixed (2C+2U+1R+1E) | 7 | **8** |
 
 **Energy Economy:**
 | Parameter | Value |
 |---|---|
 | Gain rate | 1 per 30 minutes (passive) |
-| Max cap | 20 |
-| Starting energy | 3 |
+| Max cap | 30 |
+| Starting energy | 5 |
 | Session end bonus | +1 |
-| 3-day streak bonus | +2 (one-time) |
-| 7-day streak bonus | +3 (one-time) |
+| 3-day streak bonus | +3 (one-time) |
+| 7-day streak bonus | +5 (one-time) |
+| 30-day streak bonus | +10 (one-time) |
 
 Replaces the current multi-item system (ByteTrap, NetSnare, CoreLock).
 
@@ -175,11 +167,15 @@ Replaces the current multi-item system (ByteTrap, NetSnare, CoreLock).
 ```
 BASE_CATCH_RATE = 0.80
 
-trait_penalty = sum of per-trait penalties:
+trait_penalty = sum of per-trait penalties across 6 slots:
   Common    = 0.00
-  Uncommon  = 0.05
-  Rare      = 0.10
-  Legendary = 0.15
+  Uncommon  = 0.02
+  Rare      = 0.04
+  Epic      = 0.06
+  Legendary = 0.08
+  Mythic    = 0.10
+  Ancient   = 0.12
+  Void      = 0.14
 
 fail_penalty = failed_attempts_in_batch × 0.10
 
@@ -188,39 +184,40 @@ effective_rate = clamp(BASE_CATCH_RATE - trait_penalty - fail_penalty, 0.05, 0.9
 
 **Catch Rate Table (by trait combo and fail count):**
 
-| Traits | Base - Penalty | 0 fails | 1 fail | 2 fails |
+| Traits (6 slots) | Trait Penalty | 0 fails | 1 fail | 2 fails |
 |---|---|---|---|---|
-| 4× Common | 0.80 - 0.00 | **80%** | 70% | 60% |
-| 2C + 2U | 0.80 - 0.10 | **70%** | 60% | 50% |
-| 4× Uncommon | 0.80 - 0.20 | **60%** | 50% | 40% |
-| 2U + 2R | 0.80 - 0.30 | **50%** | 40% | 30% |
-| 4× Rare | 0.80 - 0.40 | **40%** | 30% | 20% |
-| 2R + 2L | 0.80 - 0.50 | **30%** | 20% | 10% |
-| 4× Legendary | 0.80 - 0.60 | **20%** | 10% | 5% (floor) |
+| 6× Common | 0.00 | **80%** | 70% | 60% |
+| 4C + 2U | 0.04 | **76%** | 66% | 56% |
+| 6× Uncommon | 0.12 | **68%** | 58% | 48% |
+| 3U + 3R | 0.18 | **62%** | 52% | 42% |
+| 6× Rare | 0.24 | **56%** | 46% | 36% |
+| 6× Epic | 0.36 | **44%** | 34% | 24% |
+| 6× Legendary | 0.48 | **32%** | 22% | 12% |
+| 6× Mythic | 0.60 | **20%** | 10% | 5% (floor) |
+| 6× Ancient | 0.72 | **8%** | 5% (floor) | 5% (floor) |
+| 6× Void | 0.84 | **5%** (floor) | 5% | 5% |
 
 ### Example Scenario
 
 ```
-Batch spawns: 3 creatures. You have 5 Energy, 3 Attempts.
+Batch spawns: 3 creatures. You have 8 Energy, 3 Attempts.
 
-#1: Dot[C] + ω[C] + ^[C] + /\_/\[C]   → Cost: 1E, Rate: 80%
-#2: ◉[U] + △[U] + ~[U] + ⌐\_/¬[U]    → Cost: 2E, Rate: 60%
-#3: ★[R] + ⚡[R] + ✦[L] + ☾\_/☽[L]   → Cost: 4E, Rate: 30%
+#1: 6× Common traits                       → Cost: 1E, Rate: 80%
+#2: 3C + 2U + 1R (mixed)                   → Cost: 5E, Rate: 70%
+#3: 2U + 2R + 1E + 1L (stacked)            → Cost: 14E, Rate: 48%
 
 Strategy A (safe merge fuel):
-  Attempt 1: Catch #1 (1E, 80%) → success → 4E left, 2 attempts
-  Attempt 2: Catch #2 (2E, 60%) → success → 2E left, 1 attempt
-  Attempt 3: Can't afford #3 (4E). Done. Got 2 merge ingredients.
+  Attempt 1: Catch #1 (1E, 80%) → success → 7E left, 2 attempts
+  Attempt 2: Catch #2 (5E, 70%) → success → 2E left, 1 attempt
+  Attempt 3: Can't afford #3 (14E). Done. Got 2 merge ingredients.
 
 Strategy B (go big):
-  Attempt 1: Try #3 (4E, 30%) → miss → 1E left, 2 attempts, +10% penalty
-  Attempt 2: Try #1 (1E, 80%-10%=70%) → success → 0E, 1 attempt
-  Attempt 3: 0 Energy, can't catch. Got 1 common creature.
-
+  Attempt 1: Try #3 (14E... can't afford!) → must catch cheaper ones first
+  
 Strategy C (balanced):
-  Attempt 1: Catch #1 (1E, 80%) → success → 4E left, 2 attempts
-  Attempt 2: Try #3 (4E, 30%) → miss → 0E, 1 attempt, +10% penalty
-  Attempt 3: 0 Energy. Got 1 common creature.
+  Attempt 1: Catch #1 (1E, 80%) → success → 7E left, 2 attempts
+  Attempt 2: Try #2 (5E, 70%) → miss → 2E left, 1 attempt, +10% penalty
+  Attempt 3: Only 2E left. Can catch #1-type if new batch, or save for later.
 ```
 
 ## Merging
@@ -237,7 +234,7 @@ Strategy C (balanced):
 ```
 BASE_MERGE_RATE = 0.50
 
-modifier_sum = sum of merge_modifier_value for ALL 8 traits (4 per parent)
+modifier_sum = sum of merge_modifier_value for ALL 12 traits (6 per parent)
 synergy_bonus = sum of catalyst synergy bonuses (if matching pairs found across parents)
 
 effective_merge_rate = clamp(BASE_MERGE_RATE + modifier_sum + synergy_bonus, 0.05, 0.90)
@@ -256,7 +253,7 @@ effective_merge_rate = clamp(BASE_MERGE_RATE + modifier_sum + synergy_bonus, 0.0
 
 ### Trait Inheritance Formula (per slot)
 
-On a successful merge, each of the 4 trait slots is resolved independently:
+On a successful merge, each of the 6 trait slots is resolved independently:
 
 ```
 Step 1: Calculate mutation chance for this slot
@@ -325,7 +322,7 @@ Example 3: Common + Common (both volatile)
 - Volatile traits are double-edged: worse merge success but wilder mutation outcomes
 - Stable traits are predictable: better merge success but output stays close to input rarity
 - Every merge is a surprise — you can learn tendencies but never memorize exact outcomes
-- With 8 traits per slot × 4 slots, there are 8⁴ = 4,096 possible trait combinations — too many to memorize
+- With 50 traits per slot × 6 slots, there are 50⁶ ≈ 15.6 billion possible trait combinations — impossible to memorize
 
 ### Volatile vs Stable Tradeoff in Merging
 
@@ -344,7 +341,8 @@ This creates a meta-game around creature value:
 | 3 capture item types | Single Energy resource |
 | 3 attempts per creature | 3 shared attempts per batch |
 | No fail penalty | Escalating fail chance per batch |
-| Species rarity determines value | Trait combo determines value |
+| 4 rarity tiers | 8 rarity tiers (pyramid distribution) |
+| Species rarity determines value | Trait combo determines value (15.6B combos) |
 | Deterministic evolution (collect N fragments) | Probabilistic merging with mutation |
 
 ## What Stays the Same
@@ -376,8 +374,8 @@ This creates a meta-game around creature value:
 
 ### Modified: NearbyCreature
 
-Add `traits` field — array of 4 trait objects, each with:
-- `slotId: string` (eyes, mouth, tail, ears)
+Add `traits` field — array of 6 trait objects, each with:
+- `slotId: string` (eyes, mouth, tail, gills, pattern, aura)
 - `traitId: string` (specific trait variant)
 - `rarity: Rarity`
 - `mergeModifier: { type: "stable" | "volatile" | "catalyst", value: number }`

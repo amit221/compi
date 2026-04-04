@@ -1,146 +1,347 @@
-Sheet: Trait Definitions,,,,,,
-Slot,Trait ID,Trait Name,Rarity,Art Characters,Merge Modifier Type,Merge Modifier Value
-eyes,dot,Dot Eyes,common,o.o,stable,0.10
-eyes,dash,Dash Eyes,common,-.–,stable,0.08
-eyes,wide,Wide Eyes,uncommon,◉.◉,catalyst,0.15
-eyes,wink,Wink Eyes,uncommon,◉.o,stable,0.05
-eyes,star,Star Eyes,rare,★.★,volatile,-0.15
-eyes,cross,Cross Eyes,rare,×.×,volatile,-0.10
-eyes,void,Void Eyes,legendary,⊙.⊙,volatile,-0.20
-eyes,glitch,Glitch Eyes,legendary,⊘.⊘,catalyst,0.20
-mouth,omega,Omega,common,ω,stable,0.10
-mouth,dot,Dot,common,·,stable,0.08
-mouth,triangle,Triangle,uncommon,△,stable,0.05
-mouth,wave,Wave,uncommon,~,catalyst,0.12
-mouth,bolt,Bolt,rare,⚡,volatile,-0.15
-mouth,diamond,Diamond,rare,◆,volatile,-0.10
-mouth,flame,Flame,legendary,♦,volatile,-0.20
-mouth,null,Null,legendary,∅,catalyst,0.25
-tail,curl,Curly,common,^,stable,0.10
-tail,short,Short,common,.,stable,0.08
-tail,wave,Wavy,uncommon,~,stable,0.05
-tail,fork,Forked,uncommon,¥,catalyst,0.12
-tail,bolt,Lightning,rare,⚡,volatile,-0.15
-tail,spike,Spiked,rare,↑,volatile,-0.10
-tail,sparkle,Sparkle,legendary,✦,volatile,-0.20
-tail,void,Void,legendary,∞,catalyst,0.22
-ears,round,Round,common,/\_/\,stable,0.10
-ears,flat,Flat,common,/---\,stable,0.08
-ears,pointed,Pointed,uncommon,/\^/\,catalyst,0.12
-ears,droop,Droopy,uncommon,\___/,stable,0.05
-ears,spike,Spiked,rare,/⚡_⚡\,volatile,-0.15
-ears,horn,Horned,rare,/!_!\,volatile,-0.10
-ears,crown,Crown,legendary,♛___♛,volatile,-0.20
-ears,halo,Halo,legendary,°\_/°,catalyst,0.22
-,,,,,,
+slot,trait_id,trait_name,rarity,art,modifier_type,modifier_value
+eyes,eye_c01,Pebble Gaze,common,o.o,stable,0.07
+eyes,eye_c02,Dash Sight,common,-.–,stable,0.06
+eyes,eye_c03,Pip Vision,common,·.·,stable,0.08
+eyes,eye_c04,Round Look,common,O.O,stable,0.07
+eyes,eye_c05,Bead Eyes,common,°.°,catalyst,0.06
+eyes,eye_c06,Seed Glance,common,:..:,stable,0.05
+eyes,eye_c07,Grain Watch,common,,.,,stable,0.07
+eyes,eye_c08,Spark Peek,common,*..*,catalyst,0.05
+eyes,eye_c09,Fleck Gaze,common,'..',stable,0.06
+eyes,eye_c10,Mote Stare,common,+.+,stable,0.08
+eyes,eye_c11,Drop Sight,common,~.~,catalyst,0.06
+eyes,eye_c12,Nub Vision,common,=.=,stable,0.07
+eyes,eye_c13,Blip Glance,common,>.< ,stable,0.05
+eyes,eye_c14,Speck Watch,common,^.^,stable,0.06
+eyes,eye_c15,Dew Peek,common,;.;,catalyst,0.05
+eyes,eye_c16,Fog Look,common,-..-,stable,0.07
+eyes,eye_u01,Wide Gaze,uncommon,◉.◉,stable,0.05
+eyes,eye_u02,Prism Sight,uncommon,◇.◇,catalyst,0.08
+eyes,eye_u03,Crystal Watch,uncommon,◈.◈,stable,0.04
+eyes,eye_u04,Ember Glance,uncommon,●.●,stable,0.06
+eyes,eye_u05,Shard Vision,uncommon,◆.◆,catalyst,0.07
+eyes,eye_u06,Gleam Stare,uncommon,⊕.⊕,stable,0.05
+eyes,eye_u07,Facet Look,uncommon,□.□,stable,0.04
+eyes,eye_u08,Bloom Peek,uncommon,※.※,catalyst,0.09
+eyes,eye_u09,Crest Gaze,uncommon,△.△,stable,0.05
+eyes,eye_u10,Flint Sight,uncommon,▪.▪,stable,0.06
+eyes,eye_r01,Star Gaze,rare,★.★,volatile,-0.06
+eyes,eye_r02,Cross Vision,rare,×.×,stable,0.04
+eyes,eye_r03,Bolt Stare,rare,⚡.⚡,volatile,-0.07
+eyes,eye_r04,Crown Sight,rare,♛.♛,catalyst,0.08
+eyes,eye_r05,Rune Watch,rare,⊛.⊛,volatile,-0.05
+eyes,eye_r06,Sigil Glance,rare,❖.❖,catalyst,0.09
+eyes,eye_r07,Mark Peek,rare,✦.✦,stable,0.05
+eyes,eye_r08,Glyph Look,rare,Ω.Ω,catalyst,0.10
+eyes,eye_e01,Fracture Gaze,epic,⊘.⊘,volatile,-0.08
+eyes,eye_e02,Nexus Sight,epic,⊬.⊬,catalyst,0.10
+eyes,eye_e03,Rift Vision,epic,☽.☾,volatile,-0.09
+eyes,eye_e04,Storm Watch,epic,⊙.⊙,catalyst,0.11
+eyes,eye_e05,Pulse Stare,epic,∞.∞,volatile,-0.10
+eyes,eye_l01,Void Gaze,legendary,∅.∅,volatile,-0.12
+eyes,eye_l02,Apex Sight,legendary,◉.∅,catalyst,0.12
+eyes,eye_l03,Eclipse Vision,legendary,☽.⊘,volatile,-0.11
+eyes,eye_l04,Zenith Watch,legendary,★.⊙,catalyst,0.13
+eyes,eye_m01,Origin Stare,mythic,⊛.☾,catalyst,0.13
+eyes,eye_m02,Eternal Gaze,mythic,Ω.∞,volatile,-0.12
+eyes,eye_m03,Cosmic Sight,mythic,✦.Ω,catalyst,0.14
+eyes,eye_a01,Primeval Watch,ancient,∅.⊬,volatile,-0.13
+eyes,eye_a02,Genesis Vision,ancient,⊘.⊛,catalyst,0.14
+eyes,eye_v01,Null Stare,void,∅.∅,volatile,-0.15
+eyes,eye_v02,Oblivion Gaze,void,⊘.∞,catalyst,0.15
+mouth,mth_c01,Calm Curve,common,ω,stable,0.07
+mouth,mth_c02,Dot Hum,common,·,stable,0.06
+mouth,mth_c03,Flat Line,common,-,stable,0.08
+mouth,mth_c04,Soft Purr,common,~,stable,0.07
+mouth,mth_c05,Tiny Chirp,common,',catalyst,0.05
+mouth,mth_c06,Low Murmur,common,_,stable,0.06
+mouth,mth_c07,Round Whistle,common,o,stable,0.05
+mouth,mth_c08,Gentle Hiss,common,s,catalyst,0.06
+mouth,mth_c09,Brief Yawn,common,O,stable,0.07
+mouth,mth_c10,Faint Sigh,common,=,stable,0.08
+mouth,mth_c11,Still Pout,common,u,catalyst,0.05
+mouth,mth_c12,Mute Grin,common,v,stable,0.06
+mouth,mth_c13,Hushed Coo,common,w,stable,0.07
+mouth,mth_c14,Dim Drone,common,n,catalyst,0.06
+mouth,mth_c15,Plain Grunt,common,m,stable,0.05
+mouth,mth_c16,Bare Croak,common,c,stable,0.07
+mouth,mth_u01,Wedge Snap,uncommon,△,stable,0.05
+mouth,mth_u02,Sharp Bark,uncommon,>,catalyst,0.08
+mouth,mth_u03,Prism Call,uncommon,◇,stable,0.04
+mouth,mth_u04,Edge Growl,uncommon,/,stable,0.06
+mouth,mth_u05,Notch Roar,uncommon,^,catalyst,0.07
+mouth,mth_u06,Facet Song,uncommon,♦,stable,0.05
+mouth,mth_u07,Keen Wail,uncommon,!,stable,0.04
+mouth,mth_u08,Bright Howl,uncommon,*,catalyst,0.09
+mouth,mth_u09,Crisp Trill,uncommon,+,stable,0.05
+mouth,mth_u10,Glint Shriek,uncommon,°,stable,0.06
+mouth,mth_r01,Bolt Scream,rare,⚡,volatile,-0.06
+mouth,mth_r02,Diamond Cry,rare,◆,stable,0.04
+mouth,mth_r03,Rune Chant,rare,Ω,catalyst,0.08
+mouth,mth_r04,Sigil Wrath,rare,✦,volatile,-0.07
+mouth,mth_r05,Star Hymn,rare,★,catalyst,0.09
+mouth,mth_r06,Mark Bellow,rare,×,volatile,-0.05
+mouth,mth_r07,Glyph Keen,rare,⊛,stable,0.05
+mouth,mth_r08,Arc Chorus,rare,◉,catalyst,0.10
+mouth,mth_e01,Fracture Roar,epic,⊘,volatile,-0.08
+mouth,mth_e02,Nexus Shriek,epic,⊬,catalyst,0.10
+mouth,mth_e03,Rift Howl,epic,❖,volatile,-0.09
+mouth,mth_e04,Storm Wail,epic,⊙,catalyst,0.11
+mouth,mth_e05,Pulse Scream,epic,∞,volatile,-0.10
+mouth,mth_l01,Void Cry,legendary,∅,volatile,-0.12
+mouth,mth_l02,Apex Bellow,legendary,☽,catalyst,0.12
+mouth,mth_l03,Eclipse Chant,legendary,☾,volatile,-0.11
+mouth,mth_l04,Zenith Hymn,legendary,◈,catalyst,0.13
+mouth,mth_m01,Origin Keen,mythic,♛,catalyst,0.13
+mouth,mth_m02,Eternal Roar,mythic,¥,volatile,-0.12
+mouth,mth_m03,Cosmic Song,mythic,↑,catalyst,0.14
+mouth,mth_a01,Primeval Wail,ancient,□,volatile,-0.13
+mouth,mth_a02,Genesis Cry,ancient,●,catalyst,0.14
+mouth,mth_v01,Null Scream,void,▪,volatile,-0.15
+mouth,mth_v02,Oblivion Howl,void,※,catalyst,0.15
+tail,tl_c01,Curly Whip,common,^,stable,0.07
+tail,tl_c02,Short Flick,common,.,stable,0.06
+tail,tl_c03,Nub Wag,common,-,stable,0.08
+tail,tl_c04,Stub Twitch,common,~,stable,0.07
+tail,tl_c05,Wisp Trail,common,',catalyst,0.05
+tail,tl_c06,Thin Sweep,common,/,stable,0.06
+tail,tl_c07,Low Swish,common,_,stable,0.05
+tail,tl_c08,Blunt Tap,common,+,catalyst,0.06
+tail,tl_c09,Soft Sway,common,=,stable,0.07
+tail,tl_c10,Mild Coil,common,@,stable,0.08
+tail,tl_c11,Dull Swat,common,>,catalyst,0.05
+tail,tl_c12,Limp Dangle,common,|,stable,0.06
+tail,tl_c13,Slack Drape,common,\\,stable,0.07
+tail,tl_c14,Weak Flap,common,v,catalyst,0.06
+tail,tl_c15,Plain Drag,common,_~,stable,0.05
+tail,tl_c16,Bare Wiggle,common,~_,stable,0.07
+tail,tl_u01,Wave Lash,uncommon,~^~,stable,0.05
+tail,tl_u02,Fork Split,uncommon,¥,catalyst,0.08
+tail,tl_u03,Barb Sting,uncommon,->>,stable,0.04
+tail,tl_u04,Hook Curl,uncommon,~^,stable,0.06
+tail,tl_u05,Fin Glide,uncommon,/\\,catalyst,0.07
+tail,tl_u06,Plume Fan,uncommon,*~,stable,0.05
+tail,tl_u07,Ridge Slice,uncommon,/>,stable,0.04
+tail,tl_u08,Blade Whirl,uncommon,~*~,catalyst,0.09
+tail,tl_u09,Crest Spin,uncommon,^~^,stable,0.05
+tail,tl_u10,Spike Thrust,uncommon,↑~,stable,0.06
+tail,tl_r01,Bolt Strike,rare,~⚡,volatile,-0.06
+tail,tl_r02,Star Blaze,rare,~★~,stable,0.04
+tail,tl_r03,Rune Arc,rare,~Ω,catalyst,0.08
+tail,tl_r04,Sigil Lash,rare,✦~✦,volatile,-0.07
+tail,tl_r05,Diamond Cut,rare,◆~,catalyst,0.09
+tail,tl_r06,Glyph Slash,rare,~×~,volatile,-0.05
+tail,tl_r07,Mark Crack,rare,⊛~,stable,0.05
+tail,tl_r08,Arc Surge,rare,~◉~,catalyst,0.10
+tail,tl_e01,Fracture Rip,epic,~⊘~,volatile,-0.08
+tail,tl_e02,Nexus Tear,epic,⊬~⊬,catalyst,0.10
+tail,tl_e03,Rift Shear,epic,~❖~,volatile,-0.09
+tail,tl_e04,Storm Cleave,epic,⊙~⊙,catalyst,0.11
+tail,tl_e05,Pulse Snap,epic,~∞~,volatile,-0.10
+tail,tl_l01,Void Sever,legendary,∅~∅,volatile,-0.12
+tail,tl_l02,Apex Rend,legendary,~☽~,catalyst,0.12
+tail,tl_l03,Eclipse Fray,legendary,☾~☾,volatile,-0.11
+tail,tl_l04,Zenith Burst,legendary,~◈~,catalyst,0.13
+tail,tl_m01,Origin Fracture,mythic,♛~♛,catalyst,0.13
+tail,tl_m02,Eternal Shatter,mythic,~¥~,volatile,-0.12
+tail,tl_m03,Cosmic Rift,mythic,Ω~Ω,catalyst,0.14
+tail,tl_a01,Primeval Ruin,ancient,~⊬~,volatile,-0.13
+tail,tl_a02,Genesis Split,ancient,⊛~⊛,catalyst,0.14
+tail,tl_v01,Null Collapse,void,∅~⊘,volatile,-0.15
+tail,tl_v02,Oblivion Tear,void,⊘~∅,catalyst,0.15
+gills,gl_c01,Still Vent,common,||,stable,0.07
+gills,gl_c02,Thin Slit,common,|:,stable,0.06
+gills,gl_c03,Soft Pore,common,::|,stable,0.08
+gills,gl_c04,Low Drain,common,|.,stable,0.07
+gills,gl_c05,Dim Valve,common,.|,catalyst,0.05
+gills,gl_c06,Flat Gill,common,=|,stable,0.06
+gills,gl_c07,Dull Duct,common,|=,stable,0.05
+gills,gl_c08,Mute Hole,common,-|,catalyst,0.06
+gills,gl_c09,Bare Flap,common,|-,stable,0.07
+gills,gl_c10,Mild Draw,common,|~,stable,0.08
+gills,gl_c11,Faint Flow,common,~|,catalyst,0.05
+gills,gl_c12,Weak Pull,common,|+,stable,0.06
+gills,gl_c13,Plain Push,common,+|,stable,0.07
+gills,gl_c14,Calm Tide,common,|/,catalyst,0.06
+gills,gl_c15,Quiet Drip,common,/|,stable,0.05
+gills,gl_c16,Hush Stream,common,|>,stable,0.07
+gills,gl_u01,Deep Surge,uncommon,◉|,stable,0.05
+gills,gl_u02,Reef Filter,uncommon,|◇,catalyst,0.08
+gills,gl_u03,Tidal Vent,uncommon,◈|,stable,0.04
+gills,gl_u04,Brine Slit,uncommon,|●,stable,0.06
+gills,gl_u05,Kelp Valve,uncommon,◆|,catalyst,0.07
+gills,gl_u06,Spray Gill,uncommon,|△,stable,0.05
+gills,gl_u07,Coral Duct,uncommon,♦|,stable,0.04
+gills,gl_u08,Froth Hole,uncommon,|°,catalyst,0.09
+gills,gl_u09,Foam Gate,uncommon,*|,stable,0.05
+gills,gl_u10,Wake Drain,uncommon,|!,stable,0.06
+gills,gl_r01,Bolt Intake,rare,⚡|,volatile,-0.06
+gills,gl_r02,Star Filter,rare,|★,stable,0.04
+gills,gl_r03,Rune Vent,rare,Ω|,catalyst,0.08
+gills,gl_r04,Sigil Slit,rare,|✦,volatile,-0.07
+gills,gl_r05,Mark Valve,rare,⊛|,catalyst,0.09
+gills,gl_r06,Glyph Gate,rare,|×,volatile,-0.05
+gills,gl_r07,Arc Drain,rare,◉|◉,stable,0.05
+gills,gl_r08,Crest Flow,rare,|❖,catalyst,0.10
+gills,gl_e01,Fracture Intake,epic,⊘|⊘,volatile,-0.08
+gills,gl_e02,Nexus Filter,epic,⊬|⊬,catalyst,0.10
+gills,gl_e03,Rift Vent,epic,❖|❖,volatile,-0.09
+gills,gl_e04,Storm Slit,epic,⊙|⊙,catalyst,0.11
+gills,gl_e05,Pulse Valve,epic,∞|∞,volatile,-0.10
+gills,gl_l01,Void Gate,legendary,∅|∅,volatile,-0.12
+gills,gl_l02,Apex Drain,legendary,☽|☾,catalyst,0.12
+gills,gl_l03,Eclipse Flow,legendary,⊘|⊛,volatile,-0.11
+gills,gl_l04,Zenith Surge,legendary,◈|◈,catalyst,0.13
+gills,gl_m01,Origin Tide,mythic,♛|♛,catalyst,0.13
+gills,gl_m02,Eternal Stream,mythic,¥|¥,volatile,-0.12
+gills,gl_m03,Cosmic Current,mythic,Ω|Ω,catalyst,0.14
+gills,gl_a01,Primeval Torrent,ancient,⊬|⊬,volatile,-0.13
+gills,gl_a02,Genesis Flood,ancient,⊛|⊛,catalyst,0.14
+gills,gl_v01,Null Deluge,void,∅|⊘,volatile,-0.15
+gills,gl_v02,Oblivion Wash,void,⊘|∅,catalyst,0.15
+pattern,pt_c01,Dot Scatter,common,···,stable,0.07
+pattern,pt_c02,Dash Stripe,common,---,stable,0.06
+pattern,pt_c03,Speck Dust,common,....,stable,0.08
+pattern,pt_c04,Grain Patch,common,::::,stable,0.07
+pattern,pt_c05,Fleck Band,common,+·+·,catalyst,0.05
+pattern,pt_c06,Nub Mottle,common,=-=,stable,0.06
+pattern,pt_c07,Blip Streak,common,~·~,stable,0.05
+pattern,pt_c08,Pip Fleck,common,.·.·,catalyst,0.06
+pattern,pt_c09,Mote Spot,common,o·o·o,stable,0.07
+pattern,pt_c10,Drop Hatch,common,/·/·/,stable,0.08
+pattern,pt_c11,Dew Ring,common,()(),catalyst,0.05
+pattern,pt_c12,Fog Wash,common,~~~,stable,0.06
+pattern,pt_c13,Haze Line,common,===,stable,0.07
+pattern,pt_c14,Mist Weave,common,/\\/\\,catalyst,0.06
+pattern,pt_c15,Dust Swirl,common,@·@,stable,0.05
+pattern,pt_c16,Silt Layer,common,_·_·_,stable,0.07
+pattern,pt_u01,Wave Ripple,uncommon,≈≈≈,stable,0.05
+pattern,pt_u02,Prism Facet,uncommon,◇·◇·◇,catalyst,0.08
+pattern,pt_u03,Crystal Grid,uncommon,◈◈◈,stable,0.04
+pattern,pt_u04,Ember Trace,uncommon,●·●·●,stable,0.06
+pattern,pt_u05,Shard Crack,uncommon,◆·◆,catalyst,0.07
+pattern,pt_u06,Gleam Scale,uncommon,△△△,stable,0.05
+pattern,pt_u07,Facet Plate,uncommon,□□□,stable,0.04
+pattern,pt_u08,Bloom Petal,uncommon,※·※·※,catalyst,0.09
+pattern,pt_u09,Crest Ridge,uncommon,♦·♦·♦,stable,0.05
+pattern,pt_u10,Flint Slab,uncommon,▪▪▪,stable,0.06
+pattern,pt_r01,Bolt Vein,rare,⚡·⚡·⚡,volatile,-0.06
+pattern,pt_r02,Star Chain,rare,★·★·★,stable,0.04
+pattern,pt_r03,Rune Etching,rare,Ω·Ω·Ω,catalyst,0.08
+pattern,pt_r04,Sigil Weave,rare,✦·✦·✦,volatile,-0.07
+pattern,pt_r05,Diamond Lattice,rare,◆◆◆◆,catalyst,0.09
+pattern,pt_r06,Glyph Script,rare,×·×·×,volatile,-0.05
+pattern,pt_r07,Mark Brand,rare,⊛·⊛·⊛,stable,0.05
+pattern,pt_r08,Arc Circuitry,rare,◉·◉·◉,catalyst,0.10
+pattern,pt_e01,Fracture Web,epic,⊘·⊘·⊘,volatile,-0.08
+pattern,pt_e02,Nexus Grid,epic,⊬·⊬·⊬,catalyst,0.10
+pattern,pt_e03,Rift Scar,epic,❖·❖·❖,volatile,-0.09
+pattern,pt_e04,Storm Lattice,epic,⊙·⊙·⊙,catalyst,0.11
+pattern,pt_e05,Pulse Matrix,epic,∞·∞·∞,volatile,-0.10
+pattern,pt_l01,Void Fractal,legendary,∅·∅·∅,volatile,-0.12
+pattern,pt_l02,Apex Tessera,legendary,☽·☾·☽,catalyst,0.12
+pattern,pt_l03,Eclipse Mosaic,legendary,⊘·⊛·⊘,volatile,-0.11
+pattern,pt_l04,Zenith Array,legendary,◈·◈·◈,catalyst,0.13
+pattern,pt_m01,Origin Mandala,mythic,♛·♛·♛,catalyst,0.13
+pattern,pt_m02,Eternal Spiral,mythic,¥·¥·¥,volatile,-0.12
+pattern,pt_m03,Cosmic Sigil,mythic,Ω·✦·Ω,catalyst,0.14
+pattern,pt_a01,Primeval Glyph,ancient,⊬·⊛·⊬,volatile,-0.13
+pattern,pt_a02,Genesis Rune,ancient,⊛·⊬·⊛,catalyst,0.14
+pattern,pt_v01,Null Cipher,void,∅·⊘·∅,volatile,-0.15
+pattern,pt_v02,Oblivion Mark,void,⊘·∅·⊘,catalyst,0.15
+aura,au_c01,Faint Glow,common,·,stable,0.07
+aura,au_c02,Dim Shimmer,common,',stable,0.06
+aura,au_c03,Soft Haze,common,~,stable,0.08
+aura,au_c04,Low Gleam,common,-,stable,0.07
+aura,au_c05,Mild Flicker,common,.,catalyst,0.05
+aura,au_c06,Pale Sheen,common,°,stable,0.06
+aura,au_c07,Thin Mist,common,=,stable,0.05
+aura,au_c08,Weak Shine,common,+,catalyst,0.06
+aura,au_c09,Bare Luster,common,_,stable,0.07
+aura,au_c10,Still Light,common,|,stable,0.08
+aura,au_c11,Quiet Gleam,common,/,catalyst,0.05
+aura,au_c12,Hushed Aura,common,\\,stable,0.06
+aura,au_c13,Calm Nimbus,common,:,stable,0.07
+aura,au_c14,Muted Glow,common,;,catalyst,0.06
+aura,au_c15,Dull Corona,common,>,stable,0.05
+aura,au_c16,Plain Halo,common,<,stable,0.07
+aura,au_u01,Prism Shimmer,uncommon,◇◇,stable,0.05
+aura,au_u02,Crystal Gleam,uncommon,◈◈,catalyst,0.08
+aura,au_u03,Ember Glow,uncommon,●●,stable,0.04
+aura,au_u04,Shard Flare,uncommon,◆◆,stable,0.06
+aura,au_u05,Bloom Radiance,uncommon,※※,catalyst,0.07
+aura,au_u06,Facet Aura,uncommon,△△,stable,0.05
+aura,au_u07,Crest Light,uncommon,♦♦,stable,0.04
+aura,au_u08,Gleam Corona,uncommon,□□,catalyst,0.09
+aura,au_u09,Flint Nimbus,uncommon,▪▪,stable,0.05
+aura,au_u10,Spark Halo,uncommon,°°,stable,0.06
+aura,au_r01,Bolt Radiance,rare,⚡⚡,volatile,-0.06
+aura,au_r02,Star Corona,rare,★★,stable,0.04
+aura,au_r03,Rune Nimbus,rare,ΩΩ,catalyst,0.08
+aura,au_r04,Sigil Flare,rare,✦✦,volatile,-0.07
+aura,au_r05,Diamond Halo,rare,◉◉,catalyst,0.09
+aura,au_r06,Glyph Glow,rare,××,volatile,-0.05
+aura,au_r07,Mark Shimmer,rare,⊛⊛,stable,0.05
+aura,au_r08,Arc Blaze,rare,❖❖,catalyst,0.10
+aura,au_e01,Fracture Flare,epic,⊘⊘,volatile,-0.08
+aura,au_e02,Nexus Radiance,epic,⊬⊬,catalyst,0.10
+aura,au_e03,Rift Corona,epic,☽☾,volatile,-0.09
+aura,au_e04,Storm Nimbus,epic,⊙⊙,catalyst,0.11
+aura,au_e05,Pulse Halo,epic,∞∞,volatile,-0.10
+aura,au_l01,Void Radiance,legendary,∅∅,volatile,-0.12
+aura,au_l02,Apex Flare,legendary,◈❖,catalyst,0.12
+aura,au_l03,Eclipse Blaze,legendary,☽⊘,volatile,-0.11
+aura,au_l04,Zenith Corona,legendary,⊙★,catalyst,0.13
+aura,au_m01,Origin Nimbus,mythic,♛✦,catalyst,0.13
+aura,au_m02,Eternal Halo,mythic,Ω∞,volatile,-0.12
+aura,au_m03,Cosmic Radiance,mythic,✦♛,catalyst,0.14
+aura,au_a01,Primeval Blaze,ancient,⊬Ω,volatile,-0.13
+aura,au_a02,Genesis Flare,ancient,⊛♛,catalyst,0.14
+aura,au_v01,Null Radiance,void,∅⊘,volatile,-0.15
+aura,au_v02,Oblivion Corona,void,⊘∅,catalyst,0.15
+
 Sheet: Rarity Spawn Weights,,,,,,
-Rarity,Spawn Weight %,Catch Rate Penalty,Energy Cost Value,Rarity Stars,,
-common,60,-0,0,1,,
-uncommon,25,-0.05,1,2,,
-rare,10,-0.10,2,3,,
-legendary,5,-0.15,3,4,,
-,,,,,,
-Sheet: Catch Formulas,,,,,,
-Formula,Expression,Notes,,,
-Base Catch Rate,0.80,Same for all creatures (single species),,,,
-Trait Penalty,sum(trait_rarity_penalty for each slot),4 slots. Common=0 Uncommon=-0.05 Rare=-0.10 Legendary=-0.15,,,,
-Escalating Fail Penalty,failed_attempts_in_batch * 0.10,Resets on new batch,,,,
-Effective Catch Rate,"max(0.05, min(0.95, base - trait_penalty - fail_penalty))",Floor 5% ceiling 95%,,,,
-,,,,,,
-Sheet: Catch Rate Examples,,,,,,
-Creature Traits,Base Rate,Trait Penalty,Fail Penalty (0 fails),Fail Penalty (1 fail),Fail Penalty (2 fails),
-4× Common,"0.80","-0.00","0.80","0.70","0.60",
-2× Common + 2× Uncommon,"0.80","-0.10","0.70","0.60","0.50",
-4× Uncommon,"0.80","-0.20","0.60","0.50","0.40",
-2× Uncommon + 2× Rare,"0.80","-0.30","0.50","0.40","0.30",
-4× Rare,"0.80","-0.40","0.40","0.30","0.20",
-2× Rare + 2× Legendary,"0.80","-0.50","0.30","0.20","0.10",
-4× Legendary,"0.80","-0.60","0.20","0.10","0.05",
-,,,,,,
-Sheet: Energy Cost,,,,,,
-Formula,Expression,Notes,,,
-Energy Cost,"1 + sum(rarity_cost_value for each slot)","Common=0 Uncommon=1 Rare=2 Legendary=3",,,,
-,,,,,,
-Energy Cost Examples,,,,,,
-Creature Traits,Rarity Sum,Energy Cost,,,,
-4× Common,0,1,,,,
-3× Common + 1× Uncommon,1,2,,,,
-2× Common + 2× Uncommon,2,3,,,,
-4× Uncommon,4,5,,,,
-2× Common + 2× Rare,4,5,,,,
-1× Common + 2× Uncommon + 1× Rare,4,5,,,,
-4× Rare,8,9,,,,
-2× Rare + 2× Legendary,10,11,,,,
-4× Legendary,12,13,,,,
-,,,,,,
-Sheet: Energy Economy,,,,,,
-Parameter,Value,Notes,,,
-Energy Gain Rate,1 per 30 minutes,Passive,,,,
-Max Energy Cap,20,Prevents hoarding too much,,,,
-Starting Energy,3,New player starts with enough for a few catches,,,,
-Session Bonus,+1 Energy,Awarded when session ends (gap > 15min),,,,
-Streak Bonus (3-day),+2 Energy,One-time bonus,,,,
-Streak Bonus (7-day),+3 Energy,One-time bonus,,,,
-,,,,,,
-Sheet: Merge Success Rate,,,,,,
-Formula,Expression,Notes,,,
-Base Merge Rate,0.50,Starting point,,,,
-Modifier Sum,"sum(merge_modifier_value for all traits of BOTH parents)","8 traits total (4 per parent)",,,,
-Effective Merge Rate,"max(0.05, min(0.90, base + modifier_sum))",Floor 5% ceiling 90%,,,,
-,,,,,,
-Merge Rate Examples,,,,,,
-Parent A Traits,Parent B Traits,Modifier Sum,Effective Rate,,,
-4× stable (+0.10),4× stable (+0.10),+0.80,0.90 (capped),,,
-4× stable (+0.10),4× volatile (-0.15),"0.40 + (-0.60) = -0.20",0.30,,,
-4× stable (+0.10),2× stable + 2× catalyst,"0.40 + 0.20 + 0.30 = 0.90 (estimate)",0.90 (capped),,,
-4× volatile (-0.15),4× volatile (-0.15),-1.20,0.05 (floored),,,
-2× stable + 2× volatile,2× stable + 2× volatile,"(0.20-0.30)+(0.20-0.30) = -0.20",0.30,,,
-Mixed typical,Mixed typical,~+0.00 to +0.10,0.50-0.60,,,
-,,,,,,
-Sheet: Mutation,,,,,,
-Formula,Expression,Notes,,,
-Base Mutation Chance,0.08 per slot,Checked independently per trait slot,,,,
-Mutation Up Weight,0.75,75% of mutations go up in rarity,,,,
-Mutation Down Weight,0.25,25% of mutations go down in rarity,,,,
-Volatile Bonus,"+0.05 to +0.10 per volatile trait in that slot's parents",More volatility = more chaos,,,,
-Stable Penalty,"-0.03 to -0.05 per stable trait in that slot's parents",More stability = less mutation,,,,
-Double Mutation,"mutation_chance * 0.25","Chance of jumping 2 tiers instead of 1",,,,
-,,,,,,
-Mutation Examples,,,,,,
-Parent A Slot,Parent B Slot,Stable/Volatile Context,Mutation Chance,Up %,Down %,Double Up %
-Common,Common,Both stable,0.03,75,25,25% of up
-Common,Common,Both volatile,0.18,75,25,25% of up
-Common,Uncommon,Mixed,0.08,75,25,25% of up
-Rare,Common,Both volatile,0.18,75,25,25% of up
-Rare,Rare,Both stable,0.03,75,25,25% of up
-,,,,,,
-Sheet: Trait Inheritance (per slot),,,,,,
-Scenario,Rarer Parent %,Common Parent %,Mutation Up %,Mutation Down %,Double Mutation %,
-Common + Common,45 (A),45 (B),6.0,2.0,1.5,
-Common + Uncommon,55 (uncommon),30 (common),6.0,2.0,1.5,
-Common + Rare,55 (rare),30 (common),6.0,2.0,1.5,
-Uncommon + Uncommon,45 (A),45 (B),6.0,2.0,1.5,
-Uncommon + Rare,55 (rare),30 (uncommon),6.0,2.0,1.5,
-Rare + Rare,45 (A),45 (B),6.0,2.0,1.5,
-Rare + Legendary,55 (legendary),30 (rare),6.0,2.0,1.5,
-Legendary + Legendary,45 (A),45 (B),6.0,2.0,1.5,
-,,,,,,
-Note: These are base rates. Volatile/stable modifiers shift mutation chance up or down.,,,,,,
-,,,,,,
-Sheet: Batch Spawning,,,,,,
-Parameter,Value,Notes,,,
-Batch Size Weights,"2=40%, 3=40%, 4=20%",,,,,
-Shared Attempts Per Batch,3,Regardless of batch size,,,,
-Batch Frequency,Every 10 ticks,Same as current TICKS_PER_SPAWN_CHECK,,,,
-Batch Timeout,30 minutes,Same as current CREATURE_LINGER_MS,,,,
-Escalating Fail Penalty,+0.10 per failed attempt,Applied to ALL subsequent catches in batch,,,,
-,,,,,,
-Sheet: Catalyst Synergies,,,,,,
-Trait A (Catalyst),Trait B (Any),Synergy Bonus,Notes,,
-Wide Eyes (◉.◉),Wave Mouth (~),+0.15,Calm combo — extra stable,,
-Wide Eyes (◉.◉),Wavy Tail (~),+0.10,Water theme synergy,,
-Glitch Eyes (⊘.⊘),Null Mouth (∅),+0.25,Void combo — legendary synergy,,
-Pointed Ears (/\^/\),Forked Tail (¥),+0.12,Sharp combo,,
-Halo Ears (°\_/°),Void Tail (∞),+0.22,Celestial combo — legendary synergy,,
-Wave Mouth (~),Wavy Tail (~),+0.10,Water theme synergy,,
-Note: Catalyst bonuses only apply when BOTH traits are present across the two parents being merged,,,,,,
+rarity,spawn_weight_pct,traits_per_slot,catch_rate_penalty,energy_cost_value,rarity_stars,
+common,30,16,-0.00,0,1,
+uncommon,22,10,-0.03,1,2,
+rare,17,8,-0.06,2,3,
+epic,13,5,-0.10,3,4,
+legendary,8,4,-0.15,4,5,
+mythic,5,3,-0.20,5,6,
+ancient,3,2,-0.25,6,7,
+void,2,2,-0.30,7,8,
+
+Sheet: Catalyst Synergy Pairs,,,,,,
+trait_a_id,trait_a_name,trait_b_id,trait_b_name,synergy_bonus,synergy_theme,
+eye_u01,Wide Gaze,mth_c04,Soft Purr,+0.10,Calm Serenity,
+eye_u02,Prism Sight,au_u01,Prism Shimmer,+0.12,Prismatic Resonance,
+eye_r01,Star Gaze,au_r02,Star Corona,+0.15,Stellar Alignment,
+eye_r04,Crown Sight,mth_m01,Origin Keen,+0.18,Royal Authority,
+eye_e03,Rift Vision,au_e03,Rift Corona,+0.20,Dimensional Tear,
+eye_l01,Void Gaze,mth_l01,Void Cry,+0.25,Void Resonance,
+eye_m03,Cosmic Sight,au_m03,Cosmic Radiance,+0.22,Cosmic Convergence,
+eye_a01,Primeval Watch,tl_a01,Primeval Ruin,+0.20,Ancient Memory,
+mth_c01,Calm Curve,tl_c04,Stub Twitch,+0.08,Gentle Flow,
+mth_u06,Facet Song,gl_u07,Coral Duct,+0.10,Reef Harmony,
+mth_r01,Bolt Scream,tl_r01,Bolt Strike,+0.15,Thunder Cascade,
+mth_r03,Rune Chant,pt_r03,Rune Etching,+0.16,Runic Binding,
+mth_e02,Nexus Shriek,gl_e02,Nexus Filter,+0.18,Nexus Lock,
+mth_l02,Apex Bellow,au_l02,Apex Flare,+0.22,Apex Dominion,
+mth_m01,Origin Keen,pt_m01,Origin Mandala,+0.20,Origin Echo,
+tl_u02,Fork Split,gl_u04,Brine Slit,+0.10,Tidal Fork,
+tl_r02,Star Blaze,au_r02,Star Corona,+0.14,Star Trail,
+tl_e04,Storm Cleave,gl_e04,Storm Slit,+0.18,Tempest Fury,
+tl_l02,Apex Rend,pt_l02,Apex Tessera,+0.20,Apex Fracture,
+tl_m03,Cosmic Rift,au_m03,Cosmic Radiance,+0.22,Cosmic Shatter,
+gl_c01,Still Vent,pt_c12,Fog Wash,+0.08,Misty Depths,
+gl_u03,Tidal Vent,tl_u01,Wave Lash,+0.10,Tidal Surge,
+gl_r01,Bolt Intake,au_r01,Bolt Radiance,+0.15,Charged Current,
+gl_r03,Rune Vent,pt_r03,Rune Etching,+0.14,Rune Flow,
+gl_l02,Apex Drain,mth_l02,Apex Bellow,+0.20,Apex Respiration,
+gl_m03,Cosmic Current,pt_m03,Cosmic Sigil,+0.22,Cosmic Tide,
+pt_u05,Shard Crack,au_u04,Shard Flare,+0.10,Shard Resonance,
+pt_r08,Arc Circuitry,au_r08,Arc Blaze,+0.15,Circuit Overload,
+pt_e02,Nexus Grid,eye_e02,Nexus Sight,+0.18,Nexus Web,
+pt_l04,Zenith Array,au_l04,Zenith Corona,+0.22,Zenith Convergence,
+au_a01,Primeval Blaze,eye_a01,Primeval Watch,+0.20,Primeval Awakening,
+au_v01,Null Radiance,eye_v01,Null Stare,+0.25,Null Singularity,
