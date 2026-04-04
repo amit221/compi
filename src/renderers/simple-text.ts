@@ -41,43 +41,105 @@ export class SimpleTextRenderer implements Renderer {
       return "No signals detected — nothing nearby right now.";
     }
 
-    let out = `+----------------------------------+\n`;
-    out += pad(`NEARBY SIGNALS — ${result.nearby.length} detected`) + "\n";
+    let out = `NEARBY SIGNALS — ${result.nearby.length} detected\n`;
     if (result.totalCatchItems !== undefined) {
-      out += pad(`Catch items: ${result.totalCatchItems}`) + "\n";
+      out += `Catch items: ${result.totalCatchItems}\n`;
     }
-    out += `+----------------------------------+\n\n`;
+    out += "\n";
 
-    for (const entry of result.nearby) {
-      const c = entry.creature;
-      const art = c.art.simple.map((line) => "    " + line).join("\n");
-
-      // Header with name - format: +- [1] Name-------+
-      const headerLabel = `[${entry.index + 1}] ${c.name}`;
-      const dashes = Math.max(0, 30 - headerLabel.length);
-      out += `+- ${headerLabel}${"-".repeat(dashes)}+\n`;
-
-      out += art + "\n";
-
-      // Rarity line
-      out += pad(`${stars(c.rarity)} ${rarityLabel(c.rarity)}`) + "\n";
-
-      // Catch rate with progress bar
-      const rate = Math.round(entry.catchRate * 100);
-      const barLength = Math.round((entry.catchRate / 1) * 10);
-      const bar = "#".repeat(barLength) + "-".repeat(10 - barLength);
-      out += pad(`Rate: ${rate}% [${bar}]`) + "\n";
-
-      // Attempts indicator
-      if (entry.attemptsRemaining !== undefined) {
-        const attemptBar = "*".repeat(entry.attemptsRemaining) + "o".repeat(MAX_CATCH_ATTEMPTS - entry.attemptsRemaining);
-        out += pad(`Attempts: [${attemptBar}]`) + "\n";
-      }
-      out += `+----------------------------------+\n\n`;
+    // Group creatures into rows of 3
+    for (let i = 0; i < result.nearby.length; i += 3) {
+      const rowCreatures = result.nearby.slice(i, i + 3);
+      const rows = this.formatCreatureRow(rowCreatures);
+      out += rows + "\n";
     }
 
     out += "Use /catch [number] to attempt capture";
     return out;
+  }
+
+  private formatCreatureRow(entries: ScanResult["nearby"]): string {
+    const colWidth = 20;
+
+    // Get max height of art to align rows
+    const maxArtHeight = Math.max(
+      ...entries.map((e) => e.creature.art.simple.length)
+    );
+
+    // Build each line of the row
+    const lines: string[] = [];
+
+    // Top border
+    let topBorder = "";
+    for (let i = 0; i < entries.length; i++) {
+      topBorder += "+" + "-".repeat(colWidth - 1);
+    }
+    topBorder += "+";
+    lines.push(topBorder);
+
+    // Name/header line
+    let nameLine = "|";
+    for (const entry of entries) {
+      const label = `[${entry.index + 1}] ${entry.creature.name}`;
+      nameLine += label.padEnd(colWidth - 1) + "|";
+    }
+    lines.push(nameLine);
+
+    // Art lines
+    for (let artLine = 0; artLine < maxArtHeight; artLine++) {
+      let artRowLine = "|";
+      for (const entry of entries) {
+        const c = entry.creature;
+        const line =
+          artLine < c.art.simple.length ? c.art.simple[artLine] : "";
+        artRowLine += line.padEnd(colWidth - 1) + "|";
+      }
+      lines.push(artRowLine);
+    }
+
+    // Rarity line
+    let rarityLine = "|";
+    for (const entry of entries) {
+      const c = entry.creature;
+      const rarity = `${stars(c.rarity)} ${rarityLabel(c.rarity)}`;
+      rarityLine += rarity.padEnd(colWidth - 1) + "|";
+    }
+    lines.push(rarityLine);
+
+    // Catch rate line
+    let rateLine = "|";
+    for (const entry of entries) {
+      const rate = Math.round(entry.catchRate * 100);
+      const rateStr = `Rate: ${rate}%`;
+      rateLine += rateStr.padEnd(colWidth - 1) + "|";
+    }
+    lines.push(rateLine);
+
+    // Attempts line
+    let attemptsLine = "|";
+    for (const entry of entries) {
+      let attStr = "";
+      if (entry.attemptsRemaining !== undefined) {
+        const attemptBar =
+          "*".repeat(entry.attemptsRemaining) +
+          "o".repeat(MAX_CATCH_ATTEMPTS - entry.attemptsRemaining);
+        attStr = `Att: [${attemptBar}]`;
+      } else {
+        attStr = "Att: [***]";
+      }
+      attemptsLine += attStr.padEnd(colWidth - 1) + "|";
+    }
+    lines.push(attemptsLine);
+
+    // Bottom border
+    let bottomBorder = "";
+    for (let i = 0; i < entries.length; i++) {
+      bottomBorder += "+" + "-".repeat(colWidth - 1);
+    }
+    bottomBorder += "+";
+    lines.push(bottomBorder);
+
+    return lines.join("\n");
   }
 
   renderCatch(result: CatchResult): string {
