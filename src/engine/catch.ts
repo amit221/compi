@@ -4,7 +4,14 @@ import {
   CreatureDefinition,
   ItemDefinition,
 } from "../types";
-import { XP_PER_CATCH, XP_PER_LEVEL, PASSIVE_DRIP_ITEMS } from "../config/constants";
+import {
+  XP_PER_CATCH,
+  XP_PER_LEVEL,
+  MAX_CATCH_RATE,
+  BONUS_ITEM_DROP_CHANCE,
+  BONUS_ITEM_ID,
+  FRAGMENTS_PER_CATCH,
+} from "../config/constants";
 import { getItemMap } from "../config/items";
 
 export function attemptCatch(
@@ -40,7 +47,7 @@ export function attemptCatch(
 
   // Calculate effective catch rate
   const multiplier = item.catchMultiplier || 1;
-  const effectiveRate = Math.min(creature.baseCatchRate * multiplier, 1);
+  const effectiveRate = Math.min(creature.baseCatchRate * multiplier, MAX_CATCH_RATE);
 
   const roll = rng();
   const success = roll < effectiveRate;
@@ -50,12 +57,12 @@ export function attemptCatch(
 
     let entry = state.collection.find((c) => c.creatureId === creature.id);
     if (entry) {
-      entry.fragments++;
+      entry.fragments += FRAGMENTS_PER_CATCH;
       entry.totalCaught++;
     } else {
       entry = {
         creatureId: creature.id,
-        fragments: 1,
+        fragments: FRAGMENTS_PER_CATCH,
         totalCaught: 1,
         firstCaughtAt: Date.now(),
         evolved: false,
@@ -78,12 +85,12 @@ export function attemptCatch(
 
     // 10% chance of bonus item drop
     let bonusItem: { item: ItemDefinition; count: number } | undefined;
-    if (rng() < 0.1) {
+    if (rng() < BONUS_ITEM_DROP_CHANCE) {
       const allItems = getItemMap();
-      const bonus = allItems.get("bytetrap");
+      const bonus = allItems.get(BONUS_ITEM_ID);
       if (bonus) {
         bonusItem = { item: bonus, count: 1 };
-        state.inventory["bytetrap"] = (state.inventory["bytetrap"] || 0) + 1;
+        state.inventory[BONUS_ITEM_ID] = (state.inventory[BONUS_ITEM_ID] || 0) + 1;
       }
     }
 
@@ -91,7 +98,7 @@ export function attemptCatch(
       success: true,
       creature,
       itemUsed: item,
-      fragmentsEarned: 1,
+      fragmentsEarned: FRAGMENTS_PER_CATCH,
       totalFragments: entry.fragments,
       xpEarned: xp,
       bonusItem,
