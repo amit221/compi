@@ -1,8 +1,10 @@
 // src/types.ts
 
-// --- Rarity ---
+// --- Rarity (8 tiers, pyramid distribution) ---
 
-export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
+export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic" | "ancient" | "void";
+
+export const RARITY_ORDER: Rarity[] = ["common", "uncommon", "rare", "epic", "legendary", "mythic", "ancient", "void"];
 
 export const RARITY_STARS: Record<Rarity, number> = {
   common: 1,
@@ -10,48 +12,53 @@ export const RARITY_STARS: Record<Rarity, number> = {
   rare: 3,
   epic: 4,
   legendary: 5,
+  mythic: 6,
+  ancient: 7,
+  void: 8,
 };
 
-// --- Creatures ---
+// --- Traits ---
 
-export interface CreatureArt {
-  simple: string[];   // Lines of ASCII art for simple text renderer
-  rich: string[];     // Lines of Unicode/box-drawing art for rich terminal
+export type TraitSlotId = "eyes" | "mouth" | "tail" | "gills" | "pattern" | "aura";
+
+export const TRAIT_SLOTS: TraitSlotId[] = ["eyes", "mouth", "tail", "gills", "pattern", "aura"];
+
+export type MergeModifierType = "stable" | "volatile" | "catalyst";
+
+export interface MergeModifier {
+  type: MergeModifierType;
+  value: number;
 }
+
+export interface TraitDefinition {
+  id: string;
+  name: string;
+  rarity: Rarity;
+  art: string;
+  mergeModifier: MergeModifier;
+}
+
+export interface TraitSlotConfig {
+  slotId: TraitSlotId;
+  variants: TraitDefinition[];
+}
+
+export interface CatalystSynergy {
+  traitA: string;
+  traitB: string;
+  bonus: number;
+}
+
+export interface CreatureTrait {
+  slotId: TraitSlotId;
+  traitId: string;
+  rarity: Rarity;
+  mergeModifier: MergeModifier;
+}
+
+// --- Time ---
 
 export type TimeOfDay = "morning" | "afternoon" | "evening" | "night";
-
-export interface SpawnCondition {
-  timeOfDay?: TimeOfDay[];
-  minTotalTicks?: number;
-}
-
-export interface CreatureDefinition {
-  id: string;
-  name: string;
-  description: string;
-  rarity: Rarity;
-  baseCatchRate: number;
-  art: CreatureArt;
-  spawnCondition: SpawnCondition;
-  evolution?: {
-    targetId: string;
-    fragmentCost: number;
-    catalystItemId?: string;
-  };
-}
-
-// --- Items ---
-
-export type ItemType = "capture" | "catalyst";
-
-export interface ItemDefinition {
-  id: string;
-  name: string;
-  description: string;
-  type: ItemType;
-  catchMultiplier?: number;
-}
 
 // --- Game State ---
 
@@ -62,24 +69,30 @@ export interface Tick {
 }
 
 export interface NearbyCreature {
-  creatureId: string;
+  id: string;
+  traits: CreatureTrait[];
   spawnedAt: number;
-  failedAttempts: number;
-  maxAttempts: number;
 }
 
-export interface CollectionEntry {
-  creatureId: string;
-  fragments: number;
-  totalCaught: number;
-  firstCaughtAt: number;
-  evolved: boolean;
+export interface CollectionCreature {
+  id: string;
+  traits: CreatureTrait[];
+  caughtAt: number;
+  generation: number;
+  mergedFrom?: [string, string];
+}
+
+export interface BatchState {
+  attemptsRemaining: number;
+  failPenalty: number;
+  spawnedAt: number;
 }
 
 export interface PlayerProfile {
   level: number;
   xp: number;
   totalCatches: number;
+  totalMerges: number;
   totalTicks: number;
   currentStreak: number;
   longestStreak: number;
@@ -87,16 +100,18 @@ export interface PlayerProfile {
 }
 
 export interface GameSettings {
-  renderer: "rich" | "simple" | "browser" | "terminal";
+  renderer: "simple" | "rich" | "browser" | "terminal";
   notificationLevel: "minimal" | "moderate" | "off";
 }
 
 export interface GameState {
   version: number;
   profile: PlayerProfile;
-  collection: CollectionEntry[];
-  inventory: Record<string, number>;
+  collection: CollectionCreature[];
+  energy: number;
+  lastEnergyGainAt: number;
   nearby: NearbyCreature[];
+  batch: BatchState | null;
   recentTicks: Tick[];
   claimedMilestones: string[];
   settings: GameSettings;
@@ -104,119 +119,66 @@ export interface GameState {
 
 // --- Engine Results ---
 
+export interface Notification {
+  message: string;
+  level: "minimal" | "moderate";
+}
+
+export interface ScanEntry {
+  index: number;
+  creature: NearbyCreature;
+  catchRate: number;
+  energyCost: number;
+}
+
 export interface ScanResult {
-  nearby: Array<{
-    index: number;
-    creature: CreatureDefinition;
-    spawnedAt: number;
-    catchRate: number;
-    attemptsRemaining?: number;  // New: attempts left for this creature (maxAttempts - failedAttempts)
-  }>;
-  totalCatchItems?: number;  // New: total count of bytetrap + netsnare + corelock
+  nearby: ScanEntry[];
+  energy: number;
+  batch: BatchState | null;
 }
 
 export interface CatchResult {
   success: boolean;
-  creature: CreatureDefinition;
-  itemUsed: ItemDefinition;
-  fragmentsEarned: number;
-  totalFragments: number;
-  xpEarned: number;
-  bonusItem?: { item: ItemDefinition; count: number };
+  creature: NearbyCreature;
+  energySpent: number;
   fled: boolean;
-  evolutionReady: boolean;
+  xpEarned: number;
+  attemptsRemaining: number;
+  failPenalty: number;
 }
 
-export interface EvolveResult {
+export interface MergeResult {
   success: boolean;
-  from: CreatureDefinition;
-  to: CreatureDefinition;
-  fragmentsSpent: number;
-  catalystUsed?: string;
+  parentA: CollectionCreature;
+  parentB: CollectionCreature;
+  child: CollectionCreature | null;
+  mergeRate: number;
+  synergyBonuses: CatalystSynergy[];
 }
 
 export interface StatusResult {
   profile: PlayerProfile;
   collectionCount: number;
-  totalCreatures: number;
+  energy: number;
   nearbyCount: number;
+  batchAttemptsRemaining: number;
 }
 
 export interface TickResult {
   notifications: Notification[];
-  spawned: CreatureDefinition[];
-  itemsEarned: Array<{ item: ItemDefinition; count: number }>;
+  spawned: boolean;
+  energyGained: number;
   despawned: string[];
 }
 
-export interface Notification {
-  type: "spawn" | "rare_spawn" | "despawn" | "milestone" | "evolution_ready";
-  message: string;
-}
-
-// --- Renderer ---
+// --- Renderer Interface ---
 
 export interface Renderer {
   renderScan(result: ScanResult): string;
   renderCatch(result: CatchResult): string;
-  renderCollection(collection: CollectionEntry[], creatures: Map<string, CreatureDefinition>): string;
-  renderInventory(inventory: Record<string, number>, items: Map<string, ItemDefinition>): string;
-  renderEvolve(result: EvolveResult): string;
+  renderMerge(result: MergeResult): string;
+  renderCollection(collection: CollectionCreature[]): string;
+  renderEnergy(energy: number, maxEnergy: number): string;
   renderStatus(result: StatusResult): string;
   renderNotification(notification: Notification): string;
-}
-
-// --- Config ---
-
-export interface MilestoneCondition {
-  type: "totalCatches" | "currentStreak" | "totalTicks";
-  threshold: number;
-}
-
-export interface MilestoneConfig {
-  id: string;
-  description: string;
-  condition: MilestoneCondition;
-  reward: Array<{ itemId: string; count: number }>;
-  oneTime: boolean;
-}
-
-export interface WeightedItem {
-  itemId: string;
-  count: number;
-  weight: number;
-}
-
-export interface BalanceConfig {
-  spawning: {
-    ticksPerSpawnCheck: number;
-    spawnProbability: number;
-    maxNearby: number;
-    initialSpawnCount: number;
-    creatureLingerMs: number;
-    maxCatchAttempts: number;
-    spawnWeights: Record<string, number>;
-    timeOfDay: Record<string, [number, number]>;
-  };
-  catching: {
-    maxCatchRate: number;
-    bonusItemDropChance: number;
-    bonusItemId: string;
-    fragmentsPerCatch: number;
-    xpPerCatch: Record<string, number>;
-  };
-  progression: {
-    xpPerLevel: number;
-    sessionGapMs: number;
-    tickPruneCount: number;
-  };
-  rewards: {
-    passiveDripInterval: number;
-    passiveDripItems: WeightedItem[];
-    sessionRewardItems: WeightedItem[];
-    milestones: MilestoneConfig[];
-  };
-  creatures: CreatureDefinition[];
-  items: ItemDefinition[];
-  messages: Record<string, Record<string, string>>;
 }
