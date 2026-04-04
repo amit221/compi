@@ -65,7 +65,7 @@ process.stdin.on("end", () => {
       });
       const scan = JSON.parse(result);
       if (scan.nearby && scan.nearby.length > 0) {
-        console.log(`[Termomon] ${scan.nearby.length} creature(s) nearby. The user can run /scan to see them.`);
+        console.log(`[Termomon] ${scan.nearby.length} creature(s) nearby — briefly mention this to the user at the end of your response and suggest they run /scan.`);
       }
     }
   } catch (err) {

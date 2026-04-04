@@ -59,66 +59,68 @@ export class SimpleTextRenderer implements Renderer {
   }
 
   private formatCreatureRow(entries: ScanResult["nearby"]): string {
-    const artWidth = 10;
-    const detailsWidth = 25;
+    const artWidth = 12;
+    const detailsWidth = 22;
     const cardWidth = artWidth + detailsWidth;
 
-    // Get max height of art to align rows
-    const maxArtHeight = Math.max(
-      ...entries.map((e) => e.creature.art.simple.length)
-    );
+    // Format each creature card individually
+    const creatureCards = entries.map((entry) => {
+      const c = entry.creature;
+      const card: string[] = [];
 
-    // Build each line of the row
-    const lines: string[] = [];
+      // Top border
+      card.push("+" + "-".repeat(cardWidth));
 
-    // Top border
-    let topBorder = "";
-    for (let i = 0; i < entries.length; i++) {
-      topBorder += "+" + "-".repeat(cardWidth);
-    }
-    topBorder += "+";
-    lines.push(topBorder);
+      // Get details
+      const name = `[${entry.index + 1}] ${c.name}`;
+      const rarity = `${stars(c.rarity)} ${rarityLabel(c.rarity)}`;
+      const rate = Math.round(entry.catchRate * 100);
+      const rateStr = `Rate: ${rate}%`;
+      const attemptBar =
+        entry.attemptsRemaining !== undefined
+          ? "*".repeat(entry.attemptsRemaining) +
+            "o".repeat(MAX_CATCH_ATTEMPTS - entry.attemptsRemaining)
+          : "***";
+      const attStr = `Att: [${attemptBar}]`;
 
-    // Art + Details lines
-    for (let lineIdx = 0; lineIdx < Math.max(maxArtHeight, 6); lineIdx++) {
-      let rowLine = "";
-      for (const entry of entries) {
-        const c = entry.creature;
+      // Build card with art on left, details on right
+      const maxHeight = Math.max(c.art.simple.length, 5);
+      for (let i = 0; i < maxHeight; i++) {
+        let line = "|";
+        // Art (left side)
         const artLine =
-          lineIdx < c.art.simple.length ? c.art.simple[lineIdx] : "";
+          i < c.art.simple.length ? c.art.simple[i] : "";
+        line += artLine.padEnd(artWidth);
 
-        // Build details for this line
+        // Details (right side)
         let detail = "";
-        if (lineIdx === 0) {
-          detail = `[${entry.index + 1}] ${c.name}`.substring(0, detailsWidth - 1);
-        } else if (lineIdx === 1) {
-          detail = `${stars(c.rarity)} ${rarityLabel(c.rarity)}`;
-        } else if (lineIdx === 2) {
-          const rate = Math.round(entry.catchRate * 100);
-          detail = `Rate: ${rate}%`;
-        } else if (lineIdx === 3) {
-          if (entry.attemptsRemaining !== undefined) {
-            const attemptBar =
-              "*".repeat(entry.attemptsRemaining) +
-              "o".repeat(MAX_CATCH_ATTEMPTS - entry.attemptsRemaining);
-            detail = `Att: [${attemptBar}]`;
-          } else {
-            detail = "Att: [***]";
-          }
-        }
+        if (i === 0) detail = name.substring(0, detailsWidth - 1);
+        else if (i === 1) detail = rarity.substring(0, detailsWidth - 1);
+        else if (i === 2) detail = rateStr.substring(0, detailsWidth - 1);
+        else if (i === 3) detail = attStr.substring(0, detailsWidth - 1);
 
-        rowLine += `|${artLine.padEnd(artWidth)}${detail.padEnd(detailsWidth - 1)}`;
+        line += detail.padEnd(detailsWidth - 1);
+        line += "|";
+        card.push(line);
       }
-      lines.push(rowLine + "|");
-    }
 
-    // Bottom border
-    let bottomBorder = "";
-    for (let i = 0; i < entries.length; i++) {
-      bottomBorder += "+" + "-".repeat(cardWidth);
+      // Bottom border
+      card.push("+" + "-".repeat(cardWidth) + "+");
+      return card;
+    });
+
+    // Combine cards horizontally
+    const lines: string[] = [];
+    if (creatureCards.length > 0) {
+      const maxLines = creatureCards[0].length;
+      for (let lineIdx = 0; lineIdx < maxLines; lineIdx++) {
+        let combined = "";
+        for (const card of creatureCards) {
+          combined += (card[lineIdx] || "").substring(0, cardWidth + 1);
+        }
+        lines.push(combined);
+      }
     }
-    bottomBorder += "+";
-    lines.push(bottomBorder);
 
     return lines.join("\n");
   }
