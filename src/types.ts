@@ -12,23 +12,6 @@ export const RARITY_STARS: Record<Rarity, number> = {
   legendary: 5,
 };
 
-// Icon systems for UI display
-export const RARITY_ICONS: Record<Rarity, string> = {
-  common: "☆",         // 1 star
-  uncommon: "★☆☆☆☆",  // 2 stars
-  rare: "★★☆☆☆",      // 3 stars
-  epic: "★★★☆☆",      // 4 stars
-  legendary: "★★★★★",  // 5 stars
-};
-
-export const CATCH_RATE_ICONS: Record<string, string> = {
-  veryEasy: "◈◈◈◈◈",  // 80%+ easy to catch
-  easy: "◈◈◈◈◇",       // 60-79%
-  medium: "◈◈◈◇◇",     // 40-59%
-  hard: "◈◈◇◇◇",       // 20-39%
-  veryHard: "◈◇◇◇◇",  // <20%
-};
-
 // --- Creatures ---
 
 export interface CreatureArt {

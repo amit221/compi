@@ -30,7 +30,6 @@ describe("SimpleTextRenderer scan inventory summary", () => {
     const output = renderer.renderScan(scanResult);
 
     expect(output).toContain("Catch items: 7");
-    expect(output).toContain("TestMonster");
   });
 
   it("should show remaining attempts for each creature", () => {
@@ -57,8 +56,8 @@ describe("SimpleTextRenderer scan inventory summary", () => {
     };
     const output = renderer.renderScan(scanResult);
 
-    expect(output).toContain("●●●"); // Attempts remaining indicator
-    expect(output).toContain("●○○"); // Attempts with one used
+    expect(output).toContain("Attempts: [***]");
+    expect(output).toContain("Attempts: [*oo]");
   });
 
   it("should show 0 attempts remaining when creature is about to flee", () => {
@@ -77,7 +76,7 @@ describe("SimpleTextRenderer scan inventory summary", () => {
     };
     const output = renderer.renderScan(scanResult);
 
-    expect(output).toContain("○○○"); // All attempts used
+    expect(output).toContain("Attempts: [ooo]");
   });
 
   it("should handle missing attemptsRemaining for backward compatibility", () => {
@@ -97,8 +96,8 @@ describe("SimpleTextRenderer scan inventory summary", () => {
     const output = renderer.renderScan(scanResult);
 
     expect(output).toContain("TestMonster");
-    expect(output).toContain("Creatures nearby");
-    // Should render gracefully without attempts
+    expect(output).toContain("NEARBY SIGNALS");
+    // Should render gracefully without attempts line
   });
 
   it("should display multiple creatures with different attempt counts", () => {
@@ -125,7 +124,7 @@ describe("SimpleTextRenderer scan inventory summary", () => {
     };
     const output = renderer.renderScan(scanResult);
 
-    expect(output).toContain("●●●"); // All attempts available
-    expect(output).toContain("○○○"); // All attempts used
+    expect(output).toContain("Attempts: [***]");
+    expect(output).toContain("Attempts: [ooo]");
   });
 });

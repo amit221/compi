@@ -30,8 +30,7 @@ describe("SimpleTextRenderer collection with art", () => {
 
     const output = renderer.renderCollection(collection, creatures);
 
-    expect(output).toContain("⠰"); // Should have art character
-    expect(output).toContain("⡱"); // Should have art character
+    expect(output).toContain("⠰⡱⢀⠤⠤⡀⢎⠆"); // Should have first line of art
     expect(output).toContain("Mousebyte");
   });
 
@@ -94,8 +93,8 @@ describe("SimpleTextRenderer collection with art", () => {
 
     const output = renderer.renderCollection(collection, creatures);
 
-    expect(output).toContain("Buglet");
-    expect(output).toContain("× 3"); // Show total caught
+    expect(output).toContain("Frags: [");
+    expect(output).toContain("3/5");
   });
 
   it("should display evolution ready indicator", () => {
@@ -126,7 +125,8 @@ describe("SimpleTextRenderer collection with art", () => {
 
     const output = renderer.renderCollection(collection, creatures);
 
-    expect(output).toContain("Buglet");
-    expect(output).toContain("× 5"); // Show total caught
+    expect(output).toContain("Frags: [");
+    expect(output).toContain("5/5");
+    expect(output).toContain("Ready to evolve");
   });
 });

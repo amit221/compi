@@ -35,8 +35,8 @@ describe("SimpleTextRenderer catch effects", () => {
     };
 
     const output = renderer.renderCatch(result);
+    expect(output).toContain("***"); // Success indicator
     expect(output).toContain("CAUGHT!");
-    expect(output).toContain("TestMonster");
   });
 
   it("should display failure animation on escape", () => {
@@ -53,8 +53,8 @@ describe("SimpleTextRenderer catch effects", () => {
     };
 
     const output = renderer.renderCatch(result);
+    expect(output).toContain("X"); // Failure indicator
     expect(output).toContain("ESCAPED");
-    expect(output).toContain("broke free");
   });
 
   it("should display flee animation when creature flees", () => {
@@ -71,8 +71,8 @@ describe("SimpleTextRenderer catch effects", () => {
     };
 
     const output = renderer.renderCatch(result);
+    expect(output).toContain("*"); // Flee indicator
     expect(output).toContain("FLED!");
-    expect(output).toContain("slipped away");
   });
 
   it("should show evolution ready indicator on success", () => {

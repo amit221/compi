@@ -11,7 +11,6 @@ import {
   RARITY_STARS,
 } from "../types";
 import { MAX_CATCH_ATTEMPTS } from "../config/constants";
-import { getRarityIcon, getCatchRateIcon, getAttemptsIcon } from "../config/icons";
 
 function stars(rarity: string): string {
   const count = RARITY_STARS[rarity as keyof typeof RARITY_STARS] || 1;
@@ -22,21 +21,18 @@ function rarityLabel(rarity: string): string {
   return rarity.charAt(0).toUpperCase() + rarity.slice(1);
 }
 
-// Helper: Expand braille art by ~30% using spacing
-function expandBrailleArt(artLines: string[], expandFactor: number = 1.3): string[] {
-  return artLines.map((line) => {
-    // Add spacing between characters: each char becomes char + space
-    const expanded = line.split("").join(" ");
-    // Add leading/trailing spaces to center
-    const padding = Math.floor((line.length * (expandFactor - 1)) / 2);
-    return " ".repeat(padding) + expanded + " ".repeat(padding);
-  });
+// Helper: Pad content to exactly 34 chars: | content padded |
+function pad(content: string): string {
+  const interiorWidth = 32; // 34 - 2 borders
+  const padding = Math.max(0, interiorWidth - content.length);
+  return `| ${content}${" ".repeat(padding)}|`;
 }
 
-// Helper: Center content within terminal width (assume 80 chars)
-function centerLine(content: string, width: number = 80): string {
-  const padding = Math.max(0, Math.floor((width - content.length) / 2));
-  return " ".repeat(padding) + content;
+// Helper: Pad content with double borders: | content padded |
+function padDouble(content: string): string {
+  const interiorWidth = 32; // 34 - 2 borders
+  const padding = Math.max(0, interiorWidth - content.length);
+  return `| ${content}${" ".repeat(padding)}|`;
 }
 
 export class SimpleTextRenderer implements Renderer {
@@ -45,31 +41,42 @@ export class SimpleTextRenderer implements Renderer {
       return "No signals detected — nothing nearby right now.";
     }
 
-    let out = `Creatures nearby: ${result.nearby.length}\n`;
+    let out = `+----------------------------------+\n`;
+    out += pad(`NEARBY SIGNALS — ${result.nearby.length} detected`) + "\n";
     if (result.totalCatchItems !== undefined) {
-      out += `Catch items: ${result.totalCatchItems}\n\n`;
+      out += pad(`Catch items: ${result.totalCatchItems}`) + "\n";
     }
+    out += `+----------------------------------+\n\n`;
 
     for (const entry of result.nearby) {
       const c = entry.creature;
+      const art = c.art.simple.map((line) => "    " + line).join("\n");
 
-      // Expand art by 30%
-      const expandedArt = expandBrailleArt(c.art.simple);
-      const artBlock = expandedArt.map((line) => centerLine(line)).join("\n");
+      // Header with name - format: +- [1] Name-------+
+      const headerLabel = `[${entry.index + 1}] ${c.name}`;
+      const dashes = Math.max(0, 30 - headerLabel.length);
+      out += `+- ${headerLabel}${"-".repeat(dashes)}+\n`;
 
-      // Build icon line
-      const rarityIcon = getRarityIcon(c.rarity);
-      const catchIcon = getCatchRateIcon(entry.catchRate);
-      const attemptsIcon = getAttemptsIcon(
-        entry.attemptsRemaining !== undefined ? entry.attemptsRemaining : 3
-      );
+      out += art + "\n";
 
-      out += `[${entry.index + 1}] ${c.name}\n`;
-      out += artBlock + "\n";
-      out += centerLine(`${rarityIcon}  ${catchIcon}  ${attemptsIcon}`) + "\n\n";
+      // Rarity line
+      out += pad(`${stars(c.rarity)} ${rarityLabel(c.rarity)}`) + "\n";
+
+      // Catch rate with progress bar
+      const rate = Math.round(entry.catchRate * 100);
+      const barLength = Math.round((entry.catchRate / 1) * 10);
+      const bar = "#".repeat(barLength) + "-".repeat(10 - barLength);
+      out += pad(`Rate: ${rate}% [${bar}]`) + "\n";
+
+      // Attempts indicator
+      if (entry.attemptsRemaining !== undefined) {
+        const attemptBar = "*".repeat(entry.attemptsRemaining) + "o".repeat(MAX_CATCH_ATTEMPTS - entry.attemptsRemaining);
+        out += pad(`Attempts: [${attemptBar}]`) + "\n";
+      }
+      out += `+----------------------------------+\n\n`;
     }
 
-    out += centerLine("Use /catch [number] to attempt capture");
+    out += "Use /catch [number] to attempt capture";
     return out;
   }
 
@@ -77,37 +84,47 @@ export class SimpleTextRenderer implements Renderer {
     const c = result.creature;
 
     if (result.success) {
-      let out = centerLine("✓ CAUGHT! ✓") + "\n";
-      out += centerLine(`${c.name} captured with ${result.itemUsed.name}`) + "\n\n";
-      out += centerLine(`+${result.xpEarned} XP`) + "\n";
+      let out = `+==================================+\n`;
+      out += padDouble("*** CAUGHT! ***") + "\n";
+      out += `+==================================+\n`;
+      out += padDouble(`${c.name} captured with ${result.itemUsed.name}`) + "\n";
+      out += `+==================================+\n`;
+      out += padDouble(`+${result.xpEarned} XP`) + "\n";
 
       if (c.evolution) {
         const bar = Math.round((result.totalFragments / c.evolution.fragmentCost) * 10);
-        out += centerLine(`Fragments: [${" ".repeat(bar)}${" ".repeat(10 - bar)}] ${result.totalFragments}/${c.evolution.fragmentCost}`) + "\n";
+        out += padDouble(`Fragments: [${" ".repeat(bar)}${" ".repeat(10 - bar)}] ${result.totalFragments}/${c.evolution.fragmentCost}`) + "\n";
       } else {
-        out += centerLine(`Fragment: ${result.totalFragments}`) + "\n";
+        out += padDouble(`Fragment: ${result.totalFragments}`) + "\n";
       }
 
       if (result.evolutionReady) {
-        out += centerLine("[Ready to evolve!]") + "\n";
+        out += padDouble("[Ready to evolve!]") + "\n";
       }
       if (result.bonusItem) {
-        out += centerLine(`Bonus: +${result.bonusItem.count}x ${result.bonusItem.item.name}`) + "\n";
+        out += padDouble(`Bonus: +${result.bonusItem.count}x ${result.bonusItem.item.name}`) + "\n";
       }
-      return out.trimEnd();
+      out += `+==================================+`;
+      return out;
     }
 
     if (result.fled) {
-      let out = centerLine("✗ FLED! ✗") + "\n";
-      out += centerLine(`${c.name} slipped away for good.`) + "\n";
-      out += centerLine(`The ${result.itemUsed.name} was used.`) + "\n";
-      return out.trimEnd();
+      let out = `+==================================+\n`;
+      out += padDouble("* FLED! *") + "\n";
+      out += `+==================================+\n`;
+      out += padDouble(`${c.name} slipped away for good.`) + "\n";
+      out += padDouble(`The ${result.itemUsed.name} was used.`) + "\n";
+      out += `+==================================+`;
+      return out;
     }
 
-    let out = centerLine("✗ ESCAPED ✗") + "\n";
-    out += centerLine(`${c.name} broke free!`) + "\n";
-    out += centerLine(`Try again with another ${result.itemUsed.name}`) + "\n";
-    return out.trimEnd();
+    let out = `+==================================+\n`;
+    out += padDouble("X ESCAPED") + "\n";
+    out += `+==================================+\n`;
+    out += padDouble(`${c.name} broke free!`) + "\n";
+    out += padDouble(`Try again with another ${result.itemUsed.name}`) + "\n";
+    out += `+==================================+`;
+    return out;
   }
 
   renderCollection(
@@ -118,24 +135,34 @@ export class SimpleTextRenderer implements Renderer {
       return "Your collection is empty. Use /scan to find creatures nearby.";
     }
 
-    let out = `Your collection: ${collection.length} creatures\n\n`;
+    let out = `+----------------------------------+\n`;
+    out += pad(`COLLECTION — ${collection.length} creatures`) + "\n";
+    out += `+----------------------------------+\n\n`;
 
     for (const entry of collection) {
       const c = creatures.get(entry.creatureId);
       if (!c) continue;
 
       const evolvedLabel = entry.evolved ? " [EVOLVED]" : "";
+      const headerContent = `${c.name}${evolvedLabel}`;
+      const dashes = Math.max(0, 32 - headerContent.length - 1);
+      out += `+ ${headerContent}${" ".repeat(dashes)}+\n`;
 
-      // Expand art by 30%
-      const expandedArt = expandBrailleArt(c.art.simple);
-      const artBlock = expandedArt.map((line) => centerLine(line)).join("\n");
+      out += pad(stars(c.rarity)) + "\n";
 
-      // Build icon line
-      const rarityIcon = getRarityIcon(c.rarity);
+      // Display creature art
+      const art = c.art.simple.map((line) => "  " + line).join("\n");
+      out += art + "\n";
 
-      out += centerLine(`${c.name}${evolvedLabel}`) + "\n";
-      out += artBlock + "\n";
-      out += centerLine(`${rarityIcon} × ${entry.totalCaught}`) + "\n\n";
+      out += pad(`Caught: ${entry.totalCaught}x`) + "\n";
+      if (c.evolution && !entry.evolved) {
+        const bar = Math.round((entry.fragments / c.evolution.fragmentCost) * 10);
+        out += pad(`Frags: [${" ".repeat(bar)}${" ".repeat(10 - bar)}] ${entry.fragments}/${c.evolution.fragmentCost}`) + "\n";
+        if (entry.fragments >= c.evolution.fragmentCost) {
+          out += pad("[Ready to evolve!]") + "\n";
+        }
+      }
+      out += `+----------------------------------+\n\n`;
     }
 
     return out.trimEnd();
@@ -165,24 +192,28 @@ export class SimpleTextRenderer implements Renderer {
       }
     }
 
-    let out = centerLine("INVENTORY") + "\n\n";
+    let out = `+----------------------------------+\n`;
+    out += pad("INVENTORY") + "\n";
+    out += `+----------------------------------+\n\n`;
 
     if (captureItems.length > 0) {
-      out += centerLine("CAPTURE DEVICES") + "\n";
+      out += `CAPTURE DEVICES\n`;
       for (const [itemId, count] of captureItems) {
         const item = items.get(itemId);
         if (!item) continue;
-        out += centerLine(`${item.name} ×${count}`) + "\n";
+        out += `  +- ${item.name} x${count}\n`;
+        out += `     ${item.description}\n`;
       }
       out += "\n";
     }
 
     if (catalystItems.length > 0) {
-      out += centerLine("EVOLUTION CATALYSTS") + "\n";
+      out += `EVOLUTION CATALYSTS\n`;
       for (const [itemId, count] of catalystItems) {
         const item = items.get(itemId);
         if (!item) continue;
-        out += centerLine(`${item.name} ×${count}`) + "\n";
+        out += `  +- ${item.name} x${count}\n`;
+        out += `     ${item.description}\n`;
       }
       out += "\n";
     }
@@ -195,43 +226,47 @@ export class SimpleTextRenderer implements Renderer {
       return "Evolution failed.";
     }
 
-    let out = centerLine("✨ EVOLUTION COMPLETE! ✨") + "\n";
-    out += centerLine(`${result.from.name} -> ${result.to.name}`) + "\n\n";
-
-    // Expand and center evolved creature art
-    const expandedArt = expandBrailleArt(result.to.art.simple);
-    const artBlock = expandedArt.map((line) => centerLine(line)).join("\n");
-    out += artBlock + "\n\n";
-
-    out += centerLine(result.to.description) + "\n";
+    let out = `+==================================+\n`;
+    out += padDouble("[* EVOLUTION COMPLETE! *]") + "\n";
+    out += `+==================================+\n`;
+    out += padDouble(`${result.from.name} -> ${result.to.name}`) + "\n";
+    out += `+==================================+\n`;
+    const art = result.to.art.simple.map((line) => "  " + line).join("\n");
+    out += art + "\n";
+    out += padDouble("") + "\n";
+    out += padDouble(result.to.description) + "\n";
     if (result.catalystUsed) {
-      out += centerLine(`(Used: ${result.catalystUsed})`) + "\n";
+      out += padDouble(`(Used: ${result.catalystUsed})`) + "\n";
     }
-    return out.trimEnd();
+    out += `+==================================+`;
+    return out;
   }
 
   renderStatus(result: StatusResult): string {
     const p = result.profile;
-    let out = centerLine("STATUS") + "\n\n";
-    out += centerLine(`Level ${p.level}`) + "\n";
+    let out = `+----------------------------------+\n`;
+    out += pad("STATUS") + "\n";
+    out += `+----------------------------------+\n`;
+    out += pad(`Level ${p.level}`) + "\n";
 
     // XP progress bar
     const nextLevelXP = p.level * 100;
     const xpPercent = (p.xp / nextLevelXP) * 100;
     const xpBar = Math.round(xpPercent / 10);
-    out += centerLine(`XP: ${"#".repeat(xpBar)}${"-".repeat(10 - xpBar)} ${p.xp}/${nextLevelXP}`) + "\n";
+    out += pad(`XP: ${"#".repeat(xpBar)}${"-".repeat(10 - xpBar)} ${p.xp}/${nextLevelXP}`) + "\n";
 
-    out += centerLine(`Total catches: ${p.totalCatches}`) + "\n";
+    out += pad(`Total catches: ${p.totalCatches}`) + "\n";
 
     // Collection progress bar
     const collectionPercent = (result.collectionCount / result.totalCreatures) * 100;
     const collectionBar = Math.round(collectionPercent / 10);
-    out += centerLine(`Collection: ${"*".repeat(collectionBar)}${"-".repeat(10 - collectionBar)} ${result.collectionCount}/${result.totalCreatures}`) + "\n";
+    out += pad(`Collection: ${"*".repeat(collectionBar)}${"-".repeat(10 - collectionBar)} ${result.collectionCount}/${result.totalCreatures}`) + "\n";
 
-    out += centerLine(`Streak: ${p.currentStreak} days (best: ${p.longestStreak})`) + "\n";
-    out += centerLine(`Nearby: ${result.nearbyCount} creatures`) + "\n";
-    out += centerLine(`Total ticks: ${p.totalTicks}`) + "\n";
-    return out.trimEnd();
+    out += pad(`Streak: ${p.currentStreak} days (best: ${p.longestStreak})`) + "\n";
+    out += pad(`Nearby: ${result.nearbyCount} creatures`) + "\n";
+    out += pad(`Total ticks: ${p.totalTicks}`) + "\n";
+    out += `+----------------------------------+`;
+    return out;
   }
 
   renderNotification(notification: Notification): string {
