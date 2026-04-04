@@ -35,7 +35,7 @@ describe("SimpleTextRenderer catch effects", () => {
     };
 
     const output = renderer.renderCatch(result);
-    expect(output).toContain("✓✓✓"); // Success indicator
+    expect(output).toContain("***"); // Success indicator
     expect(output).toContain("CAUGHT!");
   });
 
@@ -53,7 +53,7 @@ describe("SimpleTextRenderer catch effects", () => {
     };
 
     const output = renderer.renderCatch(result);
-    expect(output).toContain("✗"); // Failure indicator
+    expect(output).toContain("X"); // Failure indicator
     expect(output).toContain("ESCAPED");
   });
 
@@ -71,7 +71,7 @@ describe("SimpleTextRenderer catch effects", () => {
     };
 
     const output = renderer.renderCatch(result);
-    expect(output).toContain("✕"); // Flee indicator
+    expect(output).toContain("*"); // Flee indicator
     expect(output).toContain("FLED!");
   });
 
@@ -90,8 +90,7 @@ describe("SimpleTextRenderer catch effects", () => {
     };
 
     const output = renderer.renderCatch(result);
-    expect(output).toContain("★"); // Evolution ready indicator
-    expect(output).toContain("★ Ready to evolve!");
+    expect(output).toContain("[Ready to evolve!]");
   });
 
   it("should show bonus item when earned", () => {

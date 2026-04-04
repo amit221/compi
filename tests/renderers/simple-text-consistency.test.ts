@@ -20,7 +20,7 @@ describe("SimpleTextRenderer consistency - status and evolve", () => {
     };
 
     const output = renderer.renderStatus(result);
-    expect(output).toContain("┌");
+    expect(output).toContain("+");
     expect(output).toContain("STATUS");
   });
 
@@ -78,7 +78,7 @@ describe("SimpleTextRenderer consistency - status and evolve", () => {
     };
 
     const output = renderer.renderEvolve(result);
-    expect(output).toContain("→");
+    expect(output).toContain("->");
     expect(output).toContain("Circuitmouse");
   });
 

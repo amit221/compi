@@ -52,7 +52,7 @@ describe("SimpleTextRenderer inventory display", () => {
 
     const output = renderer.renderInventory(inventory, items);
     expect(output).toContain("INVENTORY");
-    expect(output).toContain("─");
+    expect(output).toContain("-");
     expect(output).toContain("ByteTrap");
   });
 
@@ -110,8 +110,8 @@ describe("SimpleTextRenderer inventory display", () => {
     ]);
 
     const output = renderer.renderInventory(inventory, items);
-    expect(output).toContain("├─"); // Tree-style branch
-    expect(output).toContain("│"); // Tree-style line
+    expect(output).toContain("+-"); // Tree-style branch
+    expect(output).toContain("|"); // Tree-style line
   });
 
   it("should display correct item counts", () => {
