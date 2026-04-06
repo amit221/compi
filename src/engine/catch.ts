@@ -1,85 +1,65 @@
-import { GameState, NearbyCreature, CatchResult, CreatureTrait, CollectionCreature, Rarity } from "../types";
-import { RARITY_CATCH_PENALTY } from "../config/traits";
+import { GameState, NearbyCreature, CatchResult, CreatureSlot, CollectionCreature, Rarity, RARITY_ORDER } from "../types";
+import {
+  BASE_CATCH_RATE,
+  MIN_CATCH_RATE,
+  MAX_CATCH_RATE,
+  FAIL_PENALTY_PER_MISS,
+  RARITY_CATCH_PENALTY,
+  XP_PER_RARITY,
+} from "../config/constants";
 import { calculateEnergyCost, spendEnergy } from "./energy";
 
-// Constants
-export const BASE_CATCH_RATE = 0.80;
-export const MIN_CATCH_RATE = 0.05;
-export const MAX_CATCH_RATE = 0.95;
-export const FAIL_PENALTY_PER_MISS = 0.10;
-
-export const XP_PER_RARITY: Record<Rarity, number> = {
-  common: 10,
-  uncommon: 25,
-  rare: 50,
-  epic: 100,
-  legendary: 250,
-  mythic: 500,
-  ancient: 1000,
-  void: 2000,
-};
-
 /**
- * Calculate the catch rate based on creature traits and current fail penalty.
+ * Calculate the catch rate based on a creature's 4 slots and current fail penalty.
  *
  * Formula:
- * - Start with BASE_CATCH_RATE (80%)
- * - Subtract per-trait penalty based on rarity
- * - Subtract fail penalty from escalating attempts
+ * - Compute average rarity index across all slots
+ * - Look up penalty for that average rarity
+ * - rate = BASE_CATCH_RATE - rarityPenalty - failPenalty
  * - Clamp to [MIN_CATCH_RATE, MAX_CATCH_RATE]
  */
-export function calculateCatchRate(traits: CreatureTrait[], failPenalty: number): number {
-  // Sum rarity penalties
-  const rarityPenalty = traits.reduce((sum, trait) => {
-    return sum + RARITY_CATCH_PENALTY[trait.rarity];
-  }, 0);
+export function calculateCatchRate(slots: CreatureSlot[], failPenalty: number): number {
+  if (slots.length === 0) {
+    return Math.max(MIN_CATCH_RATE, Math.min(MAX_CATCH_RATE, BASE_CATCH_RATE - failPenalty));
+  }
 
-  // Calculate effective rate
-  let rate = BASE_CATCH_RATE - rarityPenalty - failPenalty;
+  const totalIndex = slots.reduce((sum, s) => sum + RARITY_ORDER.indexOf(s.rarity), 0);
+  const avgIndex = Math.round(totalIndex / slots.length);
+  const avgRarity: Rarity = RARITY_ORDER[Math.min(avgIndex, RARITY_ORDER.length - 1)];
+  const rarityPenalty = RARITY_CATCH_PENALTY[avgRarity] ?? 0;
 
-  // Clamp to valid range
+  const rate = BASE_CATCH_RATE - rarityPenalty - failPenalty;
   return Math.max(MIN_CATCH_RATE, Math.min(MAX_CATCH_RATE, rate));
 }
 
 /**
  * Calculate XP earned from catching a creature.
- * XP is the average of XP_PER_RARITY across all 6 traits, rounded.
+ * Uses average rarity to look up XP_PER_RARITY.
  */
-function calculateXpEarned(traits: CreatureTrait[]): number {
-  const total = traits.reduce((sum, trait) => sum + XP_PER_RARITY[trait.rarity], 0);
-  return Math.round(total / traits.length);
+export function calculateXpEarned(slots: CreatureSlot[]): number {
+  if (slots.length === 0) return XP_PER_RARITY["common"] ?? 10;
+
+  const totalIndex = slots.reduce((sum, s) => sum + RARITY_ORDER.indexOf(s.rarity), 0);
+  const avgIndex = Math.round(totalIndex / slots.length);
+  const avgRarity: Rarity = RARITY_ORDER[Math.min(avgIndex, RARITY_ORDER.length - 1)];
+
+  return XP_PER_RARITY[avgRarity] ?? 10;
 }
 
 /**
  * Attempt to catch a nearby creature.
  *
- * Throws if:
- * - No active batch
- * - No attempts remaining
- * - Invalid creature index
- * - Insufficient energy
+ * Throws if: no active batch, no attempts remaining, invalid index, insufficient energy.
  *
- * On success:
- * - Removes creature from nearby
- * - Adds to collection as generation=0
- * - Grants XP
- * - Increments totalCatches
- * - Checks for level up
- *
- * On failure:
- * - Increments failPenalty by FAIL_PENALTY_PER_MISS
- * - Creature remains nearby
- *
- * Always:
- * - Spends energy
- * - Decrements attemptsRemaining
+ * On success: removes creature from nearby, adds to collection (generation=0), grants XP.
+ * On failure: increments failPenalty.
+ * Always: spends energy, decrements attemptsRemaining.
  */
 export function attemptCatch(
   state: GameState,
   nearbyIndex: number,
   rng: () => number = Math.random
 ): CatchResult {
-  // Validate batch
   if (!state.batch) {
     throw new Error("No active batch");
   }
@@ -88,55 +68,42 @@ export function attemptCatch(
     throw new Error("No attempts remaining");
   }
 
-  // Validate index
   if (nearbyIndex < 0 || nearbyIndex >= state.nearby.length) {
     throw new Error("Invalid creature index");
   }
 
   const nearby = state.nearby[nearbyIndex];
+  const energyCost = calculateEnergyCost(nearby.slots);
 
-  // Calculate energy cost
-  const energyCost = calculateEnergyCost(nearby.traits);
-
-  // Validate energy
   if (state.energy < energyCost) {
     throw new Error(`Not enough energy: have ${state.energy}, need ${energyCost}`);
   }
 
-  // Spend energy
   spendEnergy(state, energyCost);
-
-  // Decrement attempts
   state.batch.attemptsRemaining--;
 
-  // Calculate catch rate and attempt
-  const catchRate = calculateCatchRate(nearby.traits, state.batch.failPenalty);
+  const catchRate = calculateCatchRate(nearby.slots, state.batch.failPenalty);
   const roll = rng();
   const success = roll < catchRate;
 
   let xpEarned = 0;
 
   if (success) {
-    // Remove from nearby
     state.nearby.splice(nearbyIndex, 1);
+    xpEarned = calculateXpEarned(nearby.slots);
 
-    // Calculate XP
-    xpEarned = calculateXpEarned(nearby.traits);
-
-    // Add to collection as generation 0
     const collectionCreature: CollectionCreature = {
       id: nearby.id,
-      traits: nearby.traits,
+      name: nearby.name,
+      slots: nearby.slots,
       caughtAt: Date.now(),
       generation: 0,
     };
     state.collection.push(collectionCreature);
 
-    // Update profile
     state.profile.xp += xpEarned;
     state.profile.totalCatches++;
   } else {
-    // Increment fail penalty for next attempt
     state.batch.failPenalty += FAIL_PENALTY_PER_MISS;
   }
 
