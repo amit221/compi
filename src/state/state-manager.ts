@@ -6,7 +6,7 @@ import { logger } from "../logger";
 function defaultState(): GameState {
   const today = new Date().toISOString().split("T")[0];
   return {
-    version: 2,
+    version: 3,
     profile: {
       level: 1,
       xp: 0,
@@ -25,46 +25,9 @@ function defaultState(): GameState {
     recentTicks: [],
     claimedMilestones: [],
     settings: {
-      renderer: "simple",
       notificationLevel: "moderate",
     },
   };
-}
-
-function migrateState(raw: Record<string, unknown>): GameState {
-  const version = (raw.version as number) ?? 1;
-
-  if (version < 2) {
-    // Migrate from v1 (species-based) to v2 (trait-based)
-    const today = new Date().toISOString().split("T")[0];
-    const oldProfile = (raw.profile as Record<string, unknown>) ?? {};
-    return {
-      version: 2,
-      profile: {
-        level: (oldProfile.level as number) ?? 1,
-        xp: (oldProfile.xp as number) ?? 0,
-        totalCatches: (oldProfile.totalCatches as number) ?? 0,
-        totalMerges: 0,
-        totalTicks: (oldProfile.totalTicks as number) ?? 0,
-        currentStreak: (oldProfile.currentStreak as number) ?? 0,
-        longestStreak: (oldProfile.longestStreak as number) ?? 0,
-        lastActiveDate: (oldProfile.lastActiveDate as string) ?? today,
-      },
-      collection: [],
-      energy: 5,
-      lastEnergyGainAt: Date.now(),
-      nearby: [],
-      batch: null,
-      recentTicks: (raw.recentTicks as GameState["recentTicks"]) ?? [],
-      claimedMilestones: (raw.claimedMilestones as string[]) ?? [],
-      settings: (raw.settings as GameState["settings"]) ?? {
-        renderer: "simple",
-        notificationLevel: "moderate",
-      },
-    };
-  }
-
-  return raw as unknown as GameState;
 }
 
 export class StateManager {
@@ -74,7 +37,11 @@ export class StateManager {
     try {
       const data = fs.readFileSync(this.filePath, "utf-8");
       const raw = JSON.parse(data) as Record<string, unknown>;
-      return migrateState(raw);
+      if ((raw.version as number) !== 3) {
+        logger.info("Incompatible state version, creating fresh state", { path: this.filePath });
+        return defaultState();
+      }
+      return raw as unknown as GameState;
     } catch (err: unknown) {
       const errObj = err as Record<string, unknown>;
       const isNotFound = errObj && errObj.code === "ENOENT";
@@ -99,9 +66,8 @@ export class StateManager {
       try {
         fs.renameSync(tmp, this.filePath);
       } catch {
-        // Rename can fail on Windows due to file locking; fall back to direct write
         fs.writeFileSync(this.filePath, JSON.stringify(state, null, 2), "utf-8");
-        try { fs.unlinkSync(tmp); } catch { /* ignore cleanup failure */ }
+        try { fs.unlinkSync(tmp); } catch { /* ignore */ }
       }
     } catch (err: unknown) {
       logger.error("Failed to save state", {
