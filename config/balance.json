@@ -16,34 +16,40 @@
     "minCatchRate": 0.05,
     "maxCatchRate": 0.95,
     "failPenaltyPerMiss": 0.10,
+    "rarityPenalty": {
+      "common": 0.00,
+      "uncommon": 0.05,
+      "rare": 0.10,
+      "epic": 0.18,
+      "legendary": 0.28,
+      "mythic": 0.40
+    },
     "xpPerRarity": {
       "common": 10,
       "uncommon": 25,
       "rare": 50,
       "epic": 100,
       "legendary": 250,
-      "mythic": 500,
-      "ancient": 1000,
-      "void": 2000
+      "mythic": 500
     }
   },
   "energy": {
     "gainIntervalMs": 1800000,
     "maxEnergy": 30,
     "startingEnergy": 5,
-    "sessionBonus": 1
+    "sessionBonus": 1,
+    "costPerRarity": {
+      "common": 1,
+      "uncommon": 1,
+      "rare": 2,
+      "epic": 3,
+      "legendary": 4,
+      "mythic": 5
+    }
   },
   "merge": {
-    "baseMergeRate": 0.50,
-    "minMergeRate": 0.05,
-    "maxMergeRate": 0.90,
-    "baseMutation": 0.08,
-    "volatileMutationBonus": 0.07,
-    "stableMutationPenalty": 0.04,
-    "minMutation": 0.01,
-    "maxMutation": 0.30,
-    "mutationUpWeight": 0.75,
-    "doubleMutationChance": 0.25
+    "slotWeightBase": 1.0,
+    "slotWeightPerTier": 2.5
   },
   "progression": {
     "xpPerLevel": 100,
@@ -104,37 +110,37 @@
       "footer": "Use /catch [number] to attempt capture"
     },
     "catch": {
-      "successHeader": "*** CAUGHT! ***",
-      "captured": "{name} added to collection",
+      "successHeader": "✦ CAUGHT! ✦",
+      "captured": "{name} joined your collection!",
       "xpGained": "+{xp} XP",
-      "energySpent": "Energy spent: {energy}",
-      "fledHeader": "* FLED! *",
-      "fledMessage": "{name} slipped away.",
-      "escapedHeader": "X ESCAPED",
-      "escapedMessage": "{name} broke free!",
-      "escapedHint": "Attempts remaining: {attempts}"
+      "energySpent": "-{energy} Energy",
+      "fledHeader": "✦ FLED ✦",
+      "fledMessage": "{name} fled into the void!",
+      "escapedHeader": "✦ ESCAPED ✦",
+      "escapedMessage": "{name} slipped away!",
+      "escapedHint": "{attempts} attempts remaining"
     },
     "collection": {
       "empty": "Your collection is empty. Use /scan to find creatures nearby.",
-      "header": "COLLECTION — {count} creatures",
-      "generation": "Gen {gen}"
+      "header": "Your creatures ({count})"
     },
     "merge": {
-      "failed": "Merge failed — both creatures lost.",
-      "successHeader": "[* MERGE COMPLETE! *]",
-      "childBorn": "Child creature born (Gen {gen})",
-      "mergeRate": "Success rate was: {rate}%"
+      "previewHeader": "Merge Preview",
+      "confirmHint": "/merge confirm to proceed",
+      "successHeader": "✦ MERGE SUCCESS ✦",
+      "upgraded": "{name} — {slot} upgraded!",
+      "consumed": "{name} was consumed."
     },
     "status": {
-      "header": "STATUS",
+      "header": "Player Status",
       "level": "Level {level}",
       "xp": "XP: {bar} {xp}/{nextXp}",
-      "catches": "Total catches: {count}",
-      "merges": "Total merges: {count}",
+      "catches": "Catches: {count}",
+      "merges": "Merges: {count}",
       "collection": "Collection: {count} creatures",
       "streak": "Streak: {streak} days (best: {best})",
       "nearby": "Nearby: {count} creatures",
-      "ticks": "Total ticks: {count}",
+      "ticks": "Ticks: {count}",
       "energy": "Energy: {energy}/{maxEnergy}"
     },
     "notifications": {
