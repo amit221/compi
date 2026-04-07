@@ -2,7 +2,8 @@
 // scripts/tick-hook.js
 //
 // Claude Code hook script. Receives JSON on stdin, records a game tick.
-// Fires on: PostToolUse, Stop, SessionStart (via plugin hooks/hooks.json)
+// Fires on: PostToolUse, Stop, SessionStart (Claude Code via hooks/hooks.json)
+//           afterFileEdit, stop, sessionStart (Cursor via hooks/cursor-hooks.json)
 // UserPromptSubmit must be registered in settings.json (plugin bug workaround)
 
 const { execFileSync } = require("child_process");
@@ -57,7 +58,8 @@ process.stdin.on("end", () => {
   // Must use plain text stdout, not JSON (Claude Code bug workaround)
   try {
     const data = JSON.parse(input);
-    if (data.hook_event_name === "UserPromptSubmit") {
+    if (data.hook_event_name === "UserPromptSubmit" ||
+        data.hook_event_name === "beforeSubmitPrompt") {
       const cliPath = path.resolve(__dirname, "..", "dist", "cli.js");
       const result = execFileSync("node", [cliPath, "scan", "--json"], {
         timeout: 5000,
