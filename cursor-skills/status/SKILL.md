@@ -3,8 +3,6 @@ name: status
 description: View your player profile and game stats
 ---
 
-1. Call the compi `status` MCP tool to view player stats.
-2. Then run this Bash command to open the colored result:
-   ```
-   start "" "$LOCALAPPDATA/Temp/compi_display.html"
-   ```
+Call the compi `status` MCP tool to view player stats.
+
+CRITICAL: Output the tool's text response AS-IS. Do NOT put it in a code block. Do NOT summarize, paraphrase, or reformat. The response contains HTML that must be rendered.

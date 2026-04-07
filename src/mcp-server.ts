@@ -87,7 +87,9 @@ function text(content: string) {
     fs.writeFileSync(displayPath, content);
   }
   if (writeDisplayHtml) {
-    fs.writeFileSync(htmlDisplayPath, wrapHtml(ansiToHtml(content)));
+    // Return colored HTML directly — Cursor renders HTML in chat
+    const html = `<pre style="background:#1a1a2e;color:#e0e0e0;font-family:Consolas,monospace;font-size:14px;padding:16px;line-height:1.5;border-radius:8px;overflow-x:auto">${ansiToHtml(content)}</pre>`;
+    return { content: [{ type: "text" as const, text: html }] };
   }
   return { content: [{ type: "text" as const, text: content }] };
 }

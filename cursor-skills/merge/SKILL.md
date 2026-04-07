@@ -9,9 +9,9 @@ Usage: `/merge [targetId] [foodId]`
 
 If `--confirm` is NOT in the arguments:
 1. Call the compi `merge` MCP tool with `targetId` and `foodId` (no `confirm`) to get the preview.
-2. Run: `start "" "$LOCALAPPDATA/Temp/compi_display.html"`
+2. Output the tool's text response AS-IS (contains HTML). Do NOT code-block it.
 3. Respond with: "Proceed with /merge [targetId] [foodId] --confirm"
 
 If `--confirm` IS in the arguments:
 1. Call the compi `merge` MCP tool with `targetId`, `foodId`, and `confirm: true`.
-2. Run: `start "" "$LOCALAPPDATA/Temp/compi_display.html"`
+2. Output the tool's text response AS-IS (contains HTML). Do NOT code-block it.

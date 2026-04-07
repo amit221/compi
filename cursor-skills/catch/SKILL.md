@@ -7,10 +7,6 @@ Parse the argument for which creature number (1-indexed) from the scan list.
 
 Usage: `/catch [number]`
 
-1. Call the compi `catch` MCP tool with the parsed `index` (number).
-2. Then run this Bash command to open the colored result:
-   ```
-   start "" "$LOCALAPPDATA/Temp/compi_display.html"
-   ```
+Call the compi `catch` MCP tool with the parsed `index` (number).
 
-Do NOT describe the catch result.
+CRITICAL: Output the tool's text response AS-IS. Do NOT put it in a code block. Do NOT summarize, paraphrase, or reformat. The response contains HTML that must be rendered.
