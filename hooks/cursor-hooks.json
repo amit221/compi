@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": "node \"${CURSOR_PLUGIN_ROOT}/scripts/tick-hook.js\""
+      }
+    ],
+    "stop": [
+      {
+        "command": "node \"${CURSOR_PLUGIN_ROOT}/scripts/tick-hook.js\""
+      }
+    ],
+    "sessionStart": [
+      {
+        "command": "node \"${CURSOR_PLUGIN_ROOT}/scripts/tick-hook.js\""
+      }
+    ]
+  }
+}
