@@ -24,8 +24,10 @@
     "dist/",
     "scripts/",
     "skills/",
+    "cursor-skills/",
     "hooks/",
     ".claude-plugin/",
+    ".cursor-plugin/",
     "README.md"
   ],
   "prepublishOnly": "npm run build",
