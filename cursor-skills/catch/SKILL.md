@@ -9,4 +9,4 @@ Usage: `/catch [number]`
 
 Call the compi `catch` MCP tool with the parsed `index` (number).
 
-The tool returns an image — display it to the user. Do NOT describe the result.
+CRITICAL: Output the tool's text response AS-IS in a code block. Do NOT summarize, paraphrase, or reformat.

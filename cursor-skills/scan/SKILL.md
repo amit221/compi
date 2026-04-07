@@ -5,4 +5,4 @@ description: Show nearby creatures that can be caught
 
 Call the compi `scan` MCP tool to scan for nearby creatures.
 
-The tool returns an image — display it to the user. Do NOT summarize or describe the creatures.
+CRITICAL: Output the tool's text response AS-IS in a code block. Do NOT summarize, paraphrase, or reformat.
