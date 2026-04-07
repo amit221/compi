@@ -14,7 +14,9 @@
     "compi": {
       "command": "node",
       "args": ["${CURSOR_PLUGIN_ROOT}/dist/mcp-server.js"],
-      "env": {}
+      "env": {
+        "COMPI_RENDER_MODE": "app"
+      }
     }
   }
 }
