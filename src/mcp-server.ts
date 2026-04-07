@@ -9,6 +9,7 @@ import { StateManager } from "./state/state-manager";
 import { GameEngine } from "./engine/game-engine";
 import { SimpleTextRenderer } from "./renderers/simple-text";
 import { SvgRenderer } from "./renderers/svg-renderer";
+import { Resvg } from "@resvg/resvg-js";
 import { MAX_ENERGY } from "./engine/energy";
 import { Renderer } from "./types";
 
@@ -37,10 +38,16 @@ function loadEngine() {
   return { stateManager, engine };
 }
 
+function svgToPngBase64(svg: string): string {
+  const resvg = new Resvg(svg, { fitTo: { mode: "width" as const, value: 1000 } });
+  const rendered = resvg.render();
+  return rendered.asPng().toString("base64");
+}
+
 function output(content: string) {
   if (renderMode === "svg") {
-    const base64 = Buffer.from(content).toString("base64");
-    return { content: [{ type: "image" as const, data: base64, mimeType: "image/svg+xml" }] };
+    const pngBase64 = svgToPngBase64(content);
+    return { content: [{ type: "image" as const, data: pngBase64, mimeType: "image/png" }] };
   }
   if (writeDisplayFile) {
     fs.writeFileSync(displayPath, content);

@@ -16,21 +16,21 @@ import { getVariantById } from "../config/traits";
 
 // --- SVG color palette (Catppuccin Mocha-inspired) ---
 
-const BG_COLOR = "#1e1e2e";
-const TEXT_COLOR = "#cdd6f4";
-const BOLD_COLOR = "#cdd6f4";
-const DIM_COLOR = "#6c7086";
-const GREEN = "#a6e3a1";
-const YELLOW = "#f9e2af";
-const BLUE = "#89b4fa";
+const BG_COLOR = "#1a1a2e";
+const TEXT_COLOR = "#e0e0e0";
+const BOLD_COLOR = "#ffffff";
+const DIM_COLOR = "#888888";
+const GREEN = "#00e676";
+const YELLOW = "#ffea00";
+const BLUE = "#448aff";
 
 const RARITY_COLOR: Record<Rarity, string> = {
-  common: "#6c7086",
-  uncommon: "#cdd6f4",
-  rare: "#89dceb",
-  epic: "#cba6f7",
-  legendary: "#f9e2af",
-  mythic: "#f38ba8",
+  common: "#9e9e9e",
+  uncommon: "#ffffff",
+  rare: "#00e5ff",
+  epic: "#d500f9",
+  legendary: "#ffea00",
+  mythic: "#ff1744",
 };
 
 // --- SVG building helpers ---
