@@ -15,11 +15,10 @@ const statePath =
   path.join(os.homedir(), ".compi", "state.json");
 
 // COMPI_DISPLAY_FILE=1: write ANSI to temp .txt file (Claude Code)
-// COMPI_DISPLAY_HTML=1: write colored HTML to temp .html file (Cursor)
+// When COMPI_DISPLAY_FILE is NOT set, return HTML in MCP response (Cursor)
 const writeDisplayFile = process.env.COMPI_DISPLAY_FILE === "1";
-const writeDisplayHtml = process.env.COMPI_DISPLAY_HTML === "1";
+const returnHtml = !writeDisplayFile;
 const displayPath = path.join(os.tmpdir(), "compi_display.txt");
-const htmlDisplayPath = path.join(os.tmpdir(), "compi_display.html");
 
 const ANSI_TO_CSS: Record<string, string> = {
   "30": "#1a1a2e", "31": "#ff1744", "32": "#00e676", "33": "#ffea00",
@@ -86,8 +85,7 @@ function text(content: string) {
   if (writeDisplayFile) {
     fs.writeFileSync(displayPath, content);
   }
-  if (writeDisplayHtml) {
-    // Return colored HTML directly — Cursor renders HTML in chat
+  if (returnHtml) {
     const html = `<pre style="background:#1a1a2e;color:#e0e0e0;font-family:Consolas,monospace;font-size:14px;padding:16px;line-height:1.5;border-radius:8px;overflow-x:auto">${ansiToHtml(content)}</pre>`;
     return { content: [{ type: "text" as const, text: html }] };
   }

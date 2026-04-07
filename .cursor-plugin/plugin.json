@@ -14,9 +14,7 @@
     "compi": {
       "command": "node",
       "args": ["${CURSOR_PLUGIN_ROOT}/dist/mcp-server.js"],
-      "env": {
-        "COMPI_DISPLAY_HTML": "1"
-      }
+      "env": {}
     }
   }
 }
