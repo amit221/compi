@@ -20,6 +20,14 @@ const writeDisplayFile = process.env.COMPI_DISPLAY_FILE === "1";
 const returnHtml = !writeDisplayFile;
 const displayPath = path.join(os.tmpdir(), "compi_display.txt");
 
+// Debug: log which mode we're in
+try {
+  fs.appendFileSync(
+    path.join(os.tmpdir(), "compi_mcp_debug.log"),
+    `[${new Date().toISOString()}] COMPI_DISPLAY_FILE=${process.env.COMPI_DISPLAY_FILE} writeDisplayFile=${writeDisplayFile} returnHtml=${returnHtml}\n`
+  );
+} catch {}
+
 const ANSI_TO_CSS: Record<string, string> = {
   "30": "#1a1a2e", "31": "#ff1744", "32": "#00e676", "33": "#ffea00",
   "34": "#448aff", "35": "#d500f9", "36": "#00e5ff", "37": "#e0e0e0",
@@ -86,8 +94,20 @@ function text(content: string) {
     fs.writeFileSync(displayPath, content);
   }
   if (returnHtml) {
-    const html = `<pre style="background:#1a1a2e;color:#e0e0e0;font-family:Consolas,monospace;font-size:14px;padding:16px;line-height:1.5;border-radius:8px;overflow-x:auto">${ansiToHtml(content)}</pre>`;
-    return { content: [{ type: "text" as const, text: html }] };
+    const htmlPage = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#1a1a2e;color:#e0e0e0;font-family:'Cascadia Code','Fira Code',Consolas,monospace;font-size:14px;padding:16px;line-height:1.5}pre{white-space:pre-wrap;word-wrap:break-word}</style></head><body><pre>${ansiToHtml(content)}</pre></body></html>`;
+    return {
+      content: [
+        { type: "text" as const, text: content },
+        {
+          type: "resource" as any,
+          resource: {
+            uri: "ui://compi/display.html",
+            mimeType: "text/html;profile=mcp-app",
+            text: htmlPage,
+          },
+        },
+      ],
+    };
   }
   return { content: [{ type: "text" as const, text: content }] };
 }
