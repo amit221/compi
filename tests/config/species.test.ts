@@ -80,13 +80,14 @@ describe("pickSpecies", () => {
   });
 
   it("weighted selection respects weights with multiple species", () => {
-    // With only one species loaded, it always returns compi
     const counts: Record<string, number> = {};
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 1000; i++) {
       const s = pickSpecies(() => Math.random());
       counts[s.id] = (counts[s.id] || 0) + 1;
     }
-    expect(counts["compi"]).toBe(100);
+    // compi should appear but not exclusively (other species exist now)
+    expect(counts["compi"]).toBeGreaterThan(0);
+    expect(Object.keys(counts).length).toBeGreaterThan(1);
   });
 });
 
