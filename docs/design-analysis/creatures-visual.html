@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compi - Creature Collection Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d1117;
+    --card-bg: #161b22;
+    --card-border: #30363d;
+    --text: #e6edf3;
+    --text-dim: #8b949e;
+    --accent: #58a6ff;
+    --common: #8b949e;
+    --uncommon: #3fb950;
+    --rare: #58a6ff;
+    --epic: #bc8cff;
+    --legendary: #f0b840;
+    --mythic: #ff6eb4;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 80px 0 60px;
+    position: relative;
+  }
+  .hero h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #58a6ff, #bc8cff, #f0b840);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+  .hero p { color: var(--text-dim); font-size: 1.2rem; max-width: 600px; margin: 0 auto; }
+
+  /* Section headers */
+  .section { padding: 60px 0; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .section-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .section-header .badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: rgba(88,166,255,0.15);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Creature cards grid */
+  .creature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .creature-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 20px 16px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .creature-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  }
+  .creature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  /* Rarity borders */
+  .rarity-common { border-color: var(--card-border); }
+  .rarity-common::before { background: var(--common); }
+
+  .rarity-uncommon { border-color: rgba(63,185,80,0.4); }
+  .rarity-uncommon::before { background: var(--uncommon); }
+
+  .rarity-rare {
+    border-color: rgba(88,166,255,0.4);
+    box-shadow: 0 0 20px rgba(88,166,255,0.1);
+  }
+  .rarity-rare::before { background: var(--rare); }
+
+  .rarity-epic {
+    border-color: rgba(188,140,255,0.4);
+    box-shadow: 0 0 25px rgba(188,140,255,0.15);
+    animation: fadeInUp 0.6s ease forwards, glowPurple 3s ease-in-out infinite;
+  }
+  .rarity-epic::before { background: linear-gradient(90deg, #bc8cff, #ff6eb4, #bc8cff); background-size: 200%; animation: shimmer 2s linear infinite; }
+
+  .rarity-legendary {
+    border-color: rgba(240,184,64,0.5);
+    box-shadow: 0 0 30px rgba(240,184,64,0.2);
+    animation: fadeInUp 0.6s ease forwards, glowGold 3s ease-in-out infinite;
+  }
+  .rarity-legendary::before { background: linear-gradient(90deg, #f0b840, #ffdf80, #f0b840); background-size: 200%; animation: shimmer 1.5s linear infinite; }
+
+  .rarity-mythic {
+    border: 2px solid transparent;
+    background-image: linear-gradient(var(--card-bg), var(--card-bg)), linear-gradient(135deg, #ff6eb4, #bc8cff, #58a6ff, #3fb950, #f0b840, #ff6eb4);
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    box-shadow: 0 0 35px rgba(255,110,180,0.2), 0 0 70px rgba(188,140,255,0.1);
+    animation: fadeInUp 0.6s ease forwards, glowRainbow 4s ease-in-out infinite;
+  }
+  .rarity-mythic::before { background: linear-gradient(90deg, #ff6eb4, #bc8cff, #58a6ff, #3fb950, #f0b840, #ff6eb4); background-size: 300%; animation: shimmer 2s linear infinite; }
+
+  .creature-name {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+  .creature-rarity-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+  .creature-art {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem;
+    line-height: 1.4;
+    white-space: pre;
+    margin: 12px 0;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .creature-color-label {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 8px;
+  }
+
+  /* Species catalog */
+  .species-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .species-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 24px;
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+    transition: transform 0.2s;
+  }
+  .species-card:hover { transform: translateY(-3px); }
+  .species-card .species-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .species-silhouette {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    line-height: 1.3;
+    white-space: pre;
+    color: var(--text-dim);
+    text-align: center;
+    min-width: 80px;
+  }
+  .species-info h3 { font-size: 1.1rem; font-weight: 700; }
+  .species-rarity {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-top: 4px;
+  }
+  .species-traits { margin-top: 12px; }
+  .trait-slot {
+    margin-bottom: 8px;
+  }
+  .trait-slot-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+  .trait-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .trait-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .color-dots {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .color-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  /* Trait rarity section */
+  .trait-rarity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  .trait-slot-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 24px;
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+  }
+  .trait-slot-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .trait-slot-card h3 .icon {
+    font-size: 1.4rem;
+  }
+  .trait-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .trait-row:last-child { border-bottom: none; }
+  .trait-art-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.1rem;
+    min-width: 60px;
+    text-align: center;
+  }
+  .trait-name-display { font-size: 0.85rem; flex: 1; }
+  .trait-rarity-pip {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Color palette */
+  .color-palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
+  }
+  .color-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+    transition: transform 0.2s;
+  }
+  .color-card:hover { transform: translateY(-4px); }
+  .color-creature-art {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2rem;
+    line-height: 1.4;
+    white-space: pre;
+    margin: 12px 0;
+  }
+  .color-name { font-weight: 700; font-size: 0.95rem; margin-top: 8px; }
+  .color-rarity-label { font-size: 0.7rem; color: var(--text-dim); }
+  .color-percent {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-top: 4px;
+  }
+
+  /* Merge section */
+  .merge-container {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 40px;
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+  }
+  .merge-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+  .merge-creature {
+    text-align: center;
+    min-width: 160px;
+  }
+  .merge-creature .creature-art {
+    font-size: 1.5rem;
+    min-height: 80px;
+  }
+  .merge-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .merge-creature-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-top: 8px;
+  }
+  .merge-arrow {
+    font-size: 2.5rem;
+    color: var(--accent);
+    animation: pulseArrow 2s ease-in-out infinite;
+  }
+  .merge-result-box {
+    background: rgba(88,166,255,0.08);
+    border: 2px dashed rgba(88,166,255,0.3);
+    border-radius: 16px;
+    padding: 20px;
+    min-width: 180px;
+    text-align: center;
+    position: relative;
+  }
+  .merge-success-rate {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    background: var(--uncommon);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 10px;
+  }
+  .merge-question {
+    font-family: 'JetBrains Mono', monospace;
+    color: rgba(255,255,255,0.3);
+  }
+  .merge-description {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    max-width: 700px;
+    margin: 30px auto 0;
+    text-align: center;
+    line-height: 1.7;
+  }
+  .merge-highlight { color: var(--accent); font-weight: 600; }
+  .merge-risk { color: #f0b840; font-weight: 600; }
+
+  /* Scan section */
+  .scan-container {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 32px;
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+  }
+  .scan-header {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--uncommon);
+    font-size: 0.85rem;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .scan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+  }
+  .scan-creature {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+  }
+  .scan-creature-art {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem;
+    line-height: 1.4;
+    white-space: pre;
+    text-align: center;
+    margin: 8px 0 12px;
+  }
+  .scan-creature-name {
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .scan-traits-list {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-align: center;
+  }
+  .thought-bubble {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: rgba(240,184,64,0.15);
+    border: 1px solid rgba(240,184,64,0.3);
+    color: #f0b840;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 10px;
+    max-width: 150px;
+    line-height: 1.3;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes shimmer {
+    to { background-position: 200% center; }
+  }
+  @keyframes glowPurple {
+    0%, 100% { box-shadow: 0 0 20px rgba(188,140,255,0.1); }
+    50% { box-shadow: 0 0 35px rgba(188,140,255,0.25); }
+  }
+  @keyframes glowGold {
+    0%, 100% { box-shadow: 0 0 20px rgba(240,184,64,0.15); }
+    50% { box-shadow: 0 0 40px rgba(240,184,64,0.35); }
+  }
+  @keyframes glowRainbow {
+    0% { box-shadow: 0 0 30px rgba(255,110,180,0.2); }
+    33% { box-shadow: 0 0 30px rgba(88,166,255,0.2); }
+    66% { box-shadow: 0 0 30px rgba(240,184,64,0.2); }
+    100% { box-shadow: 0 0 30px rgba(255,110,180,0.2); }
+  }
+  @keyframes pulseArrow {
+    0%, 100% { transform: translateX(0); opacity: 1; }
+    50% { transform: translateX(8px); opacity: 0.6; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+  @keyframes blink {
+    0%, 90%, 100% { opacity: 1; }
+    95% { opacity: 0.3; }
+  }
+
+  /* Utility */
+  .rarity-color-common { color: var(--common); }
+  .rarity-color-uncommon { color: var(--uncommon); }
+  .rarity-color-rare { color: var(--rare); }
+  .rarity-color-epic { color: var(--epic); }
+  .rarity-color-legendary { color: var(--legendary); }
+  .rarity-color-mythic { color: var(--mythic); }
+
+  .rarity-bg-common { background: rgba(139,148,158,0.15); color: var(--common); }
+  .rarity-bg-uncommon { background: rgba(63,185,80,0.15); color: var(--uncommon); }
+  .rarity-bg-rare { background: rgba(88,166,255,0.15); color: var(--rare); }
+  .rarity-bg-epic { background: rgba(188,140,255,0.15); color: var(--epic); }
+  .rarity-bg-legendary { background: rgba(240,184,64,0.15); color: var(--legendary); }
+  .rarity-bg-mythic { background: rgba(255,110,180,0.15); color: var(--mythic); }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--card-border);
+    margin: 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 2.2rem; }
+    .creature-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    .merge-flow { flex-direction: column; }
+    .merge-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>COMPI</h1>
+    <p>Terminal creature collection game. Catch, merge, and evolve ASCII creatures while you code.</p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SECTION 1: YOUR COLLECTION -->
+  <div class="section" id="collection">
+    <div class="section-header">
+      <h2>Your Collection</h2>
+      <span class="badge">15 Creatures</span>
+    </div>
+    <div class="creature-grid" id="collection-grid"></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SECTION 2: CREATURE SPECIES -->
+  <div class="section" id="species">
+    <div class="section-header">
+      <h2>Creature Species</h2>
+      <span class="badge">Catalog</span>
+    </div>
+    <div class="species-grid" id="species-grid"></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SECTION 3: TRAIT RARITY -->
+  <div class="section" id="traits">
+    <div class="section-header">
+      <h2>Trait Rarity</h2>
+      <span class="badge">All Slots</span>
+    </div>
+    <div class="trait-rarity-grid" id="trait-grid"></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SECTION 4: COLOR PALETTE -->
+  <div class="section" id="colors">
+    <div class="section-header">
+      <h2>Color Palette</h2>
+      <span class="badge">8 Variants</span>
+    </div>
+    <div class="color-palette-grid" id="color-grid"></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SECTION 5: MERGE PREVIEW -->
+  <div class="section" id="merge">
+    <div class="section-header">
+      <h2>Merge Preview</h2>
+      <span class="badge">Combine Traits</span>
+    </div>
+    <div class="merge-container" id="merge-container"></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SECTION 6: SCAN VIEW -->
+  <div class="section" id="scan">
+    <div class="section-header">
+      <h2>Scan View</h2>
+      <span class="badge">/scan</span>
+    </div>
+    <div class="scan-container" id="scan-container"></div>
+  </div>
+
+  <div style="height: 80px"></div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+
+const SPECIES = [
+  {
+    name: 'Sparks', spawnRarity: 'common',
+    traitPool: {
+      eyes: ['○.○', '-.--', '·.·', 'O.O', '°.°'],
+      mouth: [' - ', ' ~ ', ' . ', ' _ ', ' ◡ '],
+      body: [' ░░ ', ' ·· ', ' -- ', ' :: '],
+      tail: ['~~/', '\\~\\', '_v_', '___']
+    },
+    colors: ['grey', 'green', 'blue']
+  },
+  {
+    name: 'Vortex', spawnRarity: 'rare',
+    traitPool: {
+      eyes: ['⊙_⊙', '◈_◈', '◎.◎', '●_●'],
+      mouth: [' ⊗ ', ' ∇ ', ' ω ', ' ∿ '],
+      body: [' ◈◈ ', ' ⊙⊙ ', ' ▓▓ '],
+      tail: ['☄✧☄', '\\∞/', '☄☄']
+    },
+    colors: ['purple', 'blue', 'holographic']
+  },
+  {
+    name: 'Glimmer', spawnRarity: 'uncommon',
+    traitPool: {
+      eyes: ['★w★', '☆_☆', '✦w✦', '◆.◆'],
+      mouth: [' ✦ ', ' ◇ ', ' △ '],
+      body: [' ✦✦ ', ' ◆◆ ', ' ⬡⬡ '],
+      tail: ['\\✧/', '✧✧', '\\⚡/']
+    },
+    colors: ['gold', 'purple', 'holographic']
+  },
+  {
+    name: 'Muddle', spawnRarity: 'common',
+    traitPool: {
+      eyes: ['○.○', 'O.O', '°.°', '◐.◐'],
+      mouth: [' ~ ', ' ◡ ', ' . ', ' ≈ '],
+      body: [' ░░ ', ' ▒▒ ', ' ·· ', ' ░▒ '],
+      tail: ['_v_', '___', '~~/', '\\~\\']
+    },
+    colors: ['grey', 'green', 'red']
+  },
+  {
+    name: 'Drift', spawnRarity: 'uncommon',
+    traitPool: {
+      eyes: ['◑_◑', '○w○', '◐.◐', '>.>'],
+      mouth: [' ≈ ', ' ⌒ ', ' ∘ ', ' ~ '],
+      body: [' ≈≈ ', ' ▒▒ ', ' ∿∿ '],
+      tail: ['∿∿', '~~⌇', '⌇⌇', '≋≋']
+    },
+    colors: ['blue', 'green', 'grey']
+  },
+  {
+    name: 'Fang', spawnRarity: 'uncommon',
+    traitPool: {
+      eyes: ['>.>', '●_●', '◎.◎', '◑_◑'],
+      mouth: [' v ', ' △ ', ' ω ', ' ∿ '],
+      body: [' ## ', ' ▓▓ ', ' ++ ', ' ▒▒ '],
+      tail: ['↯↯', '\\⌇/', '⌇⌇', '~⌇~']
+    },
+    colors: ['red', 'grey', 'purple']
+  },
+  {
+    name: 'Wisp', spawnRarity: 'rare',
+    traitPool: {
+      eyes: ['·.·', '°.°', '◑_◑', '☆_☆'],
+      mouth: [' ∘ ', ' . ', ' ◡ '],
+      body: [' ·· ', ' ∙∙ ', ' ░░ '],
+      tail: ['~/~', '∿∿', '\\✧/']
+    },
+    colors: ['blue', 'purple', 'holographic']
+  },
+  {
+    name: 'Flux', spawnRarity: 'epic',
+    traitPool: {
+      eyes: ['❖_❖', '✦w✦', '◆.◆', '◈_◈'],
+      mouth: [' ∇ ', ' ⊗ ', ' ◇ '],
+      body: [' ◆◆ ', ' ⊙⊙ ', ' ◈◈ '],
+      tail: ['\\⚡/', '\\∞/', '✧✧']
+    },
+    colors: ['purple', 'gold', 'holographic']
+  },
+  {
+    name: 'Shade', spawnRarity: 'rare',
+    traitPool: {
+      eyes: ['●_●', '>.>', '◑_◑', '◎.◎'],
+      mouth: [' - ', ' _ ', ' ω '],
+      body: [' ▓▓ ', ' ## ', ' ▒▒ '],
+      tail: ['\\⌇/', '↯↯', '⌇⌇']
+    },
+    colors: ['shadow', 'grey', 'purple']
+  },
+  {
+    name: 'Prism', spawnRarity: 'legendary',
+    traitPool: {
+      eyes: ['◈_◈', '⊙_⊙', '★w★', '✦w✦'],
+      mouth: [' ✦ ', ' ⊗ ', ' ∇ '],
+      body: [' ◈◈ ', ' ✦✦ ', ' ⬡⬡ '],
+      tail: ['☄✧☄', '\\✧/', '☄☄']
+    },
+    colors: ['holographic', 'gold', 'purple']
+  },
+  {
+    name: 'Ember', spawnRarity: 'common',
+    traitPool: {
+      eyes: ['○.○', 'O.O', '-.--', '°.°'],
+      mouth: [' ~ ', ' ◡ ', ' v '],
+      body: [' ░░ ', ' ·· ', ' :: '],
+      tail: ['~~/', '~/~', '_v_']
+    },
+    colors: ['red', 'gold', 'grey']
+  },
+  {
+    name: 'Frost', spawnRarity: 'uncommon',
+    traitPool: {
+      eyes: ['°.°', '·.·', '◐.◐', '○w○'],
+      mouth: [' ∘ ', ' ⌒ ', ' ◡ ', ' . '],
+      body: [' ·· ', ' ∙∙ ', ' ░░ ', ' ++ '],
+      tail: ['~/~', '∿∿', '⌇⌇']
+    },
+    colors: ['blue', 'grey', 'holographic']
+  },
+  {
+    name: 'Nimbus', spawnRarity: 'rare',
+    traitPool: {
+      eyes: ['☆_☆', '○w○', '◐.◐', '✦w✦'],
+      mouth: [' ≈ ', ' ⌒ ', ' ∘ '],
+      body: [' ≈≈ ', ' ∿∿ ', ' ▒▒ '],
+      tail: ['≋≋', '∿∿', '\\✧/']
+    },
+    colors: ['blue', 'purple', 'gold']
+  },
+  {
+    name: 'Dusk', spawnRarity: 'epic',
+    traitPool: {
+      eyes: ['●_●', '◎.◎', '❖_❖', '◈_◈'],
+      mouth: [' ω ', ' ∿ ', ' ∇ '],
+      body: [' ▓▓ ', ' ◆◆ ', ' ⊙⊙ '],
+      tail: ['↯↯', '\\∞/', '\\⚡/']
+    },
+    colors: ['shadow', 'purple', 'red']
+  },
+  {
+    name: 'Cobalt', spawnRarity: 'mythic',
+    traitPool: {
+      eyes: ['⊙_⊙', '◈_◈', '★w★', '❖_❖'],
+      mouth: [' ⊗ ', ' ✦ ', ' ∇ '],
+      body: [' ◈◈ ', ' ⊙⊙ ', ' ⬡⬡ '],
+      tail: ['☄✧☄', '\\∞/', '☄☄']
+    },
+    colors: ['holographic', 'shadow', 'gold']
+  }
+];
+
+const COLOR_MAP = {
+  grey:        { css: '#8b949e', label: 'Grey',        rarity: 'Common',     percent: 30 },
+  green:       { css: '#3fb950', label: 'Green',       rarity: 'Common',     percent: 20 },
+  blue:        { css: '#58a6ff', label: 'Blue',        rarity: 'Uncommon',   percent: 18 },
+  red:         { css: '#f85149', label: 'Red',         rarity: 'Uncommon',   percent: 12 },
+  purple:      { css: '#bc8cff', label: 'Purple',      rarity: 'Rare',       percent: 10 },
+  gold:        { css: '#f0b840', label: 'Gold',        rarity: 'Rare',       percent: 6 },
+  holographic: { css: 'linear-gradient(135deg, #ff6eb4, #bc8cff, #58a6ff, #3fb950, #f0b840)', label: 'Holographic', rarity: 'Ultra-Rare', percent: 3, isGradient: true },
+  shadow:      { css: '#484f58', label: 'Shadow',      rarity: 'Ultra-Rare', percent: 1, textShadow: '0 0 8px rgba(255,255,255,0.3)' }
+};
+
+const TRAITS_DATA = {
+  eyes: {
+    icon: '\u{1F441}',
+    traits: [
+      { art: '○.○', name: 'Pebble Gaze', rarity: 'common' },
+      { art: '-.--', name: 'Dash Sight', rarity: 'common' },
+      { art: '·.·', name: 'Pip Vision', rarity: 'common' },
+      { art: 'O.O', name: 'Round Look', rarity: 'common' },
+      { art: '°.°', name: 'Bead Eyes', rarity: 'common' },
+      { art: '◐.◐', name: 'Half Moon', rarity: 'uncommon' },
+      { art: '◑_◑', name: 'Crescent', rarity: 'uncommon' },
+      { art: '○w○', name: 'Owl Sight', rarity: 'uncommon' },
+      { art: '>.>', name: 'Slit Gaze', rarity: 'uncommon' },
+      { art: '◎.◎', name: 'Ring Gaze', rarity: 'rare' },
+      { art: '●_●', name: 'Dot Sight', rarity: 'rare' },
+      { art: '◉w◉', name: 'Core Eyes', rarity: 'rare' },
+      { art: '◆.◆', name: 'Gem Gaze', rarity: 'epic' },
+      { art: '❖_❖', name: 'Star Dust', rarity: 'epic' },
+      { art: '✦w✦', name: 'Spark Eyes', rarity: 'epic' },
+      { art: '★w★', name: 'Star Sight', rarity: 'legendary' },
+      { art: '☆_☆', name: 'Moon Eyes', rarity: 'legendary' },
+      { art: '⊙_⊙', name: 'Void Gaze', rarity: 'mythic' },
+      { art: '◈_◈', name: 'Prism Eyes', rarity: 'mythic' },
+    ]
+  },
+  mouth: {
+    icon: '\u{1F444}',
+    traits: [
+      { art: ' - ', name: 'Flat Line', rarity: 'common' },
+      { art: ' ~ ', name: 'Wave', rarity: 'common' },
+      { art: ' ◡ ', name: 'Smile', rarity: 'common' },
+      { art: ' . ', name: 'Dot', rarity: 'common' },
+      { art: ' _ ', name: 'Underline', rarity: 'common' },
+      { art: ' ∘ ', name: 'Circle', rarity: 'uncommon' },
+      { art: ' ≈ ', name: 'Ripple', rarity: 'uncommon' },
+      { art: ' ⌒ ', name: 'Curve', rarity: 'uncommon' },
+      { art: ' v ', name: 'Whisker', rarity: 'uncommon' },
+      { art: ' ω ', name: 'Omega', rarity: 'rare' },
+      { art: ' ∿ ', name: 'Swirl', rarity: 'rare' },
+      { art: ' △ ', name: 'Triangle', rarity: 'rare' },
+      { art: ' ∇ ', name: 'Prism', rarity: 'epic' },
+      { art: ' ⊗ ', name: 'Void', rarity: 'epic' },
+      { art: ' ◇ ', name: 'Gem', rarity: 'epic' },
+      { art: ' ✦ ', name: 'Spark', rarity: 'legendary' },
+      { art: ' ⊗ ', name: 'Core', rarity: 'mythic' },
+      { art: ' ✦ ', name: 'Nova', rarity: 'mythic' },
+    ]
+  },
+  body: {
+    icon: '\u{1F9EC}',
+    traits: [
+      { art: ' ░░ ', name: 'Dots', rarity: 'common' },
+      { art: ' ·· ', name: 'Light', rarity: 'common' },
+      { art: ' -- ', name: 'Plain', rarity: 'common' },
+      { art: ' :: ', name: 'Thin', rarity: 'common' },
+      { art: ' ∙∙ ', name: 'Faint', rarity: 'common' },
+      { art: ' ▒▒ ', name: 'Shade', rarity: 'uncommon' },
+      { art: ' ## ', name: 'Mesh', rarity: 'uncommon' },
+      { art: ' ░▒ ', name: 'Grain', rarity: 'uncommon' },
+      { art: ' ++ ', name: 'Cross', rarity: 'uncommon' },
+      { art: ' ▓▓ ', name: 'Crystal', rarity: 'rare' },
+      { art: ' ≈≈ ', name: 'Wave', rarity: 'rare' },
+      { art: ' ∿∿ ', name: 'Pulse', rarity: 'rare' },
+      { art: ' ◆◆ ', name: 'Shell', rarity: 'epic' },
+      { art: ' ⊙⊙ ', name: 'Core', rarity: 'epic' },
+      { art: ' ◈◈ ', name: 'Facet', rarity: 'epic' },
+      { art: ' ⬡⬡ ', name: 'Hex', rarity: 'legendary' },
+      { art: ' ✦✦ ', name: 'Star', rarity: 'legendary' },
+      { art: ' ◈◈ ', name: 'Prism', rarity: 'mythic' },
+      { art: ' ⊙⊙ ', name: 'Void', rarity: 'mythic' },
+    ]
+  },
+  tail: {
+    icon: '\u{1F4AB}',
+    traits: [
+      { art: '~~/', name: 'Curl', rarity: 'common' },
+      { art: '\\~\\', name: 'Swish', rarity: 'common' },
+      { art: '_v_', name: 'Stub', rarity: 'common' },
+      { art: '___', name: 'Droop', rarity: 'common' },
+      { art: '~/~', name: 'Flick', rarity: 'common' },
+      { art: '⌇⌇', name: 'Zigzag', rarity: 'uncommon' },
+      { art: '∿∿', name: 'Drift', rarity: 'uncommon' },
+      { art: '~~⌇', name: 'Whirl', rarity: 'uncommon' },
+      { art: '~⌇~', name: 'Wag', rarity: 'uncommon' },
+      { art: '≋≋', name: 'Ripple', rarity: 'rare' },
+      { art: '↯↯', name: 'Bolt', rarity: 'rare' },
+      { art: '\\⌇/', name: 'Fork', rarity: 'rare' },
+      { art: '\\⚡/', name: 'Lightning', rarity: 'epic' },
+      { art: '\\∞/', name: 'Infinity', rarity: 'epic' },
+      { art: '✧✧', name: 'Shimmer', rarity: 'epic' },
+      { art: '☄☄', name: 'Comet', rarity: 'legendary' },
+      { art: '\\✧/', name: 'Glitter', rarity: 'legendary' },
+      { art: '☄✧☄', name: 'Supernova', rarity: 'mythic' },
+      { art: '\\∞/', name: 'Eternal', rarity: 'mythic' },
+    ]
+  }
+};
+
+const RARITY_ORDER = ['common','uncommon','rare','epic','legendary','mythic'];
+
+// ============================================================
+// HELPERS
+// ============================================================
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function applyColor(text, colorKey) {
+  const c = COLOR_MAP[colorKey];
+  if (!c) return `<span>${text}</span>`;
+  if (c.isGradient) {
+    return `<span style="background:${c.css};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">${text}</span>`;
+  }
+  let style = `color:${c.css};`;
+  if (c.textShadow) style += `text-shadow:${c.textShadow};`;
+  return `<span style="${style}">${text}</span>`;
+}
+
+function buildCreatureArt(eyes, mouth, body, tail) {
+  return `  ${eyes}\n   ${mouth}\n  ${body}\n  ${tail}`;
+}
+
+function rarityClass(r) {
+  if (r === 'mythic') return 'rarity-mythic';
+  if (r === 'legendary') return 'rarity-legendary';
+  if (r === 'epic') return 'rarity-epic';
+  if (r === 'rare') return 'rarity-rare';
+  if (r === 'uncommon') return 'rarity-uncommon';
+  return 'rarity-common';
+}
+
+// ============================================================
+// SECTION 1: YOUR COLLECTION
+// ============================================================
+
+function renderCollection() {
+  const grid = document.getElementById('collection-grid');
+  // Assign a specific color to each creature for variety
+  const colorAssignments = ['grey','green','blue','red','purple','gold','holographic','shadow','grey','green','blue','red','purple','gold','holographic'];
+  const rarityAssignments = ['common','common','uncommon','common','uncommon','uncommon','rare','epic','rare','legendary','common','uncommon','rare','epic','mythic'];
+
+  SPECIES.forEach((sp, i) => {
+    const color = colorAssignments[i % colorAssignments.length];
+    const cardRarity = rarityAssignments[i % rarityAssignments.length];
+    const eyes = pick(sp.traitPool.eyes);
+    const mouth = pick(sp.traitPool.mouth);
+    const body = pick(sp.traitPool.body);
+    const tail = pick(sp.traitPool.tail);
+    const art = buildCreatureArt(eyes, mouth, body, tail);
+
+    const card = document.createElement('div');
+    card.className = `creature-card ${rarityClass(cardRarity)}`;
+    card.style.animationDelay = `${i * 0.08}s`;
+
+    card.innerHTML = `
+      <div class="creature-name">${sp.name}</div>
+      <div class="creature-rarity-label rarity-color-${cardRarity}">${cardRarity}</div>
+      <div class="creature-art">${applyColor(art, color)}</div>
+      <div class="creature-color-label">${COLOR_MAP[color].label} variant</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ============================================================
+// SECTION 2: SPECIES CATALOG
+// ============================================================
+
+function renderSpecies() {
+  const grid = document.getElementById('species-grid');
+
+  SPECIES.forEach((sp, i) => {
+    const eyes = sp.traitPool.eyes[0];
+    const mouth = sp.traitPool.mouth[0];
+    const body = sp.traitPool.body[0];
+    const tail = sp.traitPool.tail[0];
+
+    const card = document.createElement('div');
+    card.className = 'species-card';
+    card.style.animationDelay = `${i * 0.06}s`;
+
+    const colorDots = sp.colors.map(c => {
+      const cm = COLOR_MAP[c];
+      if (cm.isGradient) return `<div class="color-dot" style="background:${cm.css};" title="${cm.label}"></div>`;
+      return `<div class="color-dot" style="background:${cm.css};" title="${cm.label}"></div>`;
+    }).join('');
+
+    const traitSlots = ['eyes','mouth','body','tail'].map(slot => {
+      const chips = sp.traitPool[slot].map(t =>
+        `<span class="trait-chip">${t.replace(/</g,'&lt;')}</span>`
+      ).join('');
+      return `<div class="trait-slot">
+        <div class="trait-slot-label">${slot}</div>
+        <div class="trait-options">${chips}</div>
+      </div>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="species-header">
+        <div class="species-silhouette">${eyes}\n ${mouth}\n${body}\n ${tail}</div>
+        <div class="species-info">
+          <h3>${sp.name}</h3>
+          <span class="species-rarity rarity-bg-${sp.spawnRarity}">${sp.spawnRarity}</span>
+          <div class="color-dots" style="margin-top:8px;">${colorDots}</div>
+        </div>
+      </div>
+      <div class="species-traits">${traitSlots}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ============================================================
+// SECTION 3: TRAIT RARITY
+// ============================================================
+
+function renderTraitRarity() {
+  const grid = document.getElementById('trait-grid');
+  const slotNames = { eyes: 'Eyes', mouth: 'Mouth', body: 'Body', tail: 'Tail' };
+  const icons = { eyes: '\u{1F441}\uFE0F', mouth: '\u{1F5E3}\uFE0F', body: '\u{1F9EC}', tail: '\u{1F4AB}' };
+
+  for (const [slot, data] of Object.entries(TRAITS_DATA)) {
+    const card = document.createElement('div');
+    card.className = 'trait-slot-card';
+    card.style.animationDelay = `${Object.keys(TRAITS_DATA).indexOf(slot) * 0.1}s`;
+
+    const rows = data.traits.map(t => `
+      <div class="trait-row">
+        <div class="trait-art-display rarity-color-${t.rarity}">${t.art.replace(/</g,'&lt;')}</div>
+        <div class="trait-name-display">${t.name}</div>
+        <span class="trait-rarity-pip rarity-bg-${t.rarity}">${t.rarity}</span>
+      </div>
+    `).join('');
+
+    card.innerHTML = `
+      <h3><span class="icon">${icons[slot] || ''}</span> ${slotNames[slot]}</h3>
+      ${rows}
+    `;
+    grid.appendChild(card);
+  }
+}
+
+// ============================================================
+// SECTION 4: COLOR PALETTE
+// ============================================================
+
+function renderColorPalette() {
+  const grid = document.getElementById('color-grid');
+  const sampleArt = '◎.◎\n ω \n ▒▒ \n ⌇⌇';
+
+  for (const [key, c] of Object.entries(COLOR_MAP)) {
+    const card = document.createElement('div');
+    card.className = 'color-card';
+    card.style.animationDelay = `${Object.keys(COLOR_MAP).indexOf(key) * 0.08}s`;
+
+    card.innerHTML = `
+      <div class="color-creature-art">${applyColor(sampleArt, key)}</div>
+      <div class="color-name">${c.label}</div>
+      <div class="color-rarity-label">${c.rarity}</div>
+      <div class="color-percent" style="color:${c.isGradient ? '#e6edf3' : c.css}">${c.percent}%</div>
+    `;
+    grid.appendChild(card);
+  }
+}
+
+// ============================================================
+// SECTION 5: MERGE PREVIEW
+// ============================================================
+
+function renderMerge() {
+  const container = document.getElementById('merge-container');
+
+  const targetArt = buildCreatureArt('⊙_⊙', ' ~ ', ' ◈◈ ', '☄✧☄');
+  const foodArt = buildCreatureArt('○.○', ' ω ', ' ░░ ', '_v_');
+  const resultArt = buildCreatureArt('⊙_⊙', ' ω ', ' ?? ', ' ?? ');
+
+  container.innerHTML = `
+    <div class="merge-flow">
+      <div class="merge-creature">
+        <div class="merge-label">Target (Keep)</div>
+        <div class="creature-art" style="font-size:1.5rem;">${applyColor(targetArt, 'purple')}</div>
+        <div class="merge-creature-name">Vortex</div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:4px;">Mythic eyes, common mouth</div>
+      </div>
+
+      <div class="merge-arrow">+</div>
+
+      <div class="merge-creature">
+        <div class="merge-label">Food (Consumed)</div>
+        <div class="creature-art" style="font-size:1.5rem;">${applyColor(foodArt, 'grey')}</div>
+        <div class="merge-creature-name">Muddle</div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:4px;">Has rare Omega mouth</div>
+      </div>
+
+      <div class="merge-arrow">\u2192</div>
+
+      <div class="merge-result-box">
+        <div class="merge-success-rate">72% success</div>
+        <div class="merge-label">Result</div>
+        <div class="creature-art" style="font-size:1.5rem;">
+          ${applyColor('  \u2299_\u2299', 'purple')}
+          ${applyColor('   \u03c9 ', 'uncommon' in COLOR_MAP ? 'green' : 'purple')}
+          <span class="merge-question">   ??  </span>
+          <span class="merge-question">   ??  </span>
+        </div>
+        <div class="merge-creature-name">Vortex</div>
+        <div style="font-size:0.7rem;color:var(--legendary);margin-top:4px;">Mouth upgraded!</div>
+      </div>
+    </div>
+
+    <div class="merge-description">
+      <span class="merge-highlight">Merge</span> sacrifices one creature to upgrade a trait on another.
+      The mouth slot from Muddle transfers to Vortex, replacing its common <code> ~ </code> with the rare <code> \u03c9 </code>.
+      <br>But beware: <span class="merge-risk">other traits may randomly shift</span> during the merge process.
+      Higher rarity food = higher success rate, but also higher stakes.
+    </div>
+  `;
+}
+
+// ============================================================
+// SECTION 6: SCAN VIEW
+// ============================================================
+
+function renderScan() {
+  const container = document.getElementById('scan-container');
+
+  const scanCreatures = [
+    {
+      name: 'Sparks', color: 'green', eyes: '○.○', mouth: ' ~ ', body: ' ░░ ', tail: '~~/',
+      traits: 'Common eyes, Common mouth', thought: null
+    },
+    {
+      name: 'Glimmer', color: 'gold', eyes: '★w★', mouth: ' ✦ ', body: ' ✦✦ ', tail: '\\✧/',
+      traits: 'Legendary eyes! Legendary mouth!', thought: 'Legendary eyes! Great food for my Vortex'
+    },
+    {
+      name: 'Shade', color: 'shadow', eyes: '●_●', mouth: ' ω ', body: ' ▓▓ ', tail: '↯↯',
+      traits: 'Rare eyes, Rare mouth, Rare body', thought: 'Shadow color... ultra-rare!'
+    },
+    {
+      name: 'Drift', color: 'blue', eyes: '◑_◑', mouth: ' ≈ ', body: ' ≈≈ ', tail: '∿∿',
+      traits: 'Uncommon eyes, Rare body', thought: 'Decent merge food'
+    }
+  ];
+
+  const creatures = scanCreatures.map(sc => {
+    const art = buildCreatureArt(sc.eyes, sc.mouth, sc.body, sc.tail);
+    const bubble = sc.thought ? `<div class="thought-bubble">${sc.thought}</div>` : '';
+    return `
+      <div class="scan-creature">
+        ${bubble}
+        <div class="scan-creature-name">${sc.name}</div>
+        <div class="scan-creature-art">${applyColor(art, sc.color)}</div>
+        <div class="scan-traits-list">${sc.traits}</div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="scan-header">
+      $ /scan<br>
+      <span style="color:var(--text-dim);">Scanning nearby area... 4 creatures found!</span>
+    </div>
+    <div class="scan-grid">${creatures}</div>
+  `;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderCollection();
+  renderSpecies();
+  renderTraitRarity();
+  renderColorPalette();
+  renderMerge();
+  renderScan();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compi — Creature Species Design v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600;700&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+/* ====== RESET & BASE ====== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: #0d1117;
+  color: #e6edf3;
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ====== COLORS ====== */
+:root {
+  --grey: #9e9e9e;
+  --green: #4caf50;
+  --blue: #2196f3;
+  --red: #f44336;
+  --purple: #9c27b0;
+  --gold: #ffd700;
+  --shadow: #1a1a2e;
+  --card-bg: #161b22;
+  --card-border: #30363d;
+  --accent: #58a6ff;
+}
+
+/* ====== HOLOGRAPHIC GRADIENT ====== */
+@keyframes holo {
+  0%   { color: #ff6b6b; text-shadow: 0 0 8px #ff6b6b88; }
+  14%  { color: #ffa500; text-shadow: 0 0 8px #ffa50088; }
+  28%  { color: #ffd700; text-shadow: 0 0 8px #ffd70088; }
+  42%  { color: #4caf50; text-shadow: 0 0 8px #4caf5088; }
+  57%  { color: #2196f3; text-shadow: 0 0 8px #2196f388; }
+  71%  { color: #9c27b0; text-shadow: 0 0 8px #9c27b088; }
+  85%  { color: #ff69b4; text-shadow: 0 0 8px #ff69b488; }
+  100% { color: #ff6b6b; text-shadow: 0 0 8px #ff6b6b88; }
+}
+@keyframes holoBorder {
+  0%   { border-color: #ff6b6b; box-shadow: 0 0 15px #ff6b6b44, inset 0 0 15px #ff6b6b11; }
+  14%  { border-color: #ffa500; box-shadow: 0 0 15px #ffa50044, inset 0 0 15px #ffa50011; }
+  28%  { border-color: #ffd700; box-shadow: 0 0 15px #ffd70044, inset 0 0 15px #ffd70011; }
+  42%  { border-color: #4caf50; box-shadow: 0 0 15px #4caf5044, inset 0 0 15px #4caf5011; }
+  57%  { border-color: #2196f3; box-shadow: 0 0 15px #2196f344, inset 0 0 15px #2196f311; }
+  71%  { border-color: #9c27b0; box-shadow: 0 0 15px #9c27b044, inset 0 0 15px #9c27b011; }
+  85%  { border-color: #ff69b4; box-shadow: 0 0 15px #ff69b444, inset 0 0 15px #ff69b411; }
+  100% { border-color: #ff6b6b; box-shadow: 0 0 15px #ff6b6b44, inset 0 0 15px #ff6b6b11; }
+}
+@keyframes goldShimmer {
+  0%, 100% { box-shadow: 0 0 10px #ffd70055, 0 0 25px #ffd70022; }
+  50% { box-shadow: 0 0 20px #ffd70088, 0 0 40px #ffd70044; }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes shadowGlow {
+  0%, 100% { text-shadow: 0 0 10px #1a1a2e, 0 0 20px #0a0a1e, 0 0 30px #000; }
+  50% { text-shadow: 0 0 15px #2a2a4e, 0 0 30px #1a1a3e, 0 0 40px #0a0a2e; }
+}
+
+/* ====== LAYOUT ====== */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+/* ====== HEADER ====== */
+header {
+  text-align: center;
+  padding: 60px 20px 40px;
+  position: relative;
+}
+header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 200px; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+header h1 {
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, #58a6ff, #bc8cff, #f778ba);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+header p { color: #8b949e; font-size: 1.1rem; margin-top: 8px; }
+
+/* ====== SECTIONS ====== */
+section {
+  padding: 50px 0;
+  opacity: 0;
+  animation: fadeInUp 0.6s ease forwards;
+}
+section:nth-child(2) { animation-delay: 0.1s; }
+section:nth-child(3) { animation-delay: 0.2s; }
+section:nth-child(4) { animation-delay: 0.3s; }
+section:nth-child(5) { animation-delay: 0.4s; }
+section:nth-child(6) { animation-delay: 0.5s; }
+
+.section-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-align: center;
+  margin-bottom: 40px;
+  color: #e6edf3;
+  position: relative;
+}
+.section-title::after {
+  content: '';
+  display: block;
+  width: 60px; height: 3px;
+  background: var(--accent);
+  margin: 12px auto 0;
+  border-radius: 2px;
+}
+
+/* ====== CREATURE CARDS (Section 1) ====== */
+.species-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+.species-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 28px 24px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.species-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+.species-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--card-accent, var(--accent));
+  border-radius: 12px 12px 0 0;
+}
+.species-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--card-accent, var(--accent));
+}
+.creature-art {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 22px;
+  line-height: 1.35;
+  white-space: pre;
+  display: inline-block;
+  padding: 12px 8px;
+  margin-bottom: 16px;
+  color: var(--art-color, #e6edf3);
+  transition: transform 0.3s ease;
+}
+.species-card:hover .creature-art { transform: scale(1.08); }
+.flavor-text {
+  font-size: 0.88rem;
+  color: #8b949e;
+  font-style: italic;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.rarity-badge {
+  display: inline-block;
+  padding: 3px 14px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+}
+.rarity-common { background: #30363d; color: #8b949e; }
+.rarity-uncommon { background: #0d4429; color: #4caf50; }
+.rarity-rare { background: #0c2d6b; color: #58a6ff; }
+.rarity-epic { background: #3b0764; color: #c084fc; }
+.rarity-legendary { background: #422006; color: #ffd700; }
+
+.color-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.color-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid #30363d;
+  transition: transform 0.2s;
+}
+.color-dot:hover { transform: scale(1.4); }
+.color-dot.holo {
+  background: conic-gradient(#ff6b6b, #ffa500, #ffd700, #4caf50, #2196f3, #9c27b0, #ff69b4, #ff6b6b);
+  animation: spin 3s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.color-dot.holo:hover { animation-play-state: paused; transform: scale(1.4); }
+.color-dot.shadow-dot {
+  background: var(--shadow);
+  box-shadow: 0 0 6px #000, 0 0 12px #0a0a1e;
+}
+
+/* ====== TRAIT VARIATIONS (Section 2) ====== */
+.trait-species-block {
+  margin-bottom: 48px;
+}
+.trait-species-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 20px;
+}
+.trait-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+.trait-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 20px 18px;
+  text-align: center;
+  min-width: 160px;
+  transition: transform 0.2s;
+}
+.trait-card:hover { transform: scale(1.05); }
+.trait-card .creature-art { font-size: 18px; margin-bottom: 8px; }
+.trait-label {
+  font-size: 0.78rem;
+  color: #8b949e;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.trait-sublabel {
+  font-size: 0.72rem;
+  color: #58a6ff;
+  margin-top: 2px;
+}
+.color-row-label {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #8b949e;
+  margin-top: 24px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ====== COLLECTION GRID (Section 3) ====== */
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+}
+.collection-item {
+  background: var(--card-bg);
+  border: 2px solid var(--card-border);
+  border-radius: 10px;
+  padding: 16px 10px;
+  text-align: center;
+  transition: transform 0.2s;
+  position: relative;
+}
+.collection-item:hover { transform: scale(1.08); }
+.collection-item .creature-art {
+  font-size: 15px;
+  line-height: 1.3;
+  margin-bottom: 6px;
+}
+.collection-item .coll-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.collection-item .coll-info {
+  font-size: 0.65rem;
+  color: #8b949e;
+}
+.collection-item.rarity-border-rare {
+  border-color: #2196f3;
+  box-shadow: 0 0 12px #2196f333;
+}
+.collection-item.rarity-border-epic {
+  border-color: #c084fc;
+  box-shadow: 0 0 12px #c084fc33;
+}
+.collection-item.rarity-border-gold {
+  border-color: #ffd700;
+  animation: goldShimmer 2s ease-in-out infinite;
+}
+.collection-item.rarity-border-holo {
+  animation: holoBorder 4s linear infinite;
+  border-width: 2px;
+}
+.collection-item.rarity-border-shadow {
+  border-color: #2a2a4e;
+  box-shadow: 0 0 20px #000, 0 0 40px #0a0a1e55;
+}
+.collection-lvl {
+  position: absolute;
+  top: 6px; right: 8px;
+  font-size: 0.6rem;
+  color: #8b949e;
+  font-weight: 700;
+}
+
+/* ====== SCAN VIEW (Section 4) ====== */
+.scan-container {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 30px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.scan-header {
+  font-family: 'Source Code Pro', monospace;
+  color: var(--accent);
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--card-border);
+}
+.scan-header span { color: #4caf50; }
+.scan-results {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+@media (max-width: 600px) { .scan-results { grid-template-columns: 1fr; } }
+.scan-item {
+  background: #0d1117;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 18px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: border-color 0.3s;
+}
+.scan-item:hover { border-color: var(--accent); }
+.scan-item .creature-art {
+  font-size: 14px;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+.scan-meta { flex: 1; }
+.scan-meta .name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+.scan-meta .annotation {
+  font-size: 0.78rem;
+  color: #f0b040;
+  font-style: italic;
+  line-height: 1.4;
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: #f0b04010;
+  border-radius: 6px;
+  border-left: 2px solid #f0b040;
+}
+.scan-meta .tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.scan-tag {
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #21262d;
+  color: #8b949e;
+  font-weight: 600;
+}
+
+/* ====== MERGE (Section 5) ====== */
+.merge-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.merge-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+.merge-slot {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 24px 20px;
+  text-align: center;
+  min-width: 180px;
+}
+.merge-slot .creature-art { font-size: 18px; }
+.merge-slot-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.merge-arrow {
+  font-size: 2rem;
+  color: var(--accent);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.merge-result-box {
+  background: var(--card-bg);
+  border: 2px solid #4caf50;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+  box-shadow: 0 0 20px #4caf5022;
+}
+.merge-result-title {
+  color: #4caf50;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+.merge-result-desc {
+  font-size: 0.85rem;
+  color: #8b949e;
+}
+.merge-before-after {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.merge-ba-slot { text-align: center; }
+.merge-ba-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #8b949e;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.merge-ba-slot .creature-art { font-size: 17px; }
+.merge-trait-change {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 3px 12px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.merge-trait-old { background: #f4433622; color: #f44336; text-decoration: line-through; }
+.merge-trait-new { background: #4caf5022; color: #4caf50; }
+
+/* ====== FOOTER ====== */
+footer {
+  text-align: center;
+  padding: 40px 20px;
+  color: #484f58;
+  font-size: 0.8rem;
+  border-top: 1px solid #21262d;
+  margin-top: 30px;
+}
+
+/* ====== UTILITY ====== */
+.color-grey    { --art-color: #9e9e9e; }
+.color-green   { --art-color: #4caf50; }
+.color-blue    { --art-color: #2196f3; }
+.color-red     { --art-color: #f44336; }
+.color-purple  { --art-color: #9c27b0; }
+.color-gold    { --art-color: #ffd700; }
+.color-holo .creature-art { animation: holo 4s linear infinite; }
+.color-shadow  { --art-color: #4a4a6e; }
+.color-shadow .creature-art { animation: shadowGlow 3s ease-in-out infinite; }
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 768px) {
+  header h1 { font-size: 2rem; }
+  .species-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+  .collection-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  .creature-art { font-size: 18px !important; }
+  .scan-results { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .species-grid { grid-template-columns: 1fr; }
+  .merge-visual { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<!-- ====== HEADER ====== -->
+<header>
+  <h1>COMPI</h1>
+  <p>Creature Species Design &mdash; v2</p>
+</header>
+
+<!-- ====== SECTION 1: SPECIES GALLERY ====== -->
+<section>
+<div class="container">
+  <h2 class="section-title">Creature Species Gallery</h2>
+  <div class="species-grid">
+
+    <!-- Compi -->
+    <div class="species-card" style="--card-accent: #58a6ff">
+      <div class="species-name">Compi</div>
+      <div class="creature-art" style="--art-color: #58a6ff">  ~(&deg;.&deg;)~
+    &lfloor;&rfloor;
+   &block;&block;
+   ~~/</div>
+      <div class="flavor-text">A cheerful axolotl born from the terminal. Splashes in data streams and nibbles on stray bytes.</div>
+      <div class="rarity-badge rarity-common">Common</div>
+      <div class="color-dots">
+        <div class="color-dot" style="background:#9e9e9e" title="Grey 30%"></div>
+        <div class="color-dot" style="background:#4caf50" title="Green 20%"></div>
+        <div class="color-dot" style="background:#2196f3" title="Blue 18%"></div>
+        <div class="color-dot" style="background:#f44336" title="Red 12%"></div>
+        <div class="color-dot" style="background:#9c27b0" title="Purple 10%"></div>
+        <div class="color-dot" style="background:#ffd700" title="Gold 6%"></div>
+        <div class="color-dot holo" title="Holographic 3%"></div>
+        <div class="color-dot shadow-dot" title="Shadow 1%"></div>
+      </div>
+    </div>
+
+    <!-- Drakon -->
+    <div class="species-card" style="--card-accent: #f44336">
+      <div class="species-name">Drakon</div>
+      <div class="creature-art" style="--art-color: #f44336"> /\  /\
+{  @_@  }
+ \ &omega; /
+  \&block;&block;/
+  &lowast;&lowast;</div>
+      <div class="flavor-text">A fierce dragon that breathes digital fire. Its wings unfurl with each compile.</div>
+      <div class="rarity-badge rarity-rare">Rare</div>
+      <div class="color-dots">
+        <div class="color-dot" style="background:#9e9e9e"></div>
+        <div class="color-dot" style="background:#4caf50"></div>
+        <div class="color-dot" style="background:#2196f3"></div>
+        <div class="color-dot" style="background:#f44336"></div>
+        <div class="color-dot" style="background:#9c27b0"></div>
+        <div class="color-dot" style="background:#ffd700"></div>
+        <div class="color-dot holo"></div>
+        <div class="color-dot shadow-dot"></div>
+      </div>
+    </div>
+
+    <!-- Felith -->
+    <div class="species-card" style="--card-accent: #c084fc">
+      <div class="species-name">Felith</div>
+      <div class="creature-art" style="--art-color: #c084fc"> /\_/\
+( &bull;.&bull; )
+ &gt; ^ &lt;
+ /&block;&block;\
+  ~~&not;</div>
+      <div class="flavor-text">A sly digital feline. Curls its tail around error logs and purrs at clean builds.</div>
+      <div class="rarity-badge rarity-uncommon">Uncommon</div>
+      <div class="color-dots">
+        <div class="color-dot" style="background:#9e9e9e"></div>
+        <div class="color-dot" style="background:#4caf50"></div>
+        <div class="color-dot" style="background:#2196f3"></div>
+        <div class="color-dot" style="background:#f44336"></div>
+        <div class="color-dot" style="background:#9c27b0"></div>
+        <div class="color-dot" style="background:#ffd700"></div>
+        <div class="color-dot holo"></div>
+        <div class="color-dot shadow-dot"></div>
+      </div>
+    </div>
+
+    <!-- Orbix -->
+    <div class="species-card" style="--card-accent: #00bcd4">
+      <div class="species-name">Orbix</div>
+      <div class="creature-art" style="--art-color: #00bcd4"> .oOo.
+/ &loz;_&loz; \
+|  &nabla;  |
+ \ &diams;&diams; /
+  '&not;&not;'</div>
+      <div class="flavor-text">A floating orb of compressed data. Hums at frequencies only debuggers can hear.</div>
+      <div class="rarity-badge rarity-epic">Epic</div>
+      <div class="color-dots">
+        <div class="color-dot" style="background:#9e9e9e"></div>
+        <div class="color-dot" style="background:#4caf50"></div>
+        <div class="color-dot" style="background:#2196f3"></div>
+        <div class="color-dot" style="background:#f44336"></div>
+        <div class="color-dot" style="background:#9c27b0"></div>
+        <div class="color-dot" style="background:#ffd700"></div>
+        <div class="color-dot holo"></div>
+        <div class="color-dot shadow-dot"></div>
+      </div>
+    </div>
+
+    <!-- Thornyx -->
+    <div class="species-card" style="--card-accent: #4caf50">
+      <div class="species-name">Thornyx</div>
+      <div class="creature-art" style="--art-color: #4caf50"> \|/|/
+ (&deg;.&deg;)
+  &triangle;
+ {&block;&block;}
+ _/\_</div>
+      <div class="flavor-text">A spiny plant creature rooted in legacy code. Thrives on deprecated libraries.</div>
+      <div class="rarity-badge rarity-uncommon">Uncommon</div>
+      <div class="color-dots">
+        <div class="color-dot" style="background:#9e9e9e"></div>
+        <div class="color-dot" style="background:#4caf50"></div>
+        <div class="color-dot" style="background:#2196f3"></div>
+        <div class="color-dot" style="background:#f44336"></div>
+        <div class="color-dot" style="background:#9c27b0"></div>
+        <div class="color-dot" style="background:#ffd700"></div>
+        <div class="color-dot holo"></div>
+        <div class="color-dot shadow-dot"></div>
+      </div>
+    </div>
+
+    <!-- Gloon -->
+    <div class="species-card" style="--card-accent: #66bb6a">
+      <div class="species-name">Gloon</div>
+      <div class="creature-art" style="--art-color: #66bb6a">  ___
+ (&deg;.&deg;)
+   ~
+ (&block;&block;)
+  ~~</div>
+      <div class="flavor-text">A squishy blob of memory foam. Absorbs stack traces and giggles. Perfect merge material.</div>
+      <div class="rarity-badge rarity-common">Common</div>
+      <div class="color-dots">
+        <div class="color-dot" style="background:#9e9e9e"></div>
+        <div class="color-dot" style="background:#4caf50"></div>
+        <div class="color-dot" style="background:#2196f3"></div>
+        <div class="color-dot" style="background:#f44336"></div>
+        <div class="color-dot" style="background:#9c27b0"></div>
+        <div class="color-dot" style="background:#ffd700"></div>
+        <div class="color-dot holo"></div>
+        <div class="color-dot shadow-dot"></div>
+      </div>
+    </div>
+
+    <!-- Spectra -->
+    <div class="species-card" style="--card-accent: #ab47bc">
+      <div class="species-name">Spectra</div>
+      <div class="creature-art" style="--art-color: #ab47bc"> ~ &middot; ~
+ (o   o)
+   &oplus;
+  /&sim;&sim;\
+   &sim;&sim;</div>
+      <div class="flavor-text">A ghost woven from null pointers. Phases through firewalls and whispers in stderr.</div>
+      <div class="rarity-badge rarity-rare">Rare</div>
+      <div class="color-dots">
+        <div class="color-dot" style="background:#9e9e9e"></div>
+        <div class="color-dot" style="background:#4caf50"></div>
+        <div class="color-dot" style="background:#2196f3"></div>
+        <div class="color-dot" style="background:#f44336"></div>
+        <div class="color-dot" style="background:#9c27b0"></div>
+        <div class="color-dot" style="background:#ffd700"></div>
+        <div class="color-dot holo"></div>
+        <div class="color-dot shadow-dot"></div>
+      </div>
+    </div>
+
+    <!-- Craggor -->
+    <div class="species-card" style="--card-accent: #78909c">
+      <div class="species-name">Craggor</div>
+      <div class="creature-art" style="--art-color: #78909c"> [&block; &block;]
+ [_&block;_]
+ |##|
+ |&block;&block;|
+ _||_</div>
+      <div class="flavor-text">A stone golem assembled from corrupted sectors. Slow but unbreakable. Fears defrag.</div>
+      <div class="rarity-badge rarity-uncommon">Uncommon</div>
+      <div class="color-dots">
+        <div class="color-dot" style="background:#9e9e9e"></div>
+        <div class="color-dot" style="background:#4caf50"></div>
+        <div class="color-dot" style="background:#2196f3"></div>
+        <div class="color-dot" style="background:#f44336"></div>
+        <div class="color-dot" style="background:#9c27b0"></div>
+        <div class="color-dot" style="background:#ffd700"></div>
+        <div class="color-dot holo"></div>
+        <div class="color-dot shadow-dot"></div>
+      </div>
+    </div>
+
+    <!-- Zephyx -->
+    <div class="species-card" style="--card-accent: #ffb74d">
+      <div class="species-name">Zephyx</div>
+      <div class="creature-art" style="--art-color: #ffb74d">  ^v^
+(*w*)&gt;
+ &lt;&diams;&gt;
+  /\
+  &asymp;&asymp;</div>
+      <div class="flavor-text">A swift wind bird that rides async streams. Catches promises mid-flight.</div>
+      <div class="rarity-badge rarity-rare">Rare</div>
+      <div class="color-dots">
+        <div class="color-dot" style="background:#9e9e9e"></div>
+        <div class="color-dot" style="background:#4caf50"></div>
+        <div class="color-dot" style="background:#2196f3"></div>
+        <div class="color-dot" style="background:#f44336"></div>
+        <div class="color-dot" style="background:#9c27b0"></div>
+        <div class="color-dot" style="background:#ffd700"></div>
+        <div class="color-dot holo"></div>
+        <div class="color-dot shadow-dot"></div>
+      </div>
+    </div>
+
+    <!-- Luminos -->
+    <div class="species-card" style="--card-accent: #ffd700">
+      <div class="species-name">Luminos</div>
+      <div class="creature-art" style="--art-color: #ffd700">  /\
+ /&loz;&loz;\
+ |&diams;|
+ \&loz;&loz;/
+  \/</div>
+      <div class="flavor-text">A crystal entity forged in GPU heat. Refracts light into pure logic. Extremely rare.</div>
+      <div class="rarity-badge rarity-legendary">Legendary</div>
+      <div class="color-dots">
+        <div class="color-dot" style="background:#9e9e9e"></div>
+        <div class="color-dot" style="background:#4caf50"></div>
+        <div class="color-dot" style="background:#2196f3"></div>
+        <div class="color-dot" style="background:#f44336"></div>
+        <div class="color-dot" style="background:#9c27b0"></div>
+        <div class="color-dot" style="background:#ffd700"></div>
+        <div class="color-dot holo"></div>
+        <div class="color-dot shadow-dot"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</section>
+
+<!-- ====== SECTION 2: TRAIT VARIATIONS ====== -->
+<section>
+<div class="container">
+  <h2 class="section-title">Trait Variations</h2>
+  <p style="text-align:center;color:#8b949e;margin-bottom:30px;font-size:0.9rem;">Same species, different traits. The shape stays &mdash; the details change.</p>
+
+  <!-- Compi Variations -->
+  <div class="trait-species-block">
+    <div class="trait-species-title">Compi &mdash; Eye Variations</div>
+    <div class="trait-row">
+      <div class="trait-card">
+        <div class="creature-art" style="--art-color:#58a6ff;font-size:18px">  ~(&deg;.&deg;)~
+    &lfloor;&rfloor;
+   &block;&block;
+   ~~/</div>
+        <div class="trait-label">Standard</div>
+        <div class="trait-sublabel">&deg;.&deg; eyes</div>
+      </div>
+      <div class="trait-card">
+        <div class="creature-art" style="--art-color:#58a6ff;font-size:18px">  ~(*.*)~
+    &lfloor;&rfloor;
+   &block;&block;
+   ~~/</div>
+        <div class="trait-label">Star Gaze</div>
+        <div class="trait-sublabel">*.* eyes</div>
+      </div>
+      <div class="trait-card">
+        <div class="creature-art" style="--art-color:#58a6ff;font-size:18px">  ~(^.^)~
+    &lfloor;&rfloor;
+   &block;&block;
+   ~~/</div>
+        <div class="trait-label">Happy</div>
+        <div class="trait-sublabel">^.^ eyes</div>
+      </div>
+      <div class="trait-card">
+        <div class="creature-art" style="--art-color:#58a6ff;font-size:18px">  ~(@.@)~
+    &lfloor;&rfloor;
+   &block;&block;
+   ~~/</div>
+        <div class="trait-label">Dizzy</div>
+        <div class="trait-sublabel">@.@ eyes</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drakon Variations -->
+  <div class="trait-species-block">
+    <div class="trait-species-title">Drakon &mdash; Eye + Mouth Variations</div>
+    <div class="trait-row">
+      <div class="trait-card">
+        <div class="creature-art" style="--art-color:#f44336;font-size:18px"> /\  /\
+{  @_@  }
+ \ &omega; /
+  \&block;&block;/
+  &lowast;&lowast;</div>
+        <div class="trait-label">Standard</div>
+        <div class="trait-sublabel">@_@ + &omega; mouth</div>
+      </div>
+      <div class="trait-card">
+        <div class="creature-art" style="--art-color:#f44336;font-size:18px"> /\  /\
+{  *_*  }
+ \ &and; /
+  \&block;&block;/
+  &lowast;&lowast;</div>
+        <div class="trait-label">Star Sight</div>
+        <div class="trait-sublabel">*_* + &and; mouth</div>
+      </div>
+      <div class="trait-card">
+        <div class="creature-art" style="--art-color:#f44336;font-size:18px"> /\  /\
+{  &loz;_&loz;  }
+ \ ~ /
+  \&block;&block;/
+  &lowast;&lowast;</div>
+        <div class="trait-label">Diamond Eye</div>
+        <div class="trait-sublabel">&loz;_&loz; + ~ mouth</div>
+      </div>
+      <div class="trait-card">
+        <div class="creature-art" style="--art-color:#f44336;font-size:18px"> /\  /\
+{  #_#  }
+ \ = /
+  \&block;&block;/
+  &lowast;&lowast;</div>
+        <div class="trait-label">Glitch</div>
+        <div class="trait-sublabel">#_# + = mouth</div>
+      </div>
+    </div>
+    <div class="color-row-label">Color Variations &mdash; Same Drakon, Different Colors</div>
+    <div class="trait-row">
+      <div class="trait-card color-red">
+        <div class="creature-art" style="font-size:18px"> /\  /\
+{  @_@  }
+ \ &omega; /
+  \&block;&block;/
+  &lowast;&lowast;</div>
+        <div class="trait-label" style="color:#f44336">Red</div>
+      </div>
+      <div class="trait-card color-blue">
+        <div class="creature-art" style="font-size:18px"> /\  /\
+{  @_@  }
+ \ &omega; /
+  \&block;&block;/
+  &lowast;&lowast;</div>
+        <div class="trait-label" style="color:#2196f3">Blue</div>
+      </div>
+      <div class="trait-card color-gold">
+        <div class="creature-art" style="font-size:18px"> /\  /\
+{  @_@  }
+ \ &omega; /
+  \&block;&block;/
+  &lowast;&lowast;</div>
+        <div class="trait-label" style="color:#ffd700">Gold</div>
+      </div>
+      <div class="trait-card color-holo">
+        <div class="creature-art" style="font-size:18px"> /\  /\
+{  @_@  }
+ \ &omega; /
+  \&block;&block;/
+  &lowast;&lowast;</div>
+        <div class="trait-label" style="color:#ff69b4">Holographic</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Felith Variations -->
+  <div class="trait-species-block">
+    <div class="trait-species-title">Felith &mdash; Eye + Mouth Variations</div>
+    <div class="trait-row">
+      <div class="trait-card">
+        <div class="creature-art" style="--art-color:#c084fc;font-size:18px"> /\_/\
+( &bull;.&bull; )
+ &gt; ^ &lt;
+ /&block;&block;\
+  ~~&not;</div>
+        <div class="trait-label">Standard</div>
+        <div class="trait-sublabel">&bull;.&bull; + ^ mouth</div>
+      </div>
+      <div class="trait-card">
+        <div class="creature-art" style="--art-color:#c084fc;font-size:18px"> /\_/\
+( &deg;.&deg; )
+ &gt; w &lt;
+ /&block;&block;\
+  ~~&not;</div>
+        <div class="trait-label">Soft Purr</div>
+        <div class="trait-sublabel">&deg;.&deg; + w mouth</div>
+      </div>
+      <div class="trait-card">
+        <div class="creature-art" style="--art-color:#c084fc;font-size:18px"> /\_/\
+( *.* )
+ &gt; &omega; &lt;
+ /&block;&block;\
+  ~~&not;</div>
+        <div class="trait-label">Starlight</div>
+        <div class="trait-sublabel">*.* + &omega; mouth</div>
+      </div>
+      <div class="trait-card">
+        <div class="creature-art" style="--art-color:#c084fc;font-size:18px"> /\_/\
+( =.= )
+ &gt; ~ &lt;
+ /&block;&block;\
+  ~~&not;</div>
+        <div class="trait-label">Sleepy</div>
+        <div class="trait-sublabel">=.= + ~ mouth</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<!-- ====== SECTION 3: YOUR COLLECTION ====== -->
+<section>
+<div class="container">
+  <h2 class="section-title">Your Collection</h2>
+  <p style="text-align:center;color:#8b949e;margin-bottom:30px;font-size:0.9rem;">12 creatures caught. Borders glow by rarity.</p>
+  <div class="collection-grid">
+
+    <!-- 1. Grey Compi (common) -->
+    <div class="collection-item">
+      <span class="collection-lvl">Lv 3</span>
+      <div class="creature-art" style="color:#9e9e9e">  ~(&deg;.&deg;)~
+    &lfloor;&rfloor;
+   &block;&block;
+   ~~/</div>
+      <div class="coll-name" style="color:#9e9e9e">Compi</div>
+      <div class="coll-info">Grey &middot; Common</div>
+    </div>
+
+    <!-- 2. Green Gloon (common) -->
+    <div class="collection-item">
+      <span class="collection-lvl">Lv 2</span>
+      <div class="creature-art" style="color:#4caf50">  ___
+ (&deg;.&deg;)
+   ~
+ (&block;&block;)
+  ~~</div>
+      <div class="coll-name" style="color:#4caf50">Gloon</div>
+      <div class="coll-info">Green &middot; Common</div>
+    </div>
+
+    <!-- 3. Blue Felith (uncommon, rare border) -->
+    <div class="collection-item rarity-border-rare">
+      <span class="collection-lvl">Lv 5</span>
+      <div class="creature-art" style="color:#2196f3"> /\_/\
+( &bull;.&bull; )
+ &gt; ^ &lt;
+ /&block;&block;\
+  ~~&not;</div>
+      <div class="coll-name" style="color:#2196f3">Felith</div>
+      <div class="coll-info">Blue &middot; Uncommon</div>
+    </div>
+
+    <!-- 4. Red Drakon (rare, rare border) -->
+    <div class="collection-item rarity-border-rare">
+      <span class="collection-lvl">Lv 7</span>
+      <div class="creature-art" style="color:#f44336"> /\  /\
+{  @_@  }
+ \ &omega; /
+  \&block;&block;/
+  &lowast;&lowast;</div>
+      <div class="coll-name" style="color:#f44336">Drakon</div>
+      <div class="coll-info">Red &middot; Rare</div>
+    </div>
+
+    <!-- 5. Grey Thornyx (common) -->
+    <div class="collection-item">
+      <span class="collection-lvl">Lv 1</span>
+      <div class="creature-art" style="color:#9e9e9e"> \|/|/
+ (&deg;.&deg;)
+  &triangle;
+ {&block;&block;}
+ _/\_</div>
+      <div class="coll-name" style="color:#9e9e9e">Thornyx</div>
+      <div class="coll-info">Grey &middot; Uncommon</div>
+    </div>
+
+    <!-- 6. Purple Spectra (epic border) -->
+    <div class="collection-item rarity-border-epic">
+      <span class="collection-lvl">Lv 6</span>
+      <div class="creature-art" style="color:#9c27b0"> ~ &middot; ~
+ (o   o)
+   &oplus;
+  /&sim;&sim;\
+   &sim;&sim;</div>
+      <div class="coll-name" style="color:#9c27b0">Spectra</div>
+      <div class="coll-info">Purple &middot; Rare</div>
+    </div>
+
+    <!-- 7. Green Craggor (common) -->
+    <div class="collection-item">
+      <span class="collection-lvl">Lv 4</span>
+      <div class="creature-art" style="color:#4caf50"> [&block; &block;]
+ [_&block;_]
+ |##|
+ |&block;&block;|
+ _||_</div>
+      <div class="coll-name" style="color:#4caf50">Craggor</div>
+      <div class="coll-info">Green &middot; Uncommon</div>
+    </div>
+
+    <!-- 8. Gold Zephyx (gold shimmer) -->
+    <div class="collection-item rarity-border-gold">
+      <span class="collection-lvl">Lv 8</span>
+      <div class="creature-art" style="color:#ffd700">  ^v^
+(*w*)&gt;
+ &lt;&diams;&gt;
+  /\
+  &asymp;&asymp;</div>
+      <div class="coll-name" style="color:#ffd700">Zephyx</div>
+      <div class="coll-info">Gold &middot; Rare</div>
+    </div>
+
+    <!-- 9. Blue Orbix (rare border) -->
+    <div class="collection-item rarity-border-rare">
+      <span class="collection-lvl">Lv 5</span>
+      <div class="creature-art" style="color:#2196f3"> .oOo.
+/ &loz;_&loz; \
+|  &nabla;  |
+ \ &diams;&diams; /
+  '&not;&not;'</div>
+      <div class="coll-name" style="color:#2196f3">Orbix</div>
+      <div class="coll-info">Blue &middot; Epic</div>
+    </div>
+
+    <!-- 10. Holo Compi (holographic border) -->
+    <div class="collection-item rarity-border-holo">
+      <span class="collection-lvl">Lv 9</span>
+      <div class="creature-art color-holo" style="font-size:15px">  ~(*.*)~
+    &lfloor;&rfloor;
+   &block;&block;
+   ~~/</div>
+      <div class="coll-name" style="background:linear-gradient(90deg,#ff6b6b,#ffa500,#ffd700,#4caf50,#2196f3,#9c27b0);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Compi</div>
+      <div class="coll-info">Holo &middot; Common</div>
+    </div>
+
+    <!-- 11. Gold Luminos (gold shimmer) -->
+    <div class="collection-item rarity-border-gold">
+      <span class="collection-lvl">Lv 10</span>
+      <div class="creature-art" style="color:#ffd700">  /\
+ /&loz;&loz;\
+ |&diams;|
+ \&loz;&loz;/
+  \/</div>
+      <div class="coll-name" style="color:#ffd700">Luminos</div>
+      <div class="coll-info">Gold &middot; Legendary</div>
+    </div>
+
+    <!-- 12. Shadow Drakon (shadow border) -->
+    <div class="collection-item rarity-border-shadow">
+      <span class="collection-lvl">Lv 11</span>
+      <div class="creature-art color-shadow" style="font-size:15px"> /\  /\
+{  #_#  }
+ \ = /
+  \&block;&block;/
+  &lowast;&lowast;</div>
+      <div class="coll-name" style="color:#4a4a6e">Drakon</div>
+      <div class="coll-info">Shadow &middot; Rare</div>
+    </div>
+
+  </div>
+</div>
+</section>
+
+<!-- ====== SECTION 4: SCAN VIEW ====== -->
+<section>
+<div class="container">
+  <h2 class="section-title">Scan View</h2>
+  <div class="scan-container">
+    <div class="scan-header">
+      <span>&gt;</span> /scan &mdash; <span>4 creatures nearby</span> &mdash; Energy: 72/100
+    </div>
+    <div class="scan-results">
+
+      <!-- Scan 1: Gold Felith -->
+      <div class="scan-item" style="border-color:#ffd70066">
+        <div class="creature-art" style="color:#ffd700;font-size:14px;line-height:1.3"> /\_/\
+( &bull;.&bull; )
+ &gt; ^ &lt;
+ /&block;&block;\
+  ~~&not;</div>
+        <div class="scan-meta">
+          <div class="name" style="color:#ffd700">Gold Felith</div>
+          <div class="tags">
+            <span class="scan-tag" style="color:#ffd700;background:#ffd70020">Gold</span>
+            <span class="scan-tag">Uncommon</span>
+            <span class="scan-tag">Standard Eyes</span>
+          </div>
+          <div class="annotation">A rare Gold Felith! Only 6% spawn in gold. Catch it!</div>
+        </div>
+      </div>
+
+      <!-- Scan 2: Red Drakon with Star Sight -->
+      <div class="scan-item" style="border-color:#f4433666">
+        <div class="creature-art" style="color:#f44336;font-size:14px;line-height:1.3"> /\  /\
+{  *_*  }
+ \ &and; /
+  \&block;&block;/
+  &lowast;&lowast;</div>
+        <div class="scan-meta">
+          <div class="name" style="color:#f44336">Red Drakon</div>
+          <div class="tags">
+            <span class="scan-tag" style="color:#f44336;background:#f4433620">Red</span>
+            <span class="scan-tag">Rare</span>
+            <span class="scan-tag">Star Sight</span>
+          </div>
+          <div class="annotation">Drakon with Star Sight eyes &mdash; great for merging onto other Drakons!</div>
+        </div>
+      </div>
+
+      <!-- Scan 3: Grey Gloon -->
+      <div class="scan-item">
+        <div class="creature-art" style="color:#9e9e9e;font-size:14px;line-height:1.3">  ___
+ (&deg;.&deg;)
+   ~
+ (&block;&block;)
+  ~~</div>
+        <div class="scan-meta">
+          <div class="name" style="color:#9e9e9e">Grey Gloon</div>
+          <div class="tags">
+            <span class="scan-tag">Grey</span>
+            <span class="scan-tag">Common</span>
+            <span class="scan-tag">Standard</span>
+          </div>
+          <div class="annotation">Common Gloon&hellip; but could use it as merge food for your Drakon.</div>
+        </div>
+      </div>
+
+      <!-- Scan 4: Purple Orbix -->
+      <div class="scan-item" style="border-color:#9c27b066">
+        <div class="creature-art" style="color:#9c27b0;font-size:14px;line-height:1.3"> .oOo.
+/ &loz;_&loz; \
+|  &nabla;  |
+ \ &diams;&diams; /
+  '&not;&not;'</div>
+        <div class="scan-meta">
+          <div class="name" style="color:#9c27b0">Purple Orbix</div>
+          <div class="tags">
+            <span class="scan-tag" style="color:#9c27b0;background:#9c27b020">Purple</span>
+            <span class="scan-tag">Epic</span>
+            <span class="scan-tag">Diamond Eyes</span>
+          </div>
+          <div class="annotation">Epic Orbix with Diamond Eyes. Only 10% chance to spawn purple!</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ====== SECTION 5: MERGE ====== -->
+<section>
+<div class="container">
+  <h2 class="section-title">Merge</h2>
+  <p style="text-align:center;color:#8b949e;margin-bottom:30px;font-size:0.9rem;">Sacrifice a creature to try changing a trait on another. Species never change &mdash; only traits.</p>
+
+  <div class="merge-container">
+    <div class="merge-visual">
+      <!-- Food: Gloon -->
+      <div class="merge-slot">
+        <div class="merge-slot-label" style="color:#f44336">Food (consumed)</div>
+        <div class="creature-art" style="color:#4caf50;font-size:18px">  ___
+ (&deg;.&deg;)
+   ~
+ (&block;&block;)
+  ~~</div>
+        <div style="font-weight:700;font-size:0.85rem;margin-top:6px;color:#4caf50">Green Gloon</div>
+        <div style="font-size:0.72rem;color:#8b949e">Lv 2 &middot; Common</div>
+      </div>
+
+      <div class="merge-arrow">&rarr;</div>
+
+      <!-- Target: Drakon -->
+      <div class="merge-slot" style="border-color:#f44336">
+        <div class="merge-slot-label" style="color:#58a6ff">Target (keeps)</div>
+        <div class="creature-art" style="color:#f44336;font-size:18px"> /\  /\
+{  @_@  }
+ \ &omega; /
+  \&block;&block;/
+  &lowast;&lowast;</div>
+        <div style="font-weight:700;font-size:0.85rem;margin-top:6px;color:#f44336">Red Drakon</div>
+        <div style="font-size:0.72rem;color:#8b949e">Lv 7 &middot; Rare &middot; @_@ eyes, &omega; mouth</div>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div class="merge-result-box">
+      <div class="merge-result-title">Merge Successful!</div>
+      <div class="merge-result-desc">The Gloon was consumed. The Drakon's <strong>mouth trait</strong> mutated!</div>
+      <div class="merge-before-after">
+        <div class="merge-ba-slot">
+          <div class="merge-ba-label">Before</div>
+          <div class="creature-art" style="color:#f44336;font-size:17px"> /\  /\
+{  @_@  }
+ \ &omega; /
+  \&block;&block;/
+  &lowast;&lowast;</div>
+          <div class="merge-trait-change merge-trait-old">&omega; mouth</div>
+        </div>
+        <div style="display:flex;align-items:center;font-size:1.5rem;color:#4caf50">&rarr;</div>
+        <div class="merge-ba-slot">
+          <div class="merge-ba-label">After</div>
+          <div class="creature-art" style="color:#f44336;font-size:17px"> /\  /\
+{  @_@  }
+ \ &and; /
+  \&block;&block;/
+  &lowast;&lowast;</div>
+          <div class="merge-trait-change merge-trait-new">&and; mouth</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<footer>
+  Compi &mdash; Creature Species Design v2 &mdash; Terminal Creature Collection Game
+</footer>
+
+</body>
+</html>

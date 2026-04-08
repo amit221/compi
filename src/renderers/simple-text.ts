@@ -104,6 +104,7 @@ function padArtLine(line: string, targetWidth: number): string {
 
 function renderCreatureSideBySide(slots: CreatureSlot[], color: string = "white"): string[] {
   const artLines = renderCreatureLines(slots, color);
+  const cc = COLOR_ANSI[color] || WHITE;
   const order: SlotId[] = ["eyes", "mouth", "body", "tail"];
   const traitLines: string[] = [];
 
@@ -112,7 +113,7 @@ function renderCreatureSideBySide(slots: CreatureSlot[], color: string = "white"
     if (s) {
       const variant = getVariantById(s.variantId);
       const name = variant?.name ?? s.variantId;
-      traitLines.push(`${DIM}${slotId.padEnd(5)}${RESET} ${WHITE}${name}${RESET}`);
+      traitLines.push(`${DIM}${slotId.padEnd(5)}${RESET} ${cc}${name}${RESET}`);
     } else {
       traitLines.push(`${DIM}${slotId.padEnd(5)}${RESET} ${DIM}—${RESET}`);
     }
