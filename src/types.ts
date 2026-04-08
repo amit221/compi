@@ -26,6 +26,11 @@ export interface CreatureSlot {
   // rarity removed — spawn rate lives in species config
 }
 
+// --- Colors ---
+
+export type CreatureColor = "grey" | "white" | "cyan" | "magenta" | "yellow" | "red";
+export const CREATURE_COLORS: CreatureColor[] = ["grey", "white", "cyan", "magenta", "yellow", "red"];
+
 // --- Species ---
 
 export interface SpeciesDefinition {
@@ -56,6 +61,7 @@ export interface Tick {
 export interface NearbyCreature {
   id: string;
   speciesId: string;
+  color: CreatureColor;
   name: string;
   slots: CreatureSlot[];
   spawnedAt: number;
@@ -64,6 +70,7 @@ export interface NearbyCreature {
 export interface CollectionCreature {
   id: string;
   speciesId: string;
+  color: CreatureColor;
   name: string;
   slots: CreatureSlot[];
   caughtAt: number;
@@ -199,6 +206,7 @@ export interface MilestoneConfig {
 }
 
 export interface BalanceConfig {
+  colors: Record<string, number>;
   batch: {
     ticksPerSpawnCheck: number;
     spawnProbability: number;

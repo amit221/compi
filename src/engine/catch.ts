@@ -106,6 +106,7 @@ export function attemptCatch(
     const collectionCreature: CollectionCreature = {
       id: nearby.id,
       speciesId: nearby.speciesId,
+      color: nearby.color,
       name: nearby.name,
       slots: nearby.slots,
       caughtAt: Date.now(),

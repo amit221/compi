@@ -21,20 +21,22 @@ function makeSlots(): CreatureSlot[] {
   }));
 }
 
-function makeNearby(id: string, name: string): NearbyCreature {
+function makeNearby(id: string, name: string, color: string = "white"): NearbyCreature {
   return {
     id,
     speciesId: "compi",
+    color: color as any,
     name,
     slots: makeSlots(),
     spawnedAt: Date.now(),
   };
 }
 
-function makeCollection(id: string, name: string, generation = 1): CollectionCreature {
+function makeCollection(id: string, name: string, generation = 1, color: string = "white"): CollectionCreature {
   return {
     id,
     speciesId: "compi",
+    color: color as any,
     name,
     slots: makeSlots(),
     caughtAt: Date.now(),
@@ -345,5 +347,68 @@ describe("renderNotification", () => {
   test("returns notification message directly", () => {
     const out = renderer.renderNotification({ message: "A creature appeared!", level: "moderate" });
     expect(out).toBe("A creature appeared!");
+  });
+});
+
+// --- Color display ---
+
+describe("color display", () => {
+  test("renderScan shows creature color name", () => {
+    const result: ScanResult = {
+      energy: 6,
+      batch: null,
+      nearby: [
+        { index: 0, creature: makeNearby("c1", "Sparks", "cyan"), catchRate: 0.55, energyCost: 3 },
+      ],
+    };
+    const out = renderer.renderScan(result);
+    expect(out).toContain("[cyan]");
+  });
+
+  test("renderScan uses cyan ANSI code for cyan creature", () => {
+    const result: ScanResult = {
+      energy: 6,
+      batch: null,
+      nearby: [
+        { index: 0, creature: makeNearby("c1", "Sparks", "cyan"), catchRate: 0.55, energyCost: 3 },
+      ],
+    };
+    const out = renderer.renderScan(result);
+    expect(out).toContain("\x1b[36m"); // cyan ANSI code
+  });
+
+  test("renderCollection shows creature color name", () => {
+    const collection = [makeCollection("c1", "Sparks", 4, "magenta")];
+    const out = renderer.renderCollection(collection);
+    expect(out).toContain("[magenta]");
+  });
+
+  test("renderCatch shows color on success", () => {
+    const result: CatchResult = {
+      success: true,
+      creature: makeNearby("c1", "Sparks", "red"),
+      energySpent: 3,
+      fled: false,
+      xpEarned: 25,
+      attemptsRemaining: 3,
+      failPenalty: 0,
+    };
+    const out = renderer.renderCatch(result);
+    expect(out).toContain("[red]");
+  });
+
+  test("renderBreedResult shows color on child", () => {
+    const parentA = makeCollection("c1", "Sparks", 4, "cyan");
+    const parentB = makeCollection("c2", "Muddle", 1, "yellow");
+    const child = makeCollection("c3", "Sparks", 5, "cyan");
+
+    const result: BreedResult = {
+      child,
+      parentA,
+      parentB,
+      inheritedFrom: { eyes: "A", mouth: "B", body: "A", tail: "B" },
+    };
+    const out = renderer.renderBreedResult(result);
+    expect(out).toContain("[cyan]");
   });
 });

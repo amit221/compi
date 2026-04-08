@@ -1,12 +1,26 @@
 // src/engine/batch.ts — Multi-species creature spawning
 
-import { GameState, NearbyCreature, CreatureSlot, SLOT_IDS, SlotId } from "../types";
+import { GameState, NearbyCreature, CreatureSlot, CreatureColor, SLOT_IDS, SlotId } from "../types";
 import { pickSpecies, pickTraitForSlot, getSpeciesById } from "../config/species";
 import { loadCreatureName } from "../config/traits";
+import { loadConfig } from "../config/loader";
 import { BATCH_LINGER_MS, SHARED_ATTEMPTS } from "../config/constants";
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+
+export function pickColor(rng: () => number): CreatureColor {
+  const config = loadConfig();
+  const weights = config.colors;
+  const entries = Object.entries(weights);
+  const total = entries.reduce((sum, [, w]) => sum + w, 0);
+  let roll = rng() * total;
+  for (const [color, weight] of entries) {
+    roll -= weight;
+    if (roll <= 0) return color as CreatureColor;
+  }
+  return entries[entries.length - 1][0] as CreatureColor;
 }
 
 export function pickBatchSize(rng: () => number): number {
@@ -42,6 +56,7 @@ export function spawnBatch(state: GameState, now: number, rng: () => number): Ne
     const creature: NearbyCreature = {
       id: generateId(),
       speciesId: species.id,
+      color: pickColor(rng),
       name: loadCreatureName(rng),
       slots: generateCreatureSlots(species.id, rng),
       spawnedAt: now,

@@ -28,6 +28,7 @@ function makeCreature(
   return {
     id,
     speciesId,
+    color: "white",
     name: `Creature_${id}`,
     slots: SLOT_IDS.map((slotId, i) => makeSlot(slotId, variants[i])),
     caughtAt: Date.now(),
@@ -375,5 +376,39 @@ describe("executeBreed", () => {
     expect(() => executeBreed(state, "a1", "b1")).toThrow();
     expect(state.energy).toBe(energyBefore);
     expect(state.collection).toEqual(collectionBefore);
+  });
+
+  it("inherits color from parent A when rng < 0.5", () => {
+    const a = makeCreature("a1", "compi", ALL_COMMON, { color: "cyan" });
+    const b = makeCreature("b1", "compi", ALL_RARE, { color: "red" });
+    const state = makeState([a, b], 20);
+
+    // rng sequence: first 4 calls for slot inheritance, then color roll
+    // We need the 5th call to be < 0.5 for parentA color
+    let callCount = 0;
+    const rng = () => {
+      callCount++;
+      // Slot rolls (first 4) return 0 (pick A), color roll returns 0.1 (< 0.5 → pick A)
+      return callCount <= 4 ? 0 : 0.1;
+    };
+
+    const result = executeBreed(state, "a1", "b1", rng);
+    expect(result.child.color).toBe("cyan");
+  });
+
+  it("inherits color from parent B when rng >= 0.5", () => {
+    const a = makeCreature("a1", "compi", ALL_COMMON, { color: "cyan" });
+    const b = makeCreature("b1", "compi", ALL_RARE, { color: "red" });
+    const state = makeState([a, b], 20);
+
+    // rng sequence: first 4 calls for slot inheritance, then color roll
+    let callCount = 0;
+    const rng = () => {
+      callCount++;
+      return callCount <= 4 ? 0 : 0.9;
+    };
+
+    const result = executeBreed(state, "a1", "b1", rng);
+    expect(result.child.color).toBe("red");
   });
 });

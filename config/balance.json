@@ -1,4 +1,12 @@
 {
+  "colors": {
+    "grey": 0.30,
+    "white": 0.25,
+    "cyan": 0.20,
+    "magenta": 0.13,
+    "yellow": 0.08,
+    "red": 0.04
+  },
   "batch": {
     "ticksPerSpawnCheck": 10,
     "spawnProbability": 0.6,

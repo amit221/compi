@@ -54,7 +54,7 @@ function setupTraitRates(rates: Record<string, number>): void {
 }
 
 function makeNearby(id: string, variantIds: string[], speciesId = "compi"): NearbyCreature {
-  return { id, speciesId, name: "Glorp", slots: makeSlots(variantIds), spawnedAt: Date.now() };
+  return { id, speciesId, color: "white", name: "Glorp", slots: makeSlots(variantIds), spawnedAt: Date.now() };
 }
 
 function makeState(overrides: Partial<GameState> = {}): GameState {

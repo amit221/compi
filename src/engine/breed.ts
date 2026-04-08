@@ -223,6 +223,7 @@ export function executeBreed(
   const child: CollectionCreature = {
     id: generateId(),
     speciesId,
+    color: rng() < 0.5 ? parentA.color : parentB.color,
     name: parentA.name,
     slots: childSlots,
     caughtAt: Date.now(),

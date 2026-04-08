@@ -37,6 +37,7 @@ function makeCreature(id: string, speciesId: string, traits: Record<string, stri
   return {
     id,
     speciesId,
+    color: "white",
     name: `Test ${id}`,
     slots: SLOT_IDS.map(slotId => ({
       slotId,
