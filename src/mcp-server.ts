@@ -10,77 +10,35 @@ import { GameEngine } from "./engine/game-engine";
 import { SimpleTextRenderer } from "./renderers/simple-text";
 import { MAX_ENERGY } from "./engine/energy";
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const extApps = require("@modelcontextprotocol/ext-apps/server") as {
+  registerAppTool: (server: any, name: string, opts: any, handler: (...args: any[]) => any) => void;
+  registerAppResource: (server: any, name: string, uri: string, opts: any, handler: () => any) => void;
+  RESOURCE_MIME_TYPE: string;
+};
+
 const statePath =
   process.env.COMPI_STATE_PATH ||
   path.join(os.homedir(), ".compi", "state.json");
 
-// COMPI_DISPLAY_FILE=1: write ANSI to temp .txt file (Claude Code)
-// When COMPI_DISPLAY_FILE is NOT set, return HTML in MCP response (Cursor)
+// COMPI_DISPLAY_FILE=1: Claude Code mode — write ANSI to temp file
 const writeDisplayFile = process.env.COMPI_DISPLAY_FILE === "1";
-const returnHtml = !writeDisplayFile;
 const displayPath = path.join(os.tmpdir(), "compi_display.txt");
 
-// Debug: log which mode we're in
-try {
-  fs.appendFileSync(
-    path.join(os.tmpdir(), "compi_mcp_debug.log"),
-    `[${new Date().toISOString()}] COMPI_DISPLAY_FILE=${process.env.COMPI_DISPLAY_FILE} writeDisplayFile=${writeDisplayFile} returnHtml=${returnHtml}\n`
-  );
-} catch {}
+// When not in Claude Code, use MCP Apps for rich HTML rendering
+const useMcpApps = !writeDisplayFile;
 
-const ANSI_TO_CSS: Record<string, string> = {
-  "30": "#1a1a2e", "31": "#ff1744", "32": "#00e676", "33": "#ffea00",
-  "34": "#448aff", "35": "#d500f9", "36": "#00e5ff", "37": "#e0e0e0",
-  "90": "#9e9e9e", "91": "#ff1744", "92": "#00e676", "93": "#ffea00",
-  "94": "#448aff", "95": "#d500f9", "96": "#00e5ff", "97": "#ffffff",
-};
-
-function ansiToHtml(text: string): string {
-  let html = "";
-  let openSpans = 0;
-  for (let i = 0; i < text.length; i++) {
-    if (text[i] === "\x1b" && text[i + 1] === "[") {
-      const end = text.indexOf("m", i + 2);
-      if (end === -1) { html += text[i]; continue; }
-      const codes = text.slice(i + 2, end).split(";");
-      i = end;
-      const styles: string[] = [];
-      for (const code of codes) {
-        if (code === "0" || code === "") {
-          while (openSpans > 0) { html += "</span>"; openSpans--; }
-        } else if (code === "1") {
-          styles.push("font-weight:bold");
-        } else if (code === "2") {
-          styles.push("opacity:0.6");
-        } else if (ANSI_TO_CSS[code]) {
-          styles.push("color:" + ANSI_TO_CSS[code]);
-        }
-      }
-      if (styles.length > 0) {
-        html += `<span style="${styles.join(";")}">`;
-        openSpans++;
-      }
-    } else if (text[i] === "<") {
-      html += "&lt;";
-    } else if (text[i] === ">") {
-      html += "&gt;";
-    } else if (text[i] === "&") {
-      html += "&amp;";
-    } else {
-      html += text[i];
-    }
-  }
-  while (openSpans > 0) { html += "</span>"; openSpans--; }
-  return html;
-}
-
-function wrapHtml(body: string): string {
-  return `<!DOCTYPE html>
+// Self-contained HTML template — receives ANSI text via postMessage, converts to colored HTML
+const APP_HTML = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><style>
-body{background:#1a1a2e;color:#e0e0e0;font-family:'Cascadia Code','Fira Code',Consolas,monospace;font-size:14px;padding:16px;line-height:1.5;margin:0}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a2e;color:#e0e0e0;font-family:'Cascadia Code','Fira Code',Consolas,monospace;font-size:14px;padding:16px;line-height:1.5}
 pre{white-space:pre-wrap;word-wrap:break-word}
-</style></head><body><pre>${body}</pre></body></html>`;
-}
+</style></head><body><pre id="o">Loading...</pre><script>
+var C={'30':'#1a1a2e','31':'#ff1744','32':'#00e676','33':'#ffea00','34':'#448aff','35':'#d500f9','36':'#00e5ff','37':'#e0e0e0','90':'#9e9e9e','91':'#ff1744','92':'#00e676','93':'#ffea00','94':'#448aff','95':'#d500f9','96':'#00e5ff','97':'#ffffff'};
+function a2h(t){var h='',o=0,i=0;while(i<t.length){if(t[i]==='\\x1b'&&t[i+1]==='['){var e=t.indexOf('m',i+2);if(e===-1){h+=t[i];i++;continue}var c=t.slice(i+2,e).split(';');i=e+1;var s=[];for(var j=0;j<c.length;j++){if(c[j]==='0'||c[j]===''){while(o>0){h+='</span>';o--}}else if(c[j]==='1')s.push('font-weight:bold');else if(c[j]==='2')s.push('opacity:0.6');else if(C[c[j]])s.push('color:'+C[c[j]])}if(s.length>0){h+='<span style="'+s.join(';')+'">';o++}}else if(t[i]==='<'){h+='&lt;';i++}else if(t[i]==='>'){h+='&gt;';i++}else if(t[i]==='&'){h+='&amp;';i++}else{h+=t[i];i++}}while(o>0){h+='</span>';o--}return h}
+window.addEventListener('message',function(e){var m=e.data;if(!m||!m.jsonrpc)return;if(m.method==='ui/initialize'){window.parent.postMessage({jsonrpc:'2.0',id:m.id,result:{protocolVersion:'2026-06-17',capabilities:{}}},e.origin);return}if(m.method==='ui/toolResult'){var c=m.params&&m.params.result&&m.params.result.content;if(c){for(var i=0;i<c.length;i++){if(c[i].type==='text'){document.getElementById('o').innerHTML=a2h(c[i].text);break}}}if(m.id)window.parent.postMessage({jsonrpc:'2.0',id:m.id,result:{}},e.origin);return}if(m.id)window.parent.postMessage({jsonrpc:'2.0',id:m.id,result:{}},e.origin)});
+</script></body></html>`;
 
 function loadEngine() {
   const stateManager = new StateManager(statePath);
@@ -93,31 +51,85 @@ function text(content: string) {
   if (writeDisplayFile) {
     fs.writeFileSync(displayPath, content);
   }
-  if (returnHtml) {
-    const htmlPage = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#1a1a2e;color:#e0e0e0;font-family:'Cascadia Code','Fira Code',Consolas,monospace;font-size:14px;padding:16px;line-height:1.5}pre{white-space:pre-wrap;word-wrap:break-word}</style></head><body><pre>${ansiToHtml(content)}</pre></body></html>`;
-    return {
-      content: [
-        { type: "text" as const, text: content },
-        {
-          type: "resource" as any,
-          resource: {
-            uri: "ui://compi/display.html",
-            mimeType: "text/html;profile=mcp-app",
-            text: htmlPage,
-          },
-        },
-      ],
-    };
-  }
   return { content: [{ type: "text" as const, text: content }] };
 }
 
 const server = new McpServer({
   name: "compi",
-  version: "0.2.0",
+  version: "0.3.0",
 });
 
-server.tool("scan", "Show nearby creatures that can be caught", {}, () => {
+// --- Register MCP App resource (shared by all tools) ---
+const appUri = "ui://compi/display.html";
+
+if (useMcpApps) {
+  extApps.registerAppResource(
+    server,
+    appUri,
+    appUri,
+    { mimeType: extApps.RESOURCE_MIME_TYPE },
+    async () => ({
+      contents: [{ uri: appUri, mimeType: extApps.RESOURCE_MIME_TYPE, text: APP_HTML }],
+    })
+  );
+}
+
+// --- Helper to register tool for both modes ---
+type ToolHandler = (args: any) => { content: Array<{ type: "text"; text: string }> };
+
+function tool(name: string, description: string, schema: Record<string, z.ZodType>, handler: ToolHandler) {
+  if (useMcpApps) {
+    // MCP Apps mode: tool includes UI metadata, host renders HTML
+    extApps.registerAppTool(
+      server,
+      name,
+      {
+        title: name.charAt(0).toUpperCase() + name.slice(1),
+        description,
+        inputSchema: schemaToJsonSchema(schema),
+        _meta: { ui: { resourceUri: appUri } },
+      },
+      async (args: any) => handler(args.arguments || args)
+    );
+  } else {
+    // Claude Code mode: regular tool registration
+    if (Object.keys(schema).length > 0) {
+      server.tool(name, description, schema, (args: any) => handler(args));
+    } else {
+      server.tool(name, description, {}, () => handler({}));
+    }
+  }
+}
+
+function schemaToJsonSchema(schema: Record<string, z.ZodType>): object {
+  if (Object.keys(schema).length === 0) {
+    return { type: "object", properties: {}, additionalProperties: false };
+  }
+  const properties: Record<string, any> = {};
+  const required: string[] = [];
+  for (const [key, val] of Object.entries(schema)) {
+    const desc = (val as any)._def?.description || "";
+    if (val instanceof z.ZodNumber) {
+      properties[key] = { type: "number", description: desc };
+      required.push(key);
+    } else if (val instanceof z.ZodOptional) {
+      const inner = (val as any)._def?.innerType;
+      if (inner instanceof z.ZodBoolean) {
+        properties[key] = { type: "boolean", description: desc };
+      } else {
+        properties[key] = { type: "string", description: desc };
+      }
+    } else {
+      properties[key] = { type: "string", description: desc };
+      required.push(key);
+    }
+  }
+  return { type: "object", properties, required: required.length > 0 ? required : undefined };
+}
+
+// --- Tools ---
+
+tool("scan", "Show nearby creatures that can be caught", {}, () => {
   const { stateManager, engine } = loadEngine();
   const renderer = new SimpleTextRenderer();
   const result = engine.scan();
@@ -125,11 +137,11 @@ server.tool("scan", "Show nearby creatures that can be caught", {}, () => {
   return text(renderer.renderScan(result));
 });
 
-server.tool(
+tool(
   "catch",
   "Attempt to catch a nearby creature",
   { index: z.number().describe("1-indexed creature number from scan list") },
-  ({ index }) => {
+  ({ index }: { index: number }) => {
     const { stateManager, engine } = loadEngine();
     const renderer = new SimpleTextRenderer();
     const result = engine.catch(index - 1);
@@ -138,13 +150,13 @@ server.tool(
   }
 );
 
-server.tool("collection", "Browse caught creatures", {}, () => {
+tool("collection", "Browse caught creatures", {}, () => {
   const { engine } = loadEngine();
   const renderer = new SimpleTextRenderer();
   return text(renderer.renderCollection(engine.getState().collection));
 });
 
-server.tool(
+tool(
   "merge",
   "Merge two creatures from your collection",
   {
@@ -152,7 +164,7 @@ server.tool(
     foodId: z.string().describe("ID of the creature to sacrifice"),
     confirm: z.boolean().optional().describe("Set to true to execute the merge after previewing"),
   },
-  ({ targetId, foodId, confirm }) => {
+  ({ targetId, foodId, confirm }: { targetId: string; foodId: string; confirm?: boolean }) => {
     const { stateManager, engine } = loadEngine();
     const renderer = new SimpleTextRenderer();
     if (confirm) {
@@ -166,25 +178,28 @@ server.tool(
   }
 );
 
-server.tool("energy", "Show current energy level", {}, () => {
+tool("energy", "Show current energy level", {}, () => {
   const { engine } = loadEngine();
   const renderer = new SimpleTextRenderer();
   const state = engine.getState();
   return text(renderer.renderEnergy(state.energy, MAX_ENERGY));
 });
 
-server.tool("status", "View player profile and game stats", {}, () => {
+tool("status", "View player profile and game stats", {}, () => {
   const { engine } = loadEngine();
   const renderer = new SimpleTextRenderer();
   const result = engine.status();
   return text(renderer.renderStatus(result));
 });
 
-server.tool(
+tool(
   "settings",
   "View or change game settings",
-  { key: z.string().optional().describe("Setting key: 'notifications'"), value: z.string().optional().describe("New value for the setting") },
-  ({ key, value }) => {
+  {
+    key: z.string().optional().describe("Setting key: 'notifications'"),
+    value: z.string().optional().describe("New value for the setting"),
+  },
+  ({ key, value }: { key?: string; value?: string }) => {
     const { stateManager, engine } = loadEngine();
     const gameState = engine.getState();
     if (key && value) {

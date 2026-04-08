@@ -1,0 +1,17 @@
+Approach,Play Style,Metric,1 Slot Value,4 Slots Value,Effective Days (65% prod)
+G4 (random),random,Mean catches,289,1157,42.4
+G4 (random),random,P10,203,812,29.7
+G4 (random),random,P25,239,956,35.0
+G4 (random),random,P50 (median),283,1132,41.5
+G4 (random),random,P75,333,1332,48.8
+G4 (random),random,P90,385,1540,56.4
+G4 (random),random,P95,418,1672,61.2
+G4 (random),random,Mean merges,65,260,
+G4 (optimized),optimized,Mean catches,202,810,29.7
+G4 (optimized),optimized,P10,150,600,22.0
+G4 (optimized),optimized,P25,174,696,25.5
+G4 (optimized),optimized,P50 (median),200,800,29.3
+G4 (optimized),optimized,P75,230,920,33.7
+G4 (optimized),optimized,P90,258,1032,37.8
+G4 (optimized),optimized,P95,276,1104,40.4
+G4 (optimized),optimized,Mean merges,61,244,

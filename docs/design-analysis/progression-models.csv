@@ -1,0 +1,9 @@
+Approach,Key Mechanic,Catches (4 slots),Days (raw),Days (effective),Strategic Depth,Traits Impact,Commons Useful?,Verdict
+A: Chain Merge (N=3),3-to-1 merge chains,100,2.4,3.7,None,None,No,REJECT - no strategy
+B: Success Rates,Decreasing success %,163-206,3.9-4.9,6-8,Low (1 factor),Partial (synergy),No,REJECT - too shallow
+C: Mastery Grid,Same-variant mastery,1264,30.1,46.3,Low (1 decision),Yes (same=good),Yes,REJECT - pure RNG hunt
+D: Signature Catalysts,Math-based match,118,2.8,4.3,None (binary),Obfuscated,No,REJECT - no real strategy
+E: Resonance (3 factors),Pulse+harmony+stability,453-3101,10.8-73.8,17-113,Medium,Yes,Partial,"WEAK - too swingy, too complex"
+F: Refined Resonance,Simplified pulse+pity,147-186,3.5-4.4,5.4-6.8,Medium-High (5 decisions),Yes (pulse match),Yes (tuning),GOOD but too fast
+G4: Final (random),Pulse+food gate+multi-merge,1157,27.6,42.4,High (6+ decisions),Yes (pulse+slot rarity),Yes (tuning+food),RECOMMENDED
+G4: Final (optimized),Pulse+food gate+multi-merge,810,19.3,29.7,High (6+ decisions),Yes (pulse+slot rarity),Yes (tuning+food),RECOMMENDED
