@@ -92,6 +92,8 @@ function text(content: string) {
   }
   if (useMcpApps) {
     latestOutput = content;
+    // Return pre-rendered HTML — Cursor renders this in chat
+    return { content: [{ type: "text" as const, text: buildAppHtml(content) }] };
   }
   return { content: [{ type: "text" as const, text: content }] };
 }

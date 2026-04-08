@@ -1,0 +1,2187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compi Trait Tree — V2 System</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0d1117; color: #c9d1d9; font-family: 'Segoe UI', system-ui, sans-serif; overflow-x: hidden; }
+  h1 { text-align: center; padding: 20px; font-size: 1.6em; color: #58a6ff; }
+  .controls { display: flex; justify-content: center; gap: 12px; padding: 0 20px 16px; flex-wrap: wrap; }
+  .controls button { padding: 8px 18px; border: 1px solid #30363d; border-radius: 6px; background: #161b22; color: #c9d1d9; cursor: pointer; font-size: 0.9em; transition: all 0.15s; }
+  .controls button:hover { background: #21262d; border-color: #58a6ff; }
+  .controls button.active { background: #1f6feb; border-color: #58a6ff; color: #fff; }
+  .legend { display: flex; justify-content: center; gap: 16px; padding: 0 20px 12px; flex-wrap: wrap; font-size: 0.8em; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+  #canvas-container { width: 100%; overflow-x: auto; display: flex; justify-content: center; }
+  svg { display: block; }
+  .tooltip { position: absolute; background: #1c2128; border: 1px solid #30363d; border-radius: 8px; padding: 10px 14px; font-size: 0.85em; pointer-events: none; opacity: 0; transition: opacity 0.15s; max-width: 260px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+  .tooltip .tt-name { font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .tooltip .tt-rarity { font-size: 0.8em; margin-bottom: 6px; }
+  .tooltip .tt-connections { font-size: 0.8em; color: #8b949e; }
+  .tooltip .tt-conn-item { margin: 2px 0; }
+  .tooltip .tt-bar { display: inline-block; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+  .stats { text-align: center; padding: 16px; font-size: 0.85em; color: #8b949e; max-width: 800px; margin: 0 auto; }
+  .stats table { margin: 10px auto; border-collapse: collapse; }
+  .stats th, .stats td { padding: 4px 12px; border: 1px solid #30363d; text-align: center; }
+  .stats th { background: #161b22; color: #58a6ff; }
+</style>
+</head>
+<body>
+<h1>Compi Trait Tree</h1>
+
+<div class="controls" id="slot-buttons"></div>
+
+<div class="legend" id="legend"></div>
+
+<div id="canvas-container">
+  <svg id="tree-svg"></svg>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<div class="stats" id="stats"></div>
+
+<script>
+// Inline the trait tree data to avoid CORS issues when opening as file://
+const DATA = {
+  "slots": [
+    "eyes",
+    "mouth",
+    "body",
+    "tail"
+  ],
+  "rarities": [
+    "common",
+    "uncommon",
+    "rare",
+    "epic",
+    "legendary",
+    "mythic",
+    "astral",
+    "eternal"
+  ],
+  "traitCounts": {
+    "common": 5,
+    "uncommon": 4,
+    "rare": 3,
+    "epic": 3,
+    "legendary": 2,
+    "mythic": 2,
+    "astral": 2,
+    "eternal": 1
+  },
+  "traits": {
+    "eyes": {
+      "common": [
+        {
+          "id": "eye_c01",
+          "name": "Pebble Gaze"
+        },
+        {
+          "id": "eye_c02",
+          "name": "Dash Sight"
+        },
+        {
+          "id": "eye_c03",
+          "name": "Pip Vision"
+        },
+        {
+          "id": "eye_c04",
+          "name": "Round Look"
+        },
+        {
+          "id": "eye_c05",
+          "name": "Bead Eyes"
+        }
+      ],
+      "uncommon": [
+        {
+          "id": "eye_u01",
+          "name": "Half Moon"
+        },
+        {
+          "id": "eye_u02",
+          "name": "Crescent"
+        },
+        {
+          "id": "eye_u03",
+          "name": "Owl Sight"
+        },
+        {
+          "id": "eye_u04",
+          "name": "Slit Gaze"
+        }
+      ],
+      "rare": [
+        {
+          "id": "eye_r01",
+          "name": "Ring Gaze"
+        },
+        {
+          "id": "eye_r02",
+          "name": "Dot Sight"
+        },
+        {
+          "id": "eye_r03",
+          "name": "Core Eyes"
+        }
+      ],
+      "epic": [
+        {
+          "id": "eye_e01",
+          "name": "Gem Gaze"
+        },
+        {
+          "id": "eye_e02",
+          "name": "Star Dust"
+        },
+        {
+          "id": "eye_e03",
+          "name": "Spark Eyes"
+        }
+      ],
+      "legendary": [
+        {
+          "id": "eye_l01",
+          "name": "Star Sight"
+        },
+        {
+          "id": "eye_l02",
+          "name": "Moon Eyes"
+        }
+      ],
+      "mythic": [
+        {
+          "id": "eye_m01",
+          "name": "Void Gaze"
+        },
+        {
+          "id": "eye_m02",
+          "name": "Prism Eyes"
+        }
+      ],
+      "astral": [
+        {
+          "id": "eye_a01",
+          "name": "Nebula Gaze"
+        },
+        {
+          "id": "eye_a02",
+          "name": "Singularity"
+        }
+      ],
+      "eternal": [
+        {
+          "id": "eye_t01",
+          "name": "Omniscience"
+        }
+      ]
+    },
+    "mouth": {
+      "common": [
+        {
+          "id": "mth_c01",
+          "name": "Flat Line"
+        },
+        {
+          "id": "mth_c02",
+          "name": "Wave"
+        },
+        {
+          "id": "mth_c03",
+          "name": "Smile"
+        },
+        {
+          "id": "mth_c04",
+          "name": "Dot"
+        },
+        {
+          "id": "mth_c05",
+          "name": "Underline"
+        }
+      ],
+      "uncommon": [
+        {
+          "id": "mth_u01",
+          "name": "Circle"
+        },
+        {
+          "id": "mth_u02",
+          "name": "Ripple"
+        },
+        {
+          "id": "mth_u03",
+          "name": "Curve"
+        },
+        {
+          "id": "mth_u04",
+          "name": "Whisker"
+        }
+      ],
+      "rare": [
+        {
+          "id": "mth_r01",
+          "name": "Omega"
+        },
+        {
+          "id": "mth_r02",
+          "name": "Swirl"
+        },
+        {
+          "id": "mth_r03",
+          "name": "Triangle"
+        }
+      ],
+      "epic": [
+        {
+          "id": "mth_e01",
+          "name": "Prism"
+        },
+        {
+          "id": "mth_e02",
+          "name": "Void"
+        },
+        {
+          "id": "mth_e03",
+          "name": "Gem"
+        }
+      ],
+      "legendary": [
+        {
+          "id": "mth_l01",
+          "name": "Diamond"
+        },
+        {
+          "id": "mth_l02",
+          "name": "Spark"
+        }
+      ],
+      "mythic": [
+        {
+          "id": "mth_m01",
+          "name": "Core"
+        },
+        {
+          "id": "mth_m02",
+          "name": "Nova"
+        }
+      ],
+      "astral": [
+        {
+          "id": "mth_a01",
+          "name": "Resonance"
+        },
+        {
+          "id": "mth_a02",
+          "name": "Cascade"
+        }
+      ],
+      "eternal": [
+        {
+          "id": "mth_t01",
+          "name": "Genesis"
+        }
+      ]
+    },
+    "body": {
+      "common": [
+        {
+          "id": "bod_c01",
+          "name": "Dots"
+        },
+        {
+          "id": "bod_c02",
+          "name": "Light"
+        },
+        {
+          "id": "bod_c03",
+          "name": "Plain"
+        },
+        {
+          "id": "bod_c04",
+          "name": "Thin"
+        },
+        {
+          "id": "bod_c05",
+          "name": "Faint"
+        }
+      ],
+      "uncommon": [
+        {
+          "id": "bod_u01",
+          "name": "Shade"
+        },
+        {
+          "id": "bod_u02",
+          "name": "Mesh"
+        },
+        {
+          "id": "bod_u03",
+          "name": "Grain"
+        },
+        {
+          "id": "bod_u04",
+          "name": "Cross"
+        }
+      ],
+      "rare": [
+        {
+          "id": "bod_r01",
+          "name": "Crystal"
+        },
+        {
+          "id": "bod_r02",
+          "name": "Wave"
+        },
+        {
+          "id": "bod_r03",
+          "name": "Pulse"
+        }
+      ],
+      "epic": [
+        {
+          "id": "bod_e01",
+          "name": "Shell"
+        },
+        {
+          "id": "bod_e02",
+          "name": "Core"
+        },
+        {
+          "id": "bod_e03",
+          "name": "Facet"
+        }
+      ],
+      "legendary": [
+        {
+          "id": "bod_l01",
+          "name": "Hex"
+        },
+        {
+          "id": "bod_l02",
+          "name": "Star"
+        }
+      ],
+      "mythic": [
+        {
+          "id": "bod_m01",
+          "name": "Prism"
+        },
+        {
+          "id": "bod_m02",
+          "name": "Void"
+        }
+      ],
+      "astral": [
+        {
+          "id": "bod_a01",
+          "name": "Nebula"
+        },
+        {
+          "id": "bod_a02",
+          "name": "Lattice"
+        }
+      ],
+      "eternal": [
+        {
+          "id": "bod_t01",
+          "name": "Cosmos"
+        }
+      ]
+    },
+    "tail": {
+      "common": [
+        {
+          "id": "tal_c01",
+          "name": "Curl"
+        },
+        {
+          "id": "tal_c02",
+          "name": "Swish"
+        },
+        {
+          "id": "tal_c03",
+          "name": "Stub"
+        },
+        {
+          "id": "tal_c04",
+          "name": "Droop"
+        },
+        {
+          "id": "tal_c05",
+          "name": "Flick"
+        }
+      ],
+      "uncommon": [
+        {
+          "id": "tal_u01",
+          "name": "Zigzag"
+        },
+        {
+          "id": "tal_u02",
+          "name": "Drift"
+        },
+        {
+          "id": "tal_u03",
+          "name": "Whirl"
+        },
+        {
+          "id": "tal_u04",
+          "name": "Wag"
+        }
+      ],
+      "rare": [
+        {
+          "id": "tal_r01",
+          "name": "Ripple"
+        },
+        {
+          "id": "tal_r02",
+          "name": "Bolt"
+        },
+        {
+          "id": "tal_r03",
+          "name": "Fork"
+        }
+      ],
+      "epic": [
+        {
+          "id": "tal_e01",
+          "name": "Lightning"
+        },
+        {
+          "id": "tal_e02",
+          "name": "Infinity"
+        },
+        {
+          "id": "tal_e03",
+          "name": "Shimmer"
+        }
+      ],
+      "legendary": [
+        {
+          "id": "tal_l01",
+          "name": "Comet"
+        },
+        {
+          "id": "tal_l02",
+          "name": "Glitter"
+        }
+      ],
+      "mythic": [
+        {
+          "id": "tal_m01",
+          "name": "Supernova"
+        },
+        {
+          "id": "tal_m02",
+          "name": "Eternal Tail"
+        }
+      ],
+      "astral": [
+        {
+          "id": "tal_a01",
+          "name": "Aurora"
+        },
+        {
+          "id": "tal_a02",
+          "name": "Vortex"
+        }
+      ],
+      "eternal": [
+        {
+          "id": "tal_t01",
+          "name": "Infinity Trail"
+        }
+      ]
+    }
+  },
+  "tree": {
+    "eyes": {
+      "eye_c01": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "eye_u04": 0.5,
+          "eye_u03": 0.25,
+          "eye_u02": 0.15,
+          "eye_u01": 0.1
+        }
+      },
+      "eye_c02": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "eye_u04": 0.5,
+          "eye_u03": 0.25,
+          "eye_u02": 0.15,
+          "eye_u01": 0.1
+        }
+      },
+      "eye_c03": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "eye_u04": 0.5,
+          "eye_u03": 0.25,
+          "eye_u02": 0.15,
+          "eye_u01": 0.1
+        }
+      },
+      "eye_c04": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "eye_u04": 0.5,
+          "eye_u03": 0.25,
+          "eye_u02": 0.15,
+          "eye_u01": 0.1
+        }
+      },
+      "eye_c05": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "eye_u04": 0.5,
+          "eye_u03": 0.25,
+          "eye_u02": 0.15,
+          "eye_u01": 0.1
+        }
+      },
+      "eye_u01": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "eye_r01": 0.55,
+          "eye_r02": 0.3,
+          "eye_r03": 0.15
+        }
+      },
+      "eye_u02": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "eye_r01": 0.55,
+          "eye_r02": 0.3,
+          "eye_r03": 0.15
+        }
+      },
+      "eye_u03": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "eye_r01": 0.55,
+          "eye_r02": 0.3,
+          "eye_r03": 0.15
+        }
+      },
+      "eye_u04": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "eye_r01": 0.55,
+          "eye_r02": 0.3,
+          "eye_r03": 0.15
+        }
+      },
+      "eye_r01": {
+        "fromRarity": "rare",
+        "toRarity": "epic",
+        "connections": {
+          "eye_e03": 0.55,
+          "eye_e02": 0.3,
+          "eye_e01": 0.15
+        }
+      },
+      "eye_r02": {
+        "fromRarity": "rare",
+        "toRarity": "epic",
+        "connections": {
+          "eye_e03": 0.55,
+          "eye_e02": 0.3,
+          "eye_e01": 0.15
+        }
+      },
+      "eye_r03": {
+        "fromRarity": "rare",
+        "toRarity": "epic",
+        "connections": {
+          "eye_e03": 0.55,
+          "eye_e02": 0.3,
+          "eye_e01": 0.15
+        }
+      },
+      "eye_e01": {
+        "fromRarity": "epic",
+        "toRarity": "legendary",
+        "connections": {
+          "eye_l02": 0.65,
+          "eye_l01": 0.35
+        }
+      },
+      "eye_e02": {
+        "fromRarity": "epic",
+        "toRarity": "legendary",
+        "connections": {
+          "eye_l02": 0.65,
+          "eye_l01": 0.35
+        }
+      },
+      "eye_e03": {
+        "fromRarity": "epic",
+        "toRarity": "legendary",
+        "connections": {
+          "eye_l02": 0.65,
+          "eye_l01": 0.35
+        }
+      },
+      "eye_l01": {
+        "fromRarity": "legendary",
+        "toRarity": "mythic",
+        "connections": {
+          "eye_m01": 0.65,
+          "eye_m02": 0.35
+        }
+      },
+      "eye_l02": {
+        "fromRarity": "legendary",
+        "toRarity": "mythic",
+        "connections": {
+          "eye_m01": 0.65,
+          "eye_m02": 0.35
+        }
+      },
+      "eye_m01": {
+        "fromRarity": "mythic",
+        "toRarity": "astral",
+        "connections": {
+          "eye_a01": 0.65,
+          "eye_a02": 0.35
+        }
+      },
+      "eye_m02": {
+        "fromRarity": "mythic",
+        "toRarity": "astral",
+        "connections": {
+          "eye_a01": 0.65,
+          "eye_a02": 0.35
+        }
+      },
+      "eye_a01": {
+        "fromRarity": "astral",
+        "toRarity": "eternal",
+        "connections": {
+          "eye_t01": 1
+        }
+      },
+      "eye_a02": {
+        "fromRarity": "astral",
+        "toRarity": "eternal",
+        "connections": {
+          "eye_t01": 1
+        }
+      }
+    },
+    "mouth": {
+      "mth_c01": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "mth_u01": 0.5,
+          "mth_u02": 0.25,
+          "mth_u03": 0.15,
+          "mth_u04": 0.1
+        }
+      },
+      "mth_c02": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "mth_u01": 0.5,
+          "mth_u02": 0.25,
+          "mth_u03": 0.15,
+          "mth_u04": 0.1
+        }
+      },
+      "mth_c03": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "mth_u01": 0.5,
+          "mth_u02": 0.25,
+          "mth_u03": 0.15,
+          "mth_u04": 0.1
+        }
+      },
+      "mth_c04": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "mth_u01": 0.5,
+          "mth_u02": 0.25,
+          "mth_u03": 0.15,
+          "mth_u04": 0.1
+        }
+      },
+      "mth_c05": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "mth_u01": 0.5,
+          "mth_u02": 0.25,
+          "mth_u03": 0.15,
+          "mth_u04": 0.1
+        }
+      },
+      "mth_u01": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "mth_r01": 0.55,
+          "mth_r02": 0.3,
+          "mth_r03": 0.15
+        }
+      },
+      "mth_u02": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "mth_r01": 0.55,
+          "mth_r02": 0.3,
+          "mth_r03": 0.15
+        }
+      },
+      "mth_u03": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "mth_r01": 0.55,
+          "mth_r02": 0.3,
+          "mth_r03": 0.15
+        }
+      },
+      "mth_u04": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "mth_r01": 0.55,
+          "mth_r02": 0.3,
+          "mth_r03": 0.15
+        }
+      },
+      "mth_r01": {
+        "fromRarity": "rare",
+        "toRarity": "epic",
+        "connections": {
+          "mth_e03": 0.55,
+          "mth_e02": 0.3,
+          "mth_e01": 0.15
+        }
+      },
+      "mth_r02": {
+        "fromRarity": "rare",
+        "toRarity": "epic",
+        "connections": {
+          "mth_e03": 0.55,
+          "mth_e02": 0.3,
+          "mth_e01": 0.15
+        }
+      },
+      "mth_r03": {
+        "fromRarity": "rare",
+        "toRarity": "epic",
+        "connections": {
+          "mth_e03": 0.55,
+          "mth_e02": 0.3,
+          "mth_e01": 0.15
+        }
+      },
+      "mth_e01": {
+        "fromRarity": "epic",
+        "toRarity": "legendary",
+        "connections": {
+          "mth_l02": 0.65,
+          "mth_l01": 0.35
+        }
+      },
+      "mth_e02": {
+        "fromRarity": "epic",
+        "toRarity": "legendary",
+        "connections": {
+          "mth_l02": 0.65,
+          "mth_l01": 0.35
+        }
+      },
+      "mth_e03": {
+        "fromRarity": "epic",
+        "toRarity": "legendary",
+        "connections": {
+          "mth_l02": 0.65,
+          "mth_l01": 0.35
+        }
+      },
+      "mth_l01": {
+        "fromRarity": "legendary",
+        "toRarity": "mythic",
+        "connections": {
+          "mth_m01": 0.65,
+          "mth_m02": 0.35
+        }
+      },
+      "mth_l02": {
+        "fromRarity": "legendary",
+        "toRarity": "mythic",
+        "connections": {
+          "mth_m01": 0.65,
+          "mth_m02": 0.35
+        }
+      },
+      "mth_m01": {
+        "fromRarity": "mythic",
+        "toRarity": "astral",
+        "connections": {
+          "mth_a01": 0.65,
+          "mth_a02": 0.35
+        }
+      },
+      "mth_m02": {
+        "fromRarity": "mythic",
+        "toRarity": "astral",
+        "connections": {
+          "mth_a01": 0.65,
+          "mth_a02": 0.35
+        }
+      },
+      "mth_a01": {
+        "fromRarity": "astral",
+        "toRarity": "eternal",
+        "connections": {
+          "mth_t01": 1
+        }
+      },
+      "mth_a02": {
+        "fromRarity": "astral",
+        "toRarity": "eternal",
+        "connections": {
+          "mth_t01": 1
+        }
+      }
+    },
+    "body": {
+      "bod_c01": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "bod_u01": 0.5,
+          "bod_u02": 0.25,
+          "bod_u03": 0.15,
+          "bod_u04": 0.1
+        }
+      },
+      "bod_c02": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "bod_u01": 0.5,
+          "bod_u02": 0.25,
+          "bod_u03": 0.15,
+          "bod_u04": 0.1
+        }
+      },
+      "bod_c03": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "bod_u01": 0.5,
+          "bod_u02": 0.25,
+          "bod_u03": 0.15,
+          "bod_u04": 0.1
+        }
+      },
+      "bod_c04": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "bod_u01": 0.5,
+          "bod_u02": 0.25,
+          "bod_u03": 0.15,
+          "bod_u04": 0.1
+        }
+      },
+      "bod_c05": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "bod_u01": 0.5,
+          "bod_u02": 0.25,
+          "bod_u03": 0.15,
+          "bod_u04": 0.1
+        }
+      },
+      "bod_u01": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "bod_r01": 0.55,
+          "bod_r02": 0.3,
+          "bod_r03": 0.15
+        }
+      },
+      "bod_u02": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "bod_r01": 0.55,
+          "bod_r02": 0.3,
+          "bod_r03": 0.15
+        }
+      },
+      "bod_u03": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "bod_r01": 0.55,
+          "bod_r02": 0.3,
+          "bod_r03": 0.15
+        }
+      },
+      "bod_u04": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "bod_r01": 0.55,
+          "bod_r02": 0.3,
+          "bod_r03": 0.15
+        }
+      },
+      "bod_r01": {
+        "fromRarity": "rare",
+        "toRarity": "epic",
+        "connections": {
+          "bod_e03": 0.55,
+          "bod_e02": 0.3,
+          "bod_e01": 0.15
+        }
+      },
+      "bod_r02": {
+        "fromRarity": "rare",
+        "toRarity": "epic",
+        "connections": {
+          "bod_e03": 0.55,
+          "bod_e02": 0.3,
+          "bod_e01": 0.15
+        }
+      },
+      "bod_r03": {
+        "fromRarity": "rare",
+        "toRarity": "epic",
+        "connections": {
+          "bod_e03": 0.55,
+          "bod_e02": 0.3,
+          "bod_e01": 0.15
+        }
+      },
+      "bod_e01": {
+        "fromRarity": "epic",
+        "toRarity": "legendary",
+        "connections": {
+          "bod_l02": 0.65,
+          "bod_l01": 0.35
+        }
+      },
+      "bod_e02": {
+        "fromRarity": "epic",
+        "toRarity": "legendary",
+        "connections": {
+          "bod_l02": 0.65,
+          "bod_l01": 0.35
+        }
+      },
+      "bod_e03": {
+        "fromRarity": "epic",
+        "toRarity": "legendary",
+        "connections": {
+          "bod_l02": 0.65,
+          "bod_l01": 0.35
+        }
+      },
+      "bod_l01": {
+        "fromRarity": "legendary",
+        "toRarity": "mythic",
+        "connections": {
+          "bod_m01": 0.65,
+          "bod_m02": 0.35
+        }
+      },
+      "bod_l02": {
+        "fromRarity": "legendary",
+        "toRarity": "mythic",
+        "connections": {
+          "bod_m01": 0.65,
+          "bod_m02": 0.35
+        }
+      },
+      "bod_m01": {
+        "fromRarity": "mythic",
+        "toRarity": "astral",
+        "connections": {
+          "bod_a01": 0.65,
+          "bod_a02": 0.35
+        }
+      },
+      "bod_m02": {
+        "fromRarity": "mythic",
+        "toRarity": "astral",
+        "connections": {
+          "bod_a01": 0.65,
+          "bod_a02": 0.35
+        }
+      },
+      "bod_a01": {
+        "fromRarity": "astral",
+        "toRarity": "eternal",
+        "connections": {
+          "bod_t01": 1
+        }
+      },
+      "bod_a02": {
+        "fromRarity": "astral",
+        "toRarity": "eternal",
+        "connections": {
+          "bod_t01": 1
+        }
+      }
+    },
+    "tail": {
+      "tal_c01": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "tal_u01": 0.5,
+          "tal_u02": 0.25,
+          "tal_u03": 0.15,
+          "tal_u04": 0.1
+        }
+      },
+      "tal_c02": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "tal_u01": 0.5,
+          "tal_u02": 0.25,
+          "tal_u03": 0.15,
+          "tal_u04": 0.1
+        }
+      },
+      "tal_c03": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "tal_u01": 0.5,
+          "tal_u02": 0.25,
+          "tal_u03": 0.15,
+          "tal_u04": 0.1
+        }
+      },
+      "tal_c04": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "tal_u01": 0.5,
+          "tal_u02": 0.25,
+          "tal_u03": 0.15,
+          "tal_u04": 0.1
+        }
+      },
+      "tal_c05": {
+        "fromRarity": "common",
+        "toRarity": "uncommon",
+        "connections": {
+          "tal_u01": 0.5,
+          "tal_u02": 0.25,
+          "tal_u03": 0.15,
+          "tal_u04": 0.1
+        }
+      },
+      "tal_u01": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "tal_r01": 0.55,
+          "tal_r02": 0.3,
+          "tal_r03": 0.15
+        }
+      },
+      "tal_u02": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "tal_r01": 0.55,
+          "tal_r02": 0.3,
+          "tal_r03": 0.15
+        }
+      },
+      "tal_u03": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "tal_r01": 0.55,
+          "tal_r02": 0.3,
+          "tal_r03": 0.15
+        }
+      },
+      "tal_u04": {
+        "fromRarity": "uncommon",
+        "toRarity": "rare",
+        "connections": {
+          "tal_r01": 0.55,
+          "tal_r02": 0.3,
+          "tal_r03": 0.15
+        }
+      },
+      "tal_r01": {
+        "fromRarity": "rare",
+        "toRarity": "epic",
+        "connections": {
+          "tal_e03": 0.55,
+          "tal_e02": 0.3,
+          "tal_e01": 0.15
+        }
+      },
+      "tal_r02": {
+        "fromRarity": "rare",
+        "toRarity": "epic",
+        "connections": {
+          "tal_e03": 0.55,
+          "tal_e02": 0.3,
+          "tal_e01": 0.15
+        }
+      },
+      "tal_r03": {
+        "fromRarity": "rare",
+        "toRarity": "epic",
+        "connections": {
+          "tal_e03": 0.55,
+          "tal_e02": 0.3,
+          "tal_e01": 0.15
+        }
+      },
+      "tal_e01": {
+        "fromRarity": "epic",
+        "toRarity": "legendary",
+        "connections": {
+          "tal_l02": 0.65,
+          "tal_l01": 0.35
+        }
+      },
+      "tal_e02": {
+        "fromRarity": "epic",
+        "toRarity": "legendary",
+        "connections": {
+          "tal_l02": 0.65,
+          "tal_l01": 0.35
+        }
+      },
+      "tal_e03": {
+        "fromRarity": "epic",
+        "toRarity": "legendary",
+        "connections": {
+          "tal_l02": 0.65,
+          "tal_l01": 0.35
+        }
+      },
+      "tal_l01": {
+        "fromRarity": "legendary",
+        "toRarity": "mythic",
+        "connections": {
+          "tal_m01": 0.65,
+          "tal_m02": 0.35
+        }
+      },
+      "tal_l02": {
+        "fromRarity": "legendary",
+        "toRarity": "mythic",
+        "connections": {
+          "tal_m01": 0.65,
+          "tal_m02": 0.35
+        }
+      },
+      "tal_m01": {
+        "fromRarity": "mythic",
+        "toRarity": "astral",
+        "connections": {
+          "tal_a01": 0.65,
+          "tal_a02": 0.35
+        }
+      },
+      "tal_m02": {
+        "fromRarity": "mythic",
+        "toRarity": "astral",
+        "connections": {
+          "tal_a01": 0.65,
+          "tal_a02": 0.35
+        }
+      },
+      "tal_a01": {
+        "fromRarity": "astral",
+        "toRarity": "eternal",
+        "connections": {
+          "tal_t01": 1
+        }
+      },
+      "tal_a02": {
+        "fromRarity": "astral",
+        "toRarity": "eternal",
+        "connections": {
+          "tal_t01": 1
+        }
+      }
+    }
+  },
+  "newTraits": {
+    "astral": {
+      "eyes": [
+        {
+          "id": "eye_a01",
+          "name": "Nebula Gaze",
+          "art": "⊛_⊛"
+        },
+        {
+          "id": "eye_a02",
+          "name": "Singularity",
+          "art": "⊚w⊚"
+        }
+      ],
+      "mouth": [
+        {
+          "id": "mth_a01",
+          "name": "Resonance",
+          "art": " ⊹ "
+        },
+        {
+          "id": "mth_a02",
+          "name": "Cascade",
+          "art": " ⋈ "
+        }
+      ],
+      "body": [
+        {
+          "id": "bod_a01",
+          "name": "Nebula",
+          "art": " ⊛⊛ "
+        },
+        {
+          "id": "bod_a02",
+          "name": "Lattice",
+          "art": " ⊞⊞ "
+        }
+      ],
+      "tail": [
+        {
+          "id": "tal_a01",
+          "name": "Aurora",
+          "art": "⊹⊹⊹"
+        },
+        {
+          "id": "tal_a02",
+          "name": "Vortex",
+          "art": "\\⊛/"
+        }
+      ]
+    },
+    "eternal": {
+      "eyes": [
+        {
+          "id": "eye_t01",
+          "name": "Omniscience",
+          "art": "⟐w⟐"
+        }
+      ],
+      "mouth": [
+        {
+          "id": "mth_t01",
+          "name": "Genesis",
+          "art": " ⟑ "
+        }
+      ],
+      "body": [
+        {
+          "id": "bod_t01",
+          "name": "Cosmos",
+          "art": " ⟐⟐ "
+        }
+      ],
+      "tail": [
+        {
+          "id": "tal_t01",
+          "name": "Infinity",
+          "art": "⟑∞⟑"
+        }
+      ]
+    }
+  },
+  "signatures": {
+    "eyes": {
+      "eye_c01": {
+        "f": 0.5882352941176471,
+        "a": 0.6980392156862745,
+        "p": 0.043137254901960784
+      },
+      "eye_c02": {
+        "f": 0.592156862745098,
+        "a": 0.6980392156862745,
+        "p": 0.043137254901960784
+      },
+      "eye_c03": {
+        "f": 0.596078431372549,
+        "a": 0.6980392156862745,
+        "p": 0.043137254901960784
+      },
+      "eye_c04": {
+        "f": 0.6,
+        "a": 0.6980392156862745,
+        "p": 0.043137254901960784
+      },
+      "eye_c05": {
+        "f": 0.6039215686274509,
+        "a": 0.6980392156862745,
+        "p": 0.043137254901960784
+      },
+      "eye_u01": {
+        "f": 0.1568627450980392,
+        "a": 0.9647058823529412,
+        "p": 0.043137254901960784
+      },
+      "eye_u02": {
+        "f": 0.1607843137254902,
+        "a": 0.9647058823529412,
+        "p": 0.043137254901960784
+      },
+      "eye_u03": {
+        "f": 0.16470588235294117,
+        "a": 0.9647058823529412,
+        "p": 0.043137254901960784
+      },
+      "eye_u04": {
+        "f": 0.16862745098039217,
+        "a": 0.9647058823529412,
+        "p": 0.043137254901960784
+      },
+      "eye_r01": {
+        "f": 0.8980392156862745,
+        "a": 0.9176470588235294,
+        "p": 0.043137254901960784
+      },
+      "eye_r02": {
+        "f": 0.9019607843137255,
+        "a": 0.9176470588235294,
+        "p": 0.043137254901960784
+      },
+      "eye_r03": {
+        "f": 0.9058823529411765,
+        "a": 0.9176470588235294,
+        "p": 0.043137254901960784
+      },
+      "eye_e01": {
+        "f": 0.09411764705882353,
+        "a": 0.7294117647058823,
+        "p": 0.043137254901960784
+      },
+      "eye_e02": {
+        "f": 0.09803921568627451,
+        "a": 0.7294117647058823,
+        "p": 0.043137254901960784
+      },
+      "eye_e03": {
+        "f": 0.10196078431372549,
+        "a": 0.7294117647058823,
+        "p": 0.043137254901960784
+      },
+      "eye_l01": {
+        "f": 0.37254901960784315,
+        "a": 0.8313725490196079,
+        "p": 0.043137254901960784
+      },
+      "eye_l02": {
+        "f": 0.3764705882352941,
+        "a": 0.8313725490196079,
+        "p": 0.043137254901960784
+      },
+      "eye_m01": {
+        "f": 0.12549019607843137,
+        "a": 0.8470588235294118,
+        "p": 0.043137254901960784
+      },
+      "eye_m02": {
+        "f": 0.12941176470588237,
+        "a": 0.8470588235294118,
+        "p": 0.043137254901960784
+      },
+      "eye_a01": {
+        "f": 0.0784313725490196,
+        "a": 0.6705882352941176,
+        "p": 0.043137254901960784
+      },
+      "eye_a02": {
+        "f": 0.08235294117647059,
+        "a": 0.6705882352941176,
+        "p": 0.043137254901960784
+      },
+      "eye_t01": {
+        "f": 0.403921568627451,
+        "a": 0.9490196078431372,
+        "p": 0.043137254901960784
+      }
+    },
+    "mouth": {
+      "mth_c01": {
+        "f": 0.023529411764705882,
+        "a": 0.596078431372549,
+        "p": 0.8745098039215686
+      },
+      "mth_c02": {
+        "f": 0.027450980392156862,
+        "a": 0.596078431372549,
+        "p": 0.8745098039215686
+      },
+      "mth_c03": {
+        "f": 0.03137254901960784,
+        "a": 0.596078431372549,
+        "p": 0.8745098039215686
+      },
+      "mth_c04": {
+        "f": 0.03529411764705882,
+        "a": 0.596078431372549,
+        "p": 0.8745098039215686
+      },
+      "mth_c05": {
+        "f": 0.0392156862745098,
+        "a": 0.596078431372549,
+        "p": 0.8745098039215686
+      },
+      "mth_u01": {
+        "f": 0.596078431372549,
+        "a": 0.8588235294117647,
+        "p": 0.8745098039215686
+      },
+      "mth_u02": {
+        "f": 0.6,
+        "a": 0.8588235294117647,
+        "p": 0.8745098039215686
+      },
+      "mth_u03": {
+        "f": 0.6039215686274509,
+        "a": 0.8588235294117647,
+        "p": 0.8745098039215686
+      },
+      "mth_u04": {
+        "f": 0.6078431372549019,
+        "a": 0.8588235294117647,
+        "p": 0.8745098039215686
+      },
+      "mth_r01": {
+        "f": 0.3333333333333333,
+        "a": 0.8156862745098039,
+        "p": 0.8745098039215686
+      },
+      "mth_r02": {
+        "f": 0.33725490196078434,
+        "a": 0.8156862745098039,
+        "p": 0.8745098039215686
+      },
+      "mth_r03": {
+        "f": 0.3411764705882353,
+        "a": 0.8156862745098039,
+        "p": 0.8745098039215686
+      },
+      "mth_e01": {
+        "f": 0.5333333333333333,
+        "a": 0.6235294117647059,
+        "p": 0.8745098039215686
+      },
+      "mth_e02": {
+        "f": 0.5372549019607843,
+        "a": 0.6235294117647059,
+        "p": 0.8745098039215686
+      },
+      "mth_e03": {
+        "f": 0.5411764705882353,
+        "a": 0.6235294117647059,
+        "p": 0.8745098039215686
+      },
+      "mth_l01": {
+        "f": 0.8117647058823529,
+        "a": 0.7254901960784313,
+        "p": 0.8745098039215686
+      },
+      "mth_l02": {
+        "f": 0.8156862745098039,
+        "a": 0.7254901960784313,
+        "p": 0.8745098039215686
+      },
+      "mth_m01": {
+        "f": 0.5647058823529412,
+        "a": 0.7411764705882353,
+        "p": 0.8745098039215686
+      },
+      "mth_m02": {
+        "f": 0.5686274509803921,
+        "a": 0.7411764705882353,
+        "p": 0.8745098039215686
+      },
+      "mth_a01": {
+        "f": 0.5176470588235295,
+        "a": 0.5647058823529412,
+        "p": 0.8745098039215686
+      },
+      "mth_a02": {
+        "f": 0.5215686274509804,
+        "a": 0.5647058823529412,
+        "p": 0.8745098039215686
+      },
+      "mth_t01": {
+        "f": 0.8431372549019608,
+        "a": 0.8431372549019608,
+        "p": 0.8745098039215686
+      }
+    },
+    "body": {
+      "bod_c01": {
+        "f": 0.10980392156862745,
+        "a": 0.45098039215686275,
+        "p": 0.22745098039215686
+      },
+      "bod_c02": {
+        "f": 0.11372549019607843,
+        "a": 0.45098039215686275,
+        "p": 0.22745098039215686
+      },
+      "bod_c03": {
+        "f": 0.11764705882352941,
+        "a": 0.45098039215686275,
+        "p": 0.22745098039215686
+      },
+      "bod_c04": {
+        "f": 0.12156862745098039,
+        "a": 0.45098039215686275,
+        "p": 0.22745098039215686
+      },
+      "bod_c05": {
+        "f": 0.12549019607843137,
+        "a": 0.45098039215686275,
+        "p": 0.22745098039215686
+      },
+      "bod_u01": {
+        "f": 0.6823529411764706,
+        "a": 0.7137254901960784,
+        "p": 0.22745098039215686
+      },
+      "bod_u02": {
+        "f": 0.6862745098039216,
+        "a": 0.7137254901960784,
+        "p": 0.22745098039215686
+      },
+      "bod_u03": {
+        "f": 0.6901960784313725,
+        "a": 0.7137254901960784,
+        "p": 0.22745098039215686
+      },
+      "bod_u04": {
+        "f": 0.6941176470588235,
+        "a": 0.7137254901960784,
+        "p": 0.22745098039215686
+      },
+      "bod_r01": {
+        "f": 0.4196078431372549,
+        "a": 0.6705882352941176,
+        "p": 0.22745098039215686
+      },
+      "bod_r02": {
+        "f": 0.4235294117647059,
+        "a": 0.6705882352941176,
+        "p": 0.22745098039215686
+      },
+      "bod_r03": {
+        "f": 0.42745098039215684,
+        "a": 0.6705882352941176,
+        "p": 0.22745098039215686
+      },
+      "bod_e01": {
+        "f": 0.6196078431372549,
+        "a": 0.47843137254901963,
+        "p": 0.22745098039215686
+      },
+      "bod_e02": {
+        "f": 0.6235294117647059,
+        "a": 0.47843137254901963,
+        "p": 0.22745098039215686
+      },
+      "bod_e03": {
+        "f": 0.6274509803921569,
+        "a": 0.47843137254901963,
+        "p": 0.22745098039215686
+      },
+      "bod_l01": {
+        "f": 0.8980392156862745,
+        "a": 0.5803921568627451,
+        "p": 0.22745098039215686
+      },
+      "bod_l02": {
+        "f": 0.9019607843137255,
+        "a": 0.5803921568627451,
+        "p": 0.22745098039215686
+      },
+      "bod_m01": {
+        "f": 0.6509803921568628,
+        "a": 0.596078431372549,
+        "p": 0.22745098039215686
+      },
+      "bod_m02": {
+        "f": 0.6549019607843137,
+        "a": 0.596078431372549,
+        "p": 0.22745098039215686
+      },
+      "bod_a01": {
+        "f": 0.6039215686274509,
+        "a": 0.4196078431372549,
+        "p": 0.22745098039215686
+      },
+      "bod_a02": {
+        "f": 0.6078431372549019,
+        "a": 0.4196078431372549,
+        "p": 0.22745098039215686
+      },
+      "bod_t01": {
+        "f": 0.9294117647058824,
+        "a": 0.6980392156862745,
+        "p": 0.22745098039215686
+      }
+    },
+    "tail": {
+      "tal_c01": {
+        "f": 0.01568627450980392,
+        "a": 0.5058823529411764,
+        "p": 0.9686274509803922
+      },
+      "tal_c02": {
+        "f": 0.0196078431372549,
+        "a": 0.5058823529411764,
+        "p": 0.9686274509803922
+      },
+      "tal_c03": {
+        "f": 0.023529411764705882,
+        "a": 0.5058823529411764,
+        "p": 0.9686274509803922
+      },
+      "tal_c04": {
+        "f": 0.027450980392156862,
+        "a": 0.5058823529411764,
+        "p": 0.9686274509803922
+      },
+      "tal_c05": {
+        "f": 0.03137254901960784,
+        "a": 0.5058823529411764,
+        "p": 0.9686274509803922
+      },
+      "tal_u01": {
+        "f": 0.5882352941176471,
+        "a": 0.7686274509803922,
+        "p": 0.9686274509803922
+      },
+      "tal_u02": {
+        "f": 0.592156862745098,
+        "a": 0.7686274509803922,
+        "p": 0.9686274509803922
+      },
+      "tal_u03": {
+        "f": 0.596078431372549,
+        "a": 0.7686274509803922,
+        "p": 0.9686274509803922
+      },
+      "tal_u04": {
+        "f": 0.6,
+        "a": 0.7686274509803922,
+        "p": 0.9686274509803922
+      },
+      "tal_r01": {
+        "f": 0.3254901960784314,
+        "a": 0.7254901960784313,
+        "p": 0.9686274509803922
+      },
+      "tal_r02": {
+        "f": 0.32941176470588235,
+        "a": 0.7254901960784313,
+        "p": 0.9686274509803922
+      },
+      "tal_r03": {
+        "f": 0.3333333333333333,
+        "a": 0.7254901960784313,
+        "p": 0.9686274509803922
+      },
+      "tal_e01": {
+        "f": 0.5254901960784314,
+        "a": 0.5333333333333333,
+        "p": 0.9686274509803922
+      },
+      "tal_e02": {
+        "f": 0.5294117647058824,
+        "a": 0.5333333333333333,
+        "p": 0.9686274509803922
+      },
+      "tal_e03": {
+        "f": 0.5333333333333333,
+        "a": 0.5333333333333333,
+        "p": 0.9686274509803922
+      },
+      "tal_l01": {
+        "f": 0.803921568627451,
+        "a": 0.6352941176470588,
+        "p": 0.9686274509803922
+      },
+      "tal_l02": {
+        "f": 0.807843137254902,
+        "a": 0.6352941176470588,
+        "p": 0.9686274509803922
+      },
+      "tal_m01": {
+        "f": 0.5568627450980392,
+        "a": 0.6509803921568628,
+        "p": 0.9686274509803922
+      },
+      "tal_m02": {
+        "f": 0.5607843137254902,
+        "a": 0.6509803921568628,
+        "p": 0.9686274509803922
+      },
+      "tal_a01": {
+        "f": 0.5098039215686274,
+        "a": 0.4745098039215686,
+        "p": 0.9686274509803922
+      },
+      "tal_a02": {
+        "f": 0.5137254901960784,
+        "a": 0.4745098039215686,
+        "p": 0.9686274509803922
+      },
+      "tal_t01": {
+        "f": 0.8352941176470589,
+        "a": 0.7529411764705882,
+        "p": 0.9686274509803922
+      }
+    }
+  },
+  "balanceParams": {
+    "baseSuccessRates": {
+      "common": 0.95,
+      "uncommon": 0.9,
+      "rare": 0.88,
+      "epic": 0.85,
+      "legendary": 0.82,
+      "mythic": 0.78,
+      "astral": 0.75,
+      "eternal": 0.72
+    },
+    "jumpBaseRates": {
+      "uncommon": 0.92,
+      "rare": 0.8,
+      "epic": 0.65,
+      "legendary": 0.52,
+      "mythic": 0.44,
+      "astral": 0.38,
+      "eternal": 0.32
+    },
+    "pityThresholds": {
+      "common": 2,
+      "uncommon": 2,
+      "rare": 3,
+      "epic": 3,
+      "legendary": 4,
+      "mythic": 4,
+      "astral": 5,
+      "eternal": 6
+    },
+    "maxTraitBonus": 0.2,
+    "starsPerRarity": {
+      "common": 0,
+      "uncommon": 1,
+      "rare": 2,
+      "epic": 3,
+      "legendary": 4,
+      "mythic": 5,
+      "astral": 6,
+      "eternal": 7
+    },
+    "jumpMerges": {
+      "uncommon": 1,
+      "rare": 2,
+      "epic": 3,
+      "legendary": 4,
+      "mythic": 5,
+      "astral": 6,
+      "eternal": 7
+    },
+    "catchesPerMergeAttempt": {
+      "common": 1.5,
+      "uncommon": 1.8,
+      "rare": 2.5,
+      "epic": 3.5,
+      "legendary": 5,
+      "mythic": 7,
+      "astral": 8,
+      "eternal": 10
+    }
+  }
+};
+
+const RARITY_COLORS = {
+  common: '#9e9e9e',
+  uncommon: '#4caf50',
+  rare: '#2196f3',
+  epic: '#9c27b0',
+  legendary: '#ff9800',
+  mythic: '#f44336',
+  astral: '#00e5ff',
+  eternal: '#ffd700'
+};
+
+const RARITY_LABELS = {
+  common: 'Common', uncommon: 'Uncommon', rare: 'Rare', epic: 'Epic',
+  legendary: 'Legendary', mythic: 'Mythic', astral: 'Astral', eternal: 'Eternal'
+};
+
+let currentSlot = 'eyes';
+let highlightedTrait = null;
+
+function init() {
+  // Slot buttons
+  const btnContainer = document.getElementById('slot-buttons');
+  DATA.slots.forEach(slot => {
+    const btn = document.createElement('button');
+    btn.textContent = slot.charAt(0).toUpperCase() + slot.slice(1);
+    btn.dataset.slot = slot;
+    btn.onclick = () => { currentSlot = slot; render(); };
+    btnContainer.appendChild(btn);
+  });
+
+  // Legend
+  const legend = document.getElementById('legend');
+  DATA.rarities.forEach(r => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    const dot = document.createElement('div');
+    dot.className = 'legend-dot';
+    dot.style.background = RARITY_COLORS[r];
+    const label = document.createElement('span');
+    label.textContent = RARITY_LABELS[r];
+    item.appendChild(dot);
+    item.appendChild(label);
+    legend.appendChild(item);
+  });
+
+  // Stats table
+  renderStats();
+  render();
+}
+
+function render() {
+  // Update button states
+  document.querySelectorAll('.controls button').forEach(b => {
+    b.classList.toggle('active', b.dataset.slot === currentSlot);
+  });
+
+  const svg = document.getElementById('tree-svg');
+  svg.innerHTML = '';
+
+  const traits = DATA.traits[currentSlot];
+  const tree = DATA.tree[currentSlot];
+
+  // Layout: each rarity is a column
+  const colWidth = 140;
+  const nodeHeight = 36;
+  const padding = { top: 40, left: 60, right: 60, bottom: 40 };
+
+  // Find max nodes in any column for height
+  let maxNodes = 0;
+  DATA.rarities.forEach(r => {
+    if (traits[r]) maxNodes = Math.max(maxNodes, traits[r].length);
+  });
+
+  const colSpacing = colWidth;
+  const rowSpacing = Math.max(nodeHeight + 16, 52);
+  const width = padding.left + DATA.rarities.length * colSpacing + padding.right;
+  const height = padding.top + maxNodes * rowSpacing + padding.bottom;
+
+  svg.setAttribute('width', width);
+  svg.setAttribute('height', height);
+  svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+  // Compute node positions
+  const nodePositions = {};
+  DATA.rarities.forEach((rarity, ri) => {
+    const cols = traits[rarity] || [];
+    const colX = padding.left + ri * colSpacing + colSpacing / 2;
+    const totalHeight = cols.length * rowSpacing;
+    const startY = padding.top + (maxNodes * rowSpacing - totalHeight) / 2;
+
+    cols.forEach((trait, ti) => {
+      nodePositions[trait.id] = {
+        x: colX,
+        y: startY + ti * rowSpacing + rowSpacing / 2,
+        rarity,
+        name: trait.name,
+        id: trait.id
+      };
+    });
+  });
+
+  // Draw rarity column headers
+  DATA.rarities.forEach((rarity, ri) => {
+    const x = padding.left + ri * colSpacing + colSpacing / 2;
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', x);
+    text.setAttribute('y', 20);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('fill', RARITY_COLORS[rarity]);
+    text.setAttribute('font-size', '12');
+    text.setAttribute('font-weight', '600');
+    text.textContent = RARITY_LABELS[rarity];
+    svg.appendChild(text);
+
+    // Vertical guide line
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x);
+    line.setAttribute('y1', 28);
+    line.setAttribute('x2', x);
+    line.setAttribute('y2', height - padding.bottom);
+    line.setAttribute('stroke', RARITY_COLORS[rarity]);
+    line.setAttribute('stroke-opacity', '0.1');
+    line.setAttribute('stroke-width', '1');
+    svg.appendChild(line);
+  });
+
+  // Draw connections (edges)
+  const edgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  edgeGroup.setAttribute('id', 'edges');
+  svg.appendChild(edgeGroup);
+
+  Object.entries(tree).forEach(([fromId, data]) => {
+    const from = nodePositions[fromId];
+    if (!from) return;
+
+    Object.entries(data.connections).forEach(([toId, weight]) => {
+      const to = nodePositions[toId];
+      if (!to) return;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const midX = (from.x + to.x) / 2;
+      const d = `M ${from.x + 50} ${from.y} C ${midX} ${from.y}, ${midX} ${to.y}, ${to.x - 50} ${to.y}`;
+      path.setAttribute('d', d);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', RARITY_COLORS[data.toRarity]);
+      path.setAttribute('stroke-width', Math.max(1, weight * 6));
+      path.setAttribute('stroke-opacity', Math.max(0.15, weight * 0.7));
+      path.dataset.from = fromId;
+      path.dataset.to = toId;
+      path.dataset.weight = weight;
+      path.classList.add('edge');
+      edgeGroup.appendChild(path);
+    });
+  });
+
+  // Draw nodes
+  const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  nodeGroup.setAttribute('id', 'nodes');
+  svg.appendChild(nodeGroup);
+
+  Object.entries(nodePositions).forEach(([id, pos]) => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.classList.add('node');
+    g.dataset.id = id;
+    g.style.cursor = 'pointer';
+
+    // Node background
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', pos.x - 48);
+    rect.setAttribute('y', pos.y - 14);
+    rect.setAttribute('width', 96);
+    rect.setAttribute('height', 28);
+    rect.setAttribute('rx', 6);
+    rect.setAttribute('fill', '#161b22');
+    rect.setAttribute('stroke', RARITY_COLORS[pos.rarity]);
+    rect.setAttribute('stroke-width', '1.5');
+    g.appendChild(rect);
+
+    // Node label
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', pos.x);
+    text.setAttribute('y', pos.y + 4);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('fill', '#c9d1d9');
+    text.setAttribute('font-size', '10');
+    // Truncate name if too long
+    const displayName = pos.name.length > 12 ? pos.name.slice(0, 11) + '\u2026' : pos.name;
+    text.textContent = displayName;
+    g.appendChild(text);
+
+    // Event handlers
+    g.addEventListener('mouseenter', (e) => showTooltip(e, id, pos));
+    g.addEventListener('mouseleave', hideTooltip);
+    g.addEventListener('click', () => toggleHighlight(id));
+
+    nodeGroup.appendChild(g);
+  });
+
+  // Apply highlight if any
+  applyHighlight();
+}
+
+function showTooltip(event, traitId, pos) {
+  const tooltip = document.getElementById('tooltip');
+  const tree = DATA.tree[currentSlot];
+
+  let html = `<div class="tt-name">${pos.name}</div>`;
+  html += `<div class="tt-rarity" style="color:${RARITY_COLORS[pos.rarity]}">${RARITY_LABELS[pos.rarity]}</div>`;
+
+  // Outgoing connections
+  if (tree[traitId]) {
+    html += `<div class="tt-connections"><strong>Upgrades to:</strong>`;
+    const sorted = Object.entries(tree[traitId].connections).sort((a,b) => b[1] - a[1]);
+    sorted.forEach(([toId, weight]) => {
+      const toName = findTraitName(toId);
+      const pct = (weight * 100).toFixed(0);
+      const barWidth = Math.round(weight * 80);
+      html += `<div class="tt-conn-item"><span class="tt-bar" style="width:${barWidth}px;background:${RARITY_COLORS[tree[traitId].toRarity]}"></span>${toName} (${pct}%)</div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Incoming connections
+  const incoming = [];
+  Object.entries(tree).forEach(([fromId, data]) => {
+    if (data.connections[traitId]) {
+      incoming.push({ fromId, weight: data.connections[traitId], fromRarity: data.fromRarity });
+    }
+  });
+  if (incoming.length > 0) {
+    html += `<div class="tt-connections" style="margin-top:6px"><strong>Upgraded from:</strong>`;
+    incoming.sort((a,b) => b.weight - a.weight);
+    incoming.forEach(({ fromId, weight, fromRarity }) => {
+      const fromName = findTraitName(fromId);
+      const pct = (weight * 100).toFixed(0);
+      const barWidth = Math.round(weight * 80);
+      html += `<div class="tt-conn-item"><span class="tt-bar" style="width:${barWidth}px;background:${RARITY_COLORS[fromRarity]}"></span>${fromName} (${pct}%)</div>`;
+    });
+    html += `</div>`;
+  }
+
+  tooltip.innerHTML = html;
+  tooltip.style.opacity = '1';
+
+  // Position near cursor
+  const rect = document.getElementById('canvas-container').getBoundingClientRect();
+  let left = event.clientX + 16;
+  let top = event.clientY - 10;
+  if (left + 260 > window.innerWidth) left = event.clientX - 270;
+  if (top + 200 > window.innerHeight) top = event.clientY - 200;
+  tooltip.style.left = left + 'px';
+  tooltip.style.top = top + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').style.opacity = '0';
+}
+
+function findTraitName(id) {
+  for (const rarity of DATA.rarities) {
+    const traits = DATA.traits[currentSlot][rarity] || [];
+    const found = traits.find(t => t.id === id);
+    if (found) return found.name;
+  }
+  return id;
+}
+
+function toggleHighlight(traitId) {
+  highlightedTrait = highlightedTrait === traitId ? null : traitId;
+  applyHighlight();
+}
+
+function applyHighlight() {
+  const svg = document.getElementById('tree-svg');
+  const edges = svg.querySelectorAll('.edge');
+  const nodes = svg.querySelectorAll('.node');
+
+  if (!highlightedTrait) {
+    edges.forEach(e => { e.style.opacity = ''; });
+    nodes.forEach(n => { n.style.opacity = ''; });
+    return;
+  }
+
+  // Find all connected traits (upstream and downstream)
+  const connected = new Set([highlightedTrait]);
+  const tree = DATA.tree[currentSlot];
+
+  // Downstream (from highlighted)
+  function findDownstream(id) {
+    if (tree[id]) {
+      Object.keys(tree[id].connections).forEach(toId => {
+        connected.add(toId);
+        findDownstream(toId);
+      });
+    }
+  }
+
+  // Upstream (to highlighted)
+  function findUpstream(id) {
+    Object.entries(tree).forEach(([fromId, data]) => {
+      if (data.connections[id]) {
+        connected.add(fromId);
+        findUpstream(fromId);
+      }
+    });
+  }
+
+  findDownstream(highlightedTrait);
+  findUpstream(highlightedTrait);
+
+  // Dim non-connected
+  edges.forEach(e => {
+    const isConn = connected.has(e.dataset.from) && connected.has(e.dataset.to);
+    e.style.opacity = isConn ? '' : '0.05';
+  });
+  nodes.forEach(n => {
+    n.style.opacity = connected.has(n.dataset.id) ? '' : '0.2';
+  });
+}
+
+function renderStats() {
+  const stats = document.getElementById('stats');
+  const bp = DATA.balanceParams;
+
+  let html = '<h3 style="color:#58a6ff;margin-bottom:10px">Balance Parameters</h3>';
+  html += '<table>';
+  html += '<tr><th>Rarity</th><th>Stars</th><th>Jump Merges</th><th>Star Rate</th><th>Jump Rate</th><th>Pity</th><th>Catches/Merge</th></tr>';
+  DATA.rarities.forEach(r => {
+    html += `<tr style="color:${RARITY_COLORS[r]}">`;
+    html += `<td>${RARITY_LABELS[r]}</td>`;
+    html += `<td>${bp.starsPerRarity[r]}</td>`;
+    html += `<td>${bp.jumpMerges[r] || '-'}</td>`;
+    html += `<td>${(bp.baseSuccessRates[r]*100).toFixed(0)}%</td>`;
+    html += `<td>${bp.jumpBaseRates[r] ? (bp.jumpBaseRates[r]*100).toFixed(0)+'%' : '-'}</td>`;
+    html += `<td>${bp.pityThresholds[r]}</td>`;
+    html += `<td>${bp.catchesPerMergeAttempt[r]}</td>`;
+    html += `</tr>`;
+  });
+  html += '</table>';
+
+  html += '<p style="margin-top:12px">Click a trait node to highlight its full upgrade path. Hover for connection details.</p>';
+  stats.innerHTML = html;
+}
+
+// Load data and initialize
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
