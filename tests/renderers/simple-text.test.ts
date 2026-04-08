@@ -2,31 +2,31 @@ import { SimpleTextRenderer } from "../../src/renderers/simple-text";
 import {
   ScanResult,
   CatchResult,
-  MergePreview,
-  MergeResult,
+  BreedPreview,
+  BreedResult,
   CollectionCreature,
   CreatureSlot,
   NearbyCreature,
+  SlotInheritance,
 } from "../../src/types";
 
 // --- Helpers ---
 
-function makeSlots(rarities: string[]): CreatureSlot[] {
+function makeSlots(): CreatureSlot[] {
   const slotIds = ["eyes", "mouth", "body", "tail"] as const;
-  // Use real variant IDs from traits.json
   const variantIds = ["eye_c01", "mth_c01", "bod_c01", "tal_c01"];
-  return rarities.map((r, i) => ({
-    slotId: slotIds[i % slotIds.length],
-    variantId: variantIds[i % variantIds.length],
-    rarity: r as any,
+  return slotIds.map((slotId, i) => ({
+    slotId,
+    variantId: variantIds[i],
   }));
 }
 
 function makeNearby(id: string, name: string): NearbyCreature {
   return {
     id,
+    speciesId: "compi",
     name,
-    slots: makeSlots(["common", "common", "common", "common"]),
+    slots: makeSlots(),
     spawnedAt: Date.now(),
   };
 }
@@ -34,10 +34,12 @@ function makeNearby(id: string, name: string): NearbyCreature {
 function makeCollection(id: string, name: string, generation = 1): CollectionCreature {
   return {
     id,
+    speciesId: "compi",
     name,
-    slots: makeSlots(["legendary", "common", "rare", "epic"]),
+    slots: makeSlots(),
     caughtAt: Date.now(),
     generation,
+    archived: false,
   };
 }
 
@@ -82,6 +84,11 @@ describe("renderScan", () => {
     const out = renderer.renderScan(result);
     expect(out).toContain("⚡");
     expect(out).toContain("6/");
+  });
+
+  test("contains species name", () => {
+    const out = renderer.renderScan(result);
+    expect(out).toContain("compi");
   });
 });
 
@@ -185,106 +192,115 @@ describe("renderCollection", () => {
     expect(out).toContain("Lv 1");
   });
 
+  test("contains species name", () => {
+    const out = renderer.renderCollection(collection);
+    expect(out).toContain("compi");
+  });
+
   test("empty collection returns message", () => {
     const out = renderer.renderCollection([]);
     expect(out).toContain("No creatures");
   });
 });
 
-// --- renderMergePreview ---
+// --- renderBreedPreview ---
 
-describe("renderMergePreview", () => {
-  const target = makeCollection("c1", "Sparks", 4);
-  const food = makeCollection("c2", "Muddle", 1);
+describe("renderBreedPreview", () => {
+  const parentA = makeCollection("c1", "Sparks", 4);
+  const parentB = makeCollection("c2", "Muddle", 1);
 
-  const preview: MergePreview = {
-    target,
-    food,
-    slotChances: [
-      { slotId: "eyes", currentRarity: "legendary", nextRarity: "mythic", chance: 0.65 },
-      { slotId: "tail", currentRarity: "epic", nextRarity: "legendary", chance: 0.20 },
-      { slotId: "body", currentRarity: "rare", nextRarity: "epic", chance: 0.10 },
-      { slotId: "mouth", currentRarity: "common", nextRarity: "uncommon", chance: 0.05 },
+  const preview: BreedPreview = {
+    parentA,
+    parentB,
+    slotInheritance: [
+      { slotId: "eyes", parentAVariant: { id: "eye_c01", name: "Dot Eyes", art: "o.o", spawnRate: 0.10 }, parentBVariant: { id: "eye_c01", name: "Dot Eyes", art: "o.o", spawnRate: 0.10 }, parentAChance: 0.50, parentBChance: 0.50 },
+      { slotId: "mouth", parentAVariant: { id: "mth_c01", name: "Flat Line", art: " - ", spawnRate: 0.10 }, parentBVariant: { id: "mth_c01", name: "Flat Line", art: " - ", spawnRate: 0.10 }, parentAChance: 0.50, parentBChance: 0.50 },
+      { slotId: "body", parentAVariant: { id: "bod_c01", name: "Block", art: " ░░ ", spawnRate: 0.10 }, parentBVariant: { id: "bod_c01", name: "Block", art: " ░░ ", spawnRate: 0.10 }, parentAChance: 0.50, parentBChance: 0.50 },
+      { slotId: "tail", parentAVariant: { id: "tal_c01", name: "Wave", art: "~", spawnRate: 0.10 }, parentBVariant: { id: "tal_c01", name: "Wave", art: "~", spawnRate: 0.10 }, parentAChance: 0.50, parentBChance: 0.50 },
     ],
+    energyCost: 3,
   };
 
   test("contains both creature names", () => {
-    const out = renderer.renderMergePreview(preview);
+    const out = renderer.renderBreedPreview(preview);
     expect(out).toContain("Sparks");
     expect(out).toContain("Muddle");
   });
 
   test("contains slot names", () => {
-    const out = renderer.renderMergePreview(preview);
+    const out = renderer.renderBreedPreview(preview);
     expect(out).toContain("eyes");
     expect(out).toContain("tail");
     expect(out).toContain("body");
     expect(out).toContain("mouth");
   });
 
-  test("contains arrow separator in output", () => {
-    const out = renderer.renderMergePreview(preview);
-    expect(out).toContain("→");
+  test("contains percentages", () => {
+    const out = renderer.renderBreedPreview(preview);
+    expect(out).toContain("50%");
   });
 
-  test("contains percentages", () => {
-    const out = renderer.renderMergePreview(preview);
-    expect(out).toContain("65%");
-    expect(out).toContain("20%");
+  test("contains energy cost", () => {
+    const out = renderer.renderBreedPreview(preview);
+    expect(out).toContain("3");
+    expect(out).toContain("Energy cost");
   });
 
   test("contains ANSI codes", () => {
-    const out = renderer.renderMergePreview(preview);
+    const out = renderer.renderBreedPreview(preview);
     expect(out).toContain("\x1b[");
   });
 });
 
-// --- renderMergeResult ---
+// --- renderBreedResult ---
 
-describe("renderMergeResult", () => {
-  const target = makeCollection("c1", "Sparks", 4);
-  // Upgrade eyes slot to mythic
-  target.slots = target.slots.map((s) =>
-    s.slotId === "eyes" ? { ...s, rarity: "mythic" } : s
-  );
+describe("renderBreedResult", () => {
+  const parentA = makeCollection("c1", "Sparks", 4);
+  const parentB = makeCollection("c2", "Muddle", 1);
+  const child = makeCollection("c3", "Sparks", 5);
 
-  const food = makeCollection("c2", "Muddle", 1);
-
-  const result: MergeResult = {
-    success: true,
-    target,
-    food,
-    upgradedSlot: "eyes",
-    previousRarity: "legendary",
-    newRarity: "mythic",
-    graftedVariantName: "Pebble Gaze",
+  const result: BreedResult = {
+    child,
+    parentA,
+    parentB,
+    inheritedFrom: { eyes: "A", mouth: "B", body: "A", tail: "B" },
   };
 
-  test("contains MERGE SUCCESS", () => {
-    const out = renderer.renderMergeResult(result);
-    expect(out).toContain("MERGE SUCCESS");
+  test("contains BREED SUCCESS", () => {
+    const out = renderer.renderBreedResult(result);
+    expect(out).toContain("BREED SUCCESS");
   });
 
-  test("contains upgraded slot name", () => {
-    const out = renderer.renderMergeResult(result);
-    expect(out).toContain("eyes");
+  test("contains child creature name", () => {
+    const out = renderer.renderBreedResult(result);
+    expect(out).toContain("Sparks");
   });
 
-  test("contains grafted variant name", () => {
-    const out = renderer.renderMergeResult(result);
-    expect(out).toContain("Pebble Gaze");
+  test("contains inherited from markers", () => {
+    const out = renderer.renderBreedResult(result);
+    expect(out).toContain("A");
+    expect(out).toContain("B");
   });
 
-  test("contains rarity names", () => {
-    const out = renderer.renderMergeResult(result);
-    expect(out).toContain("legendary");
-    expect(out).toContain("mythic");
-  });
-
-  test("contains food creature name consumed message", () => {
-    const out = renderer.renderMergeResult(result);
-    expect(out).toContain("Muddle");
+  test("contains consumed message", () => {
+    const out = renderer.renderBreedResult(result);
     expect(out).toContain("consumed");
+  });
+});
+
+// --- renderArchive ---
+
+describe("renderArchive", () => {
+  test("empty archive returns message", () => {
+    const out = renderer.renderArchive([]);
+    expect(out).toContain("No creatures in your archive");
+  });
+
+  test("shows archived creatures", () => {
+    const archived = [{ ...makeCollection("c1", "Sparks", 3), archived: true }];
+    const out = renderer.renderArchive(archived);
+    expect(out).toContain("Sparks");
+    expect(out).toContain("Archive");
   });
 });
 
@@ -300,6 +316,26 @@ describe("renderEnergy", () => {
   test("contains ANSI green color", () => {
     const out = renderer.renderEnergy(6, 10);
     expect(out).toContain("\x1b[32m");
+  });
+});
+
+// --- renderStatus ---
+
+describe("renderStatus", () => {
+  test("contains archive count", () => {
+    const out = renderer.renderStatus({
+      profile: {
+        level: 1, xp: 0, totalCatches: 0, totalMerges: 0, totalTicks: 0,
+        currentStreak: 0, longestStreak: 0, lastActiveDate: "2026-04-01",
+      },
+      collectionCount: 2,
+      archiveCount: 5,
+      energy: 5,
+      nearbyCount: 0,
+      batchAttemptsRemaining: 0,
+    });
+    expect(out).toContain("Archive");
+    expect(out).toContain("5 creatures");
   });
 });
 

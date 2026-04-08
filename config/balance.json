@@ -12,26 +12,14 @@
     }
   },
   "catching": {
-    "baseCatchRate": 0.80,
-    "minCatchRate": 0.05,
-    "maxCatchRate": 0.95,
+    "baseCatchRate": 0.90,
+    "minCatchRate": 0.15,
+    "maxCatchRate": 0.90,
     "failPenaltyPerMiss": 0.10,
-    "rarityPenalty": {
-      "common": 0.00,
-      "uncommon": 0.05,
-      "rare": 0.10,
-      "epic": 0.18,
-      "legendary": 0.28,
-      "mythic": 0.40
-    },
-    "xpPerRarity": {
-      "common": 10,
-      "uncommon": 25,
-      "rare": 50,
-      "epic": 100,
-      "legendary": 250,
-      "mythic": 500
-    }
+    "maxTraitSpawnRate": 0.12,
+    "difficultyScale": 0.50,
+    "xpBase": 20,
+    "xpRarityMultiplier": 5
   },
   "energy": {
     "gainIntervalMs": 1800000,

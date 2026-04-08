@@ -88,21 +88,44 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     return text(renderer.renderCollection(engine.getState().collection));
   }, meta);
 
-  addTool(server, "merge", "Merge two creatures from your collection", z.object({
-    targetId: z.string().describe("ID of the creature to keep (gains traits)"),
-    foodId: z.string().describe("ID of the creature to sacrifice"),
-    confirm: z.boolean().optional().describe("Set to true to execute the merge after previewing"),
-  }), async ({ targetId, foodId, confirm }: { targetId: string; foodId: string; confirm?: boolean }) => {
+  addTool(server, "breed", "Breed two creatures from your collection", z.object({
+    parentAId: z.string().describe("ID of the first parent creature"),
+    parentBId: z.string().describe("ID of the second parent creature"),
+    confirm: z.boolean().optional().describe("Set to true to execute the breed after previewing"),
+  }), async ({ parentAId, parentBId, confirm }: { parentAId: string; parentBId: string; confirm?: boolean }) => {
     const { stateManager, engine } = loadEngine();
     const renderer = new SimpleTextRenderer();
     if (confirm) {
-      const result = engine.mergeExecute(targetId, foodId);
+      const result = engine.breedExecute(parentAId, parentBId);
       stateManager.save(engine.getState());
-      return text(renderer.renderMergeResult(result));
+      return text(renderer.renderBreedResult(result));
     } else {
-      const preview = engine.mergePreview(targetId, foodId);
-      return text(renderer.renderMergePreview(preview));
+      const preview = engine.breedPreview(parentAId, parentBId);
+      return text(renderer.renderBreedPreview(preview));
     }
+  }, meta);
+
+  addTool(server, "archive", "View archive or archive a creature", z.object({
+    id: z.string().optional().describe("Creature ID to archive (omit to view archive)"),
+  }), async ({ id }: { id?: string }) => {
+    const { stateManager, engine } = loadEngine();
+    const renderer = new SimpleTextRenderer();
+    if (id) {
+      const result = engine.archive(id);
+      stateManager.save(engine.getState());
+      return text(`Archived ${result.creature.name}.`);
+    } else {
+      return text(renderer.renderArchive(engine.getState().archive));
+    }
+  }, meta);
+
+  addTool(server, "release", "Permanently release a creature", z.object({
+    id: z.string().describe("Creature ID to release"),
+  }), async ({ id }: { id: string }) => {
+    const { stateManager, engine } = loadEngine();
+    engine.release(id);
+    stateManager.save(engine.getState());
+    return text(`Released creature ${id}.`);
   }, meta);
 
   addTool(server, "energy", "Show current energy level", z.object({}), async () => {

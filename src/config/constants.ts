@@ -1,4 +1,4 @@
-import { loadConfig, buildMilestoneCondition } from "./loader";
+import { loadConfig } from "./loader";
 
 const config = loadConfig();
 
@@ -9,46 +9,5 @@ export const BATCH_LINGER_MS = config.batch.batchLingerMs;
 export const SHARED_ATTEMPTS = config.batch.sharedAttempts;
 export const TIME_OF_DAY_RANGES: Record<string, [number, number]> = config.batch.timeOfDay;
 
-// Catching
-export const BASE_CATCH_RATE = config.catching.baseCatchRate;
-export const MIN_CATCH_RATE = config.catching.minCatchRate;
-export const MAX_CATCH_RATE = config.catching.maxCatchRate;
-export const FAIL_PENALTY_PER_MISS = config.catching.failPenaltyPerMiss;
-export const RARITY_CATCH_PENALTY: Record<string, number> = config.catching.rarityPenalty;
-export const XP_PER_RARITY: Record<string, number> = config.catching.xpPerRarity;
-
-// Energy
-export const ENERGY_GAIN_INTERVAL_MS = config.energy.gainIntervalMs;
-export const MAX_ENERGY = config.energy.maxEnergy;
-export const STARTING_ENERGY = config.energy.startingEnergy;
-export const SESSION_BONUS_ENERGY = config.energy.sessionBonus;
-export const ENERGY_COST_PER_RARITY: Record<string, number> = config.energy.costPerRarity;
-
-// Merge
-export const SLOT_WEIGHT_BASE = config.merge.slotWeightBase;
-export const SLOT_WEIGHT_PER_TIER = config.merge.slotWeightPerTier;
-
 // Progression
-export const XP_PER_LEVEL = config.progression.xpPerLevel;
-export const SESSION_GAP_MS = config.progression.sessionGapMs;
 export const TICK_PRUNE_COUNT = config.progression.tickPruneCount;
-
-// Milestones
-export interface Milestone {
-  id: string;
-  description: string;
-  condition: (profile: { totalCatches: number; currentStreak: number; totalTicks: number }) => boolean;
-  reward: Array<{ energy?: number }>;
-  oneTime: boolean;
-}
-
-export const MILESTONES: Milestone[] = config.rewards.milestones.map((m) => ({
-  id: m.id,
-  description: m.description,
-  condition: buildMilestoneCondition(m.condition),
-  reward: m.reward,
-  oneTime: m.oneTime,
-}));
-
-// Messages
-export const MESSAGES: Record<string, Record<string, string>> = config.messages;

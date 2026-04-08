@@ -1,27 +1,71 @@
-import { attemptCatch, calculateCatchRate, calculateXpEarned } from "../../src/engine/catch";
-import { GameState, CreatureSlot, NearbyCreature } from "../../src/types";
+import { GameState, CreatureSlot, NearbyCreature, SlotId } from "../../src/types";
 
-function makeSlots(rarities: string[]): CreatureSlot[] {
-  const slotIds = ["eyes", "mouth", "body", "tail"] as const;
-  return rarities.map((r, i) => ({
-    slotId: slotIds[i % slotIds.length],
-    variantId: `test_${r}_${i}`,
-    rarity: r as any,
+// Mock getTraitDefinition to return controlled spawn rates
+const mockGetTraitDefinition = jest.fn();
+jest.mock("../../src/config/species", () => ({
+  getTraitDefinition: (...args: any[]) => mockGetTraitDefinition(...args),
+}));
+
+// Mock loadConfig to return controlled balance values
+jest.mock("../../src/config/loader", () => ({
+  loadConfig: () => ({
+    catching: {
+      baseCatchRate: 0.90,
+      minCatchRate: 0.15,
+      maxCatchRate: 0.90,
+      failPenaltyPerMiss: 0.10,
+      maxTraitSpawnRate: 0.12,
+      difficultyScale: 0.50,
+      xpBase: 20,
+      xpRarityMultiplier: 5,
+    },
+    energy: {
+      gainIntervalMs: 1800000,
+      maxEnergy: 30,
+      startingEnergy: 5,
+      sessionBonus: 1,
+      baseMergeCost: 3,
+      maxMergeCost: 8,
+      rareThreashold: 0.05,
+    },
+  }),
+}));
+
+import { attemptCatch, calculateCatchRate, calculateXpEarned, calculateEnergyCost } from "../../src/engine/catch";
+
+const SLOT_IDS: SlotId[] = ["eyes", "mouth", "body", "tail"];
+
+/** Build slots with given variant IDs */
+function makeSlots(variantIds: string[]): CreatureSlot[] {
+  return variantIds.map((v, i) => ({
+    slotId: SLOT_IDS[i % SLOT_IDS.length],
+    variantId: v,
   }));
 }
 
-function makeNearby(id: string, rarities: string[]): NearbyCreature {
-  return { id, name: "Glorp", slots: makeSlots(rarities), spawnedAt: Date.now() };
+/** Set up mock so getTraitDefinition returns specified spawn rates by variantId */
+function setupTraitRates(rates: Record<string, number>): void {
+  mockGetTraitDefinition.mockImplementation((_speciesId: string, variantId: string) => {
+    if (variantId in rates) {
+      return { id: variantId, name: variantId, art: "x", spawnRate: rates[variantId] };
+    }
+    return undefined;
+  });
+}
+
+function makeNearby(id: string, variantIds: string[], speciesId = "compi"): NearbyCreature {
+  return { id, speciesId, name: "Glorp", slots: makeSlots(variantIds), spawnedAt: Date.now() };
 }
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
-    version: 3,
+    version: 4,
     profile: { level: 1, xp: 0, totalCatches: 0, totalMerges: 0, totalTicks: 0, currentStreak: 0, longestStreak: 0, lastActiveDate: "" },
     collection: [],
+    archive: [],
     energy: 10,
     lastEnergyGainAt: Date.now(),
-    nearby: [makeNearby("c1", ["common", "common", "common", "common"])],
+    nearby: [makeNearby("c1", ["common1", "common2", "common3", "common4"])],
     batch: { attemptsRemaining: 3, failPenalty: 0, spawnedAt: Date.now() },
     recentTicks: [],
     claimedMilestones: [],
@@ -30,49 +74,112 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
   };
 }
 
+beforeEach(() => {
+  mockGetTraitDefinition.mockReset();
+});
+
 describe("calculateCatchRate", () => {
-  test("all common with 0 fail penalty = 80%", () => {
-    const slots = makeSlots(["common", "common", "common", "common"]);
-    expect(calculateCatchRate(slots, 0)).toBeCloseTo(0.80);
+  test("all common traits (0.12 spawn) = 90% catch rate", () => {
+    setupTraitRates({ c1: 0.12, c2: 0.12, c3: 0.12, c4: 0.12 });
+    const slots = makeSlots(["c1", "c2", "c3", "c4"]);
+    const rate = calculateCatchRate("compi", slots, 0);
+    // 0.90 - (0.50 * (1 - 0.12/0.12)) = 0.90 - 0 = 0.90
+    expect(rate).toBeCloseTo(0.90);
   });
 
-  test("all mythic has lower catch rate than common", () => {
-    const common = makeSlots(["common", "common", "common", "common"]);
-    const mythic = makeSlots(["mythic", "mythic", "mythic", "mythic"]);
-    expect(calculateCatchRate(mythic, 0)).toBeLessThan(calculateCatchRate(common, 0));
+  test("one rare trait (0.05) lowers catch rate", () => {
+    setupTraitRates({ c1: 0.12, c2: 0.12, c3: 0.12, r1: 0.05 });
+    const slots = makeSlots(["c1", "c2", "c3", "r1"]);
+    const rate = calculateCatchRate("compi", slots, 0);
+    // rarest = 0.05; 0.90 - (0.50 * (1 - 0.05/0.12)) = 0.90 - 0.2917 ≈ 0.6083
+    expect(rate).toBeCloseTo(0.6083, 2);
+  });
+
+  test("one very rare trait (0.01) lowers catch rate more", () => {
+    setupTraitRates({ c1: 0.12, c2: 0.12, c3: 0.12, l1: 0.01 });
+    const slots = makeSlots(["c1", "c2", "c3", "l1"]);
+    const rate = calculateCatchRate("compi", slots, 0);
+    // rarest = 0.01; 0.90 - (0.50 * (1 - 0.01/0.12)) = 0.90 - 0.4583 ≈ 0.4417
+    expect(rate).toBeCloseTo(0.4417, 2);
   });
 
   test("fail penalty reduces rate", () => {
-    const slots = makeSlots(["common", "common", "common", "common"]);
-    expect(calculateCatchRate(slots, 0.1)).toBeCloseTo(0.70);
-    expect(calculateCatchRate(slots, 0.2)).toBeCloseTo(0.60);
+    setupTraitRates({ c1: 0.12, c2: 0.12, c3: 0.12, c4: 0.12 });
+    const slots = makeSlots(["c1", "c2", "c3", "c4"]);
+    expect(calculateCatchRate("compi", slots, 0.10)).toBeCloseTo(0.80);
+    expect(calculateCatchRate("compi", slots, 0.30)).toBeCloseTo(0.60);
   });
 
-  test("floor at 5%", () => {
-    const slots = makeSlots(["mythic", "mythic", "mythic", "mythic"]);
-    expect(calculateCatchRate(slots, 0.9)).toBe(0.05);
+  test("rate clamped to minimum (0.15)", () => {
+    setupTraitRates({ c1: 0.003, c2: 0.003, c3: 0.003, c4: 0.003 });
+    const slots = makeSlots(["c1", "c2", "c3", "c4"]);
+    // rarest = 0.003; 0.90 - (0.50 * (1 - 0.003/0.12)) - 0.5 = very low
+    const rate = calculateCatchRate("compi", slots, 0.5);
+    expect(rate).toBe(0.15);
   });
 
-  test("ceiling at 95%", () => {
-    const slots = makeSlots(["common", "common", "common", "common"]);
-    expect(calculateCatchRate(slots, -1)).toBe(0.95);
+  test("rate clamped to maximum (0.90)", () => {
+    setupTraitRates({ c1: 0.12, c2: 0.12, c3: 0.12, c4: 0.12 });
+    const slots = makeSlots(["c1", "c2", "c3", "c4"]);
+    // Even with negative fail penalty, max is 0.90
+    const rate = calculateCatchRate("compi", slots, -1);
+    expect(rate).toBe(0.90);
   });
 });
 
 describe("calculateXpEarned", () => {
-  test("common slots yield 10 xp", () => {
-    const slots = makeSlots(["common", "common", "common", "common"]);
-    expect(calculateXpEarned(slots)).toBe(10);
+  test("all common traits (>= 0.05) = base XP only (20)", () => {
+    setupTraitRates({ c1: 0.12, c2: 0.10, c3: 0.08, c4: 0.06 });
+    const slots = makeSlots(["c1", "c2", "c3", "c4"]);
+    expect(calculateXpEarned("compi", slots)).toBe(20);
   });
 
-  test("mythic slots yield 500 xp", () => {
-    const slots = makeSlots(["mythic", "mythic", "mythic", "mythic"]);
-    expect(calculateXpEarned(slots)).toBe(500);
+  test("two rare traits = base + 2*5 = 30", () => {
+    setupTraitRates({ c1: 0.12, c2: 0.12, r1: 0.04, r2: 0.02 });
+    const slots = makeSlots(["c1", "c2", "r1", "r2"]);
+    expect(calculateXpEarned("compi", slots)).toBe(30);
+  });
+
+  test("four rare traits = base + 4*5 = 40", () => {
+    setupTraitRates({ r1: 0.01, r2: 0.003, r3: 0.02, r4: 0.04 });
+    const slots = makeSlots(["r1", "r2", "r3", "r4"]);
+    expect(calculateXpEarned("compi", slots)).toBe(40);
+  });
+});
+
+describe("calculateEnergyCost", () => {
+  test("all common traits = 1 energy", () => {
+    setupTraitRates({ c1: 0.12, c2: 0.10, c3: 0.08, c4: 0.06 });
+    const slots = makeSlots(["c1", "c2", "c3", "c4"]);
+    expect(calculateEnergyCost("compi", slots)).toBe(1);
+  });
+
+  test("one rare trait = 2 energy", () => {
+    setupTraitRates({ c1: 0.12, c2: 0.12, c3: 0.12, r1: 0.04 });
+    const slots = makeSlots(["c1", "c2", "c3", "r1"]);
+    expect(calculateEnergyCost("compi", slots)).toBe(2);
+  });
+
+  test("four rare traits = 5 (capped)", () => {
+    setupTraitRates({ r1: 0.01, r2: 0.003, r3: 0.02, r4: 0.04 });
+    const slots = makeSlots(["r1", "r2", "r3", "r4"]);
+    expect(calculateEnergyCost("compi", slots)).toBe(5);
+  });
+
+  test("three rare traits = 4 energy", () => {
+    setupTraitRates({ c1: 0.12, r1: 0.04, r2: 0.02, r3: 0.01 });
+    const slots = makeSlots(["c1", "r1", "r2", "r3"]);
+    expect(calculateEnergyCost("compi", slots)).toBe(4);
   });
 });
 
 describe("attemptCatch", () => {
-  test("success: spends energy, removes creature, adds to collection with name", () => {
+  beforeEach(() => {
+    // Default: all common traits
+    setupTraitRates({ common1: 0.12, common2: 0.12, common3: 0.12, common4: 0.12 });
+  });
+
+  test("success: spends energy, removes creature, adds to collection with speciesId and archived", () => {
     const state = makeState();
     const result = attemptCatch(state, 0, () => 0.1);
     expect(result.success).toBe(true);
@@ -82,6 +189,8 @@ describe("attemptCatch", () => {
     expect(state.collection).toHaveLength(1);
     expect(state.collection[0].generation).toBe(0);
     expect(state.collection[0].name).toBe("Glorp");
+    expect(state.collection[0].speciesId).toBe("compi");
+    expect(state.collection[0].archived).toBe(false);
     expect(state.batch!.attemptsRemaining).toBe(2);
   });
 
@@ -121,22 +230,33 @@ describe("attemptCatch", () => {
   test("escalating penalty affects subsequent catch attempts", () => {
     const state = makeState({
       nearby: [
-        makeNearby("c1", ["common", "common", "common", "common"]),
-        makeNearby("c2", ["common", "common", "common", "common"]),
+        makeNearby("c1", ["common1", "common2", "common3", "common4"]),
+        makeNearby("c2", ["common1", "common2", "common3", "common4"]),
       ],
     });
     attemptCatch(state, 0, () => 0.99); // fail — penalty becomes 0.10
     expect(state.batch!.failPenalty).toBeCloseTo(0.10);
-    // Rate is now 80% - 10% = 70%, roll 0.75 > 0.70 → fail
-    const result = attemptCatch(state, 0, () => 0.75);
+    // Rate is now 0.90 - 0.10 = 0.80, roll 0.85 > 0.80 → fail
+    const result = attemptCatch(state, 0, () => 0.85);
     expect(result.success).toBe(false);
   });
 
   test("xp earned on success and added to profile", () => {
     const state = makeState();
     const result = attemptCatch(state, 0, () => 0.1);
-    expect(result.xpEarned).toBeGreaterThan(0);
-    expect(state.profile.xp).toBe(result.xpEarned);
+    expect(result.xpEarned).toBe(20); // all common = base XP only
+    expect(state.profile.xp).toBe(20);
     expect(state.profile.totalCatches).toBe(1);
+  });
+
+  test("rare creature costs more energy and gives more XP", () => {
+    setupTraitRates({ common1: 0.12, common2: 0.12, rare1: 0.03, rare2: 0.01 });
+    const state = makeState({
+      nearby: [makeNearby("c1", ["common1", "common2", "rare1", "rare2"])],
+    });
+    const result = attemptCatch(state, 0, () => 0.1);
+    expect(result.success).toBe(true);
+    expect(result.energySpent).toBe(3); // 1 + 2 rare traits
+    expect(result.xpEarned).toBe(30); // 20 + 2*5
   });
 });

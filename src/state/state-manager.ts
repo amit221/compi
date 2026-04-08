@@ -6,7 +6,7 @@ import { logger } from "../logger";
 function defaultState(): GameState {
   const today = new Date().toISOString().split("T")[0];
   return {
-    version: 3,
+    version: 4,
     profile: {
       level: 1,
       xp: 0,
@@ -18,6 +18,7 @@ function defaultState(): GameState {
       lastActiveDate: today,
     },
     collection: [],
+    archive: [],
     energy: 5,
     lastEnergyGainAt: Date.now(),
     nearby: [],
@@ -30,6 +31,43 @@ function defaultState(): GameState {
   };
 }
 
+function migrateV3toV4(raw: Record<string, unknown>): GameState {
+  const state = raw as unknown as GameState & { collection: any[]; nearby: any[] };
+
+  // Add speciesId and archived to collection creatures, remove rarity from slots
+  if (Array.isArray(state.collection)) {
+    for (const creature of state.collection) {
+      if (!creature.speciesId) creature.speciesId = "compi";
+      if (creature.archived === undefined) creature.archived = false;
+      if (Array.isArray(creature.slots)) {
+        for (const slot of creature.slots) {
+          delete slot.rarity;
+        }
+      }
+    }
+  }
+
+  // Add speciesId to nearby creatures, remove rarity from slots
+  if (Array.isArray(state.nearby)) {
+    for (const creature of state.nearby) {
+      if (!creature.speciesId) creature.speciesId = "compi";
+      if (Array.isArray(creature.slots)) {
+        for (const slot of creature.slots) {
+          delete slot.rarity;
+        }
+      }
+    }
+  }
+
+  // Add archive if missing
+  if (!Array.isArray(state.archive)) {
+    (state as any).archive = [];
+  }
+
+  state.version = 4;
+  return state as unknown as GameState;
+}
+
 export class StateManager {
   constructor(private filePath: string) {}
 
@@ -37,7 +75,12 @@ export class StateManager {
     try {
       const data = fs.readFileSync(this.filePath, "utf-8");
       const raw = JSON.parse(data) as Record<string, unknown>;
-      if ((raw.version as number) !== 3) {
+      const version = raw.version as number;
+      if (version === 3) {
+        logger.info("Migrating state from v3 to v4", { path: this.filePath });
+        return migrateV3toV4(raw);
+      }
+      if (version !== 4) {
         logger.info("Incompatible state version, creating fresh state", { path: this.filePath });
         return defaultState();
       }

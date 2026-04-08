@@ -1,9 +1,10 @@
-import { GameState, Tick, TickResult, ScanResult, ScanEntry, CatchResult, MergePreview, MergeResult, StatusResult, Notification } from "../types";
+import { GameState, Tick, TickResult, ScanResult, ScanEntry, CatchResult, BreedPreview, BreedResult, ArchiveResult, StatusResult, Notification } from "../types";
 import { processNewTick } from "./ticks";
 import { spawnBatch, cleanupBatch } from "./batch";
-import { attemptCatch, calculateCatchRate } from "./catch";
-import { calculateEnergyCost, processEnergyGain } from "./energy";
-import { previewMerge, executeMerge } from "./merge";
+import { attemptCatch, calculateCatchRate, calculateEnergyCost } from "./catch";
+import { processEnergyGain } from "./energy";
+import { previewBreed, executeBreed } from "./breed";
+import { archiveCreature, releaseCreature, isCollectionFull } from "./archive";
 import { TICKS_PER_SPAWN_CHECK, SPAWN_PROBABILITY } from "../config/constants";
 
 export class GameEngine {
@@ -44,28 +45,40 @@ export class GameEngine {
     const nearby: ScanEntry[] = this.state.nearby.map((creature, index) => ({
       index,
       creature,
-      catchRate: calculateCatchRate(creature.slots, this.state.batch?.failPenalty ?? 0),
-      energyCost: calculateEnergyCost(creature.slots),
+      catchRate: calculateCatchRate(creature.speciesId, creature.slots, this.state.batch?.failPenalty ?? 0),
+      energyCost: calculateEnergyCost(creature.speciesId, creature.slots),
     }));
     return { nearby, energy: this.state.energy, batch: this.state.batch };
   }
 
   catch(nearbyIndex: number, rng: () => number = Math.random): CatchResult {
+    if (isCollectionFull(this.state)) {
+      throw new Error("Collection is full (15 creatures). Archive or release a creature first.");
+    }
     return attemptCatch(this.state, nearbyIndex, rng);
   }
 
-  mergePreview(targetId: string, foodId: string): MergePreview {
-    return previewMerge(this.state, targetId, foodId);
+  breedPreview(parentAId: string, parentBId: string): BreedPreview {
+    return previewBreed(this.state, parentAId, parentBId);
   }
 
-  mergeExecute(targetId: string, foodId: string, rng: () => number = Math.random): MergeResult {
-    return executeMerge(this.state, targetId, foodId, rng);
+  breedExecute(parentAId: string, parentBId: string, rng: () => number = Math.random): BreedResult {
+    return executeBreed(this.state, parentAId, parentBId, rng);
+  }
+
+  archive(creatureId: string): ArchiveResult {
+    return archiveCreature(this.state, creatureId);
+  }
+
+  release(creatureId: string): void {
+    return releaseCreature(this.state, creatureId);
   }
 
   status(): StatusResult {
     return {
       profile: this.state.profile,
       collectionCount: this.state.collection.length,
+      archiveCount: this.state.archive.length,
       energy: this.state.energy,
       nearbyCount: this.state.nearby.length,
       batchAttemptsRemaining: this.state.batch?.attemptsRemaining ?? 0,

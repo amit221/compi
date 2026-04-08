@@ -1,23 +1,9 @@
-import { GameState, CreatureSlot, Rarity, RARITY_ORDER } from "../types";
-import {
-  ENERGY_GAIN_INTERVAL_MS,
-  MAX_ENERGY,
-  ENERGY_COST_PER_RARITY,
-} from "../config/constants";
+import { GameState } from "../types";
+import { loadConfig } from "../config/loader";
 
-/**
- * Calculate energy cost from a creature's 4 slots.
- * Uses the average rarity index to look up cost from ENERGY_COST_PER_RARITY.
- */
-export function calculateEnergyCost(slots: CreatureSlot[]): number {
-  if (slots.length === 0) return 1;
-
-  const totalIndex = slots.reduce((sum, s) => sum + RARITY_ORDER.indexOf(s.rarity), 0);
-  const avgIndex = Math.round(totalIndex / slots.length);
-  const avgRarity: Rarity = RARITY_ORDER[Math.min(avgIndex, RARITY_ORDER.length - 1)];
-
-  return ENERGY_COST_PER_RARITY[avgRarity] ?? 1;
-}
+const config = loadConfig();
+const ENERGY_GAIN_INTERVAL_MS = config.energy.gainIntervalMs;
+const MAX_ENERGY = config.energy.maxEnergy;
 
 export function processEnergyGain(state: GameState, now: number): number {
   const elapsed = now - state.lastEnergyGainAt;

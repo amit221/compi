@@ -72,22 +72,48 @@ try {
       break;
     }
 
+    case "breed":
     case "merge": {
-      const targetId = args[1];
-      const foodId = args[2];
+      const parentAId = args[1];
+      const parentBId = args[2];
       const confirm = args.includes("--confirm");
-      if (!targetId || !foodId) {
-        console.error("Usage: compi merge <targetId> <foodId> [--confirm]");
+      if (!parentAId || !parentBId) {
+        console.error("Usage: compi breed <parentAId> <parentBId> [--confirm]");
         process.exit(1);
       }
       if (confirm) {
-        const result = engine.mergeExecute(targetId, foodId);
+        const result = engine.breedExecute(parentAId, parentBId);
         save();
-        output(result, renderer.renderMergeResult(result));
+        output(result, renderer.renderBreedResult(result));
       } else {
-        const preview = engine.mergePreview(targetId, foodId);
-        output(preview, renderer.renderMergePreview(preview));
+        const preview = engine.breedPreview(parentAId, parentBId);
+        output(preview, renderer.renderBreedPreview(preview));
       }
+      break;
+    }
+
+    case "archive": {
+      const creatureId = args[1];
+      if (creatureId) {
+        const result = engine.archive(creatureId);
+        save();
+        output(result, `Archived ${result.creature.name}.`);
+      } else {
+        const archive = engine.getState().archive;
+        output(archive, renderer.renderArchive(archive));
+      }
+      break;
+    }
+
+    case "release": {
+      const creatureId = args[1];
+      if (!creatureId) {
+        console.error("Usage: compi release <id>");
+        process.exit(1);
+      }
+      engine.release(creatureId);
+      save();
+      output({ released: creatureId }, `Released creature ${creatureId}.`);
       break;
     }
 
@@ -128,7 +154,9 @@ try {
       console.log("  scan                    Show nearby creatures");
       console.log("  catch [n]               Catch creature #n");
       console.log("  collection              View your creatures");
-      console.log("  merge <targetId> <foodId> [--confirm]  Preview or execute merge");
+      console.log("  breed <aId> <bId> [--confirm]  Preview or execute breed");
+      console.log("  archive [id]            View archive or archive a creature");
+      console.log("  release <id>            Permanently release a creature");
       console.log("  energy                  Show current energy");
       console.log("  status                  Your profile");
       console.log("  settings [key] [value]  View/change settings");

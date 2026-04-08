@@ -1,7 +1,10 @@
 export { GameEngine } from "./engine/game-engine";
 export { StateManager } from "./state/state-manager";
 export { SimpleTextRenderer } from "./renderers/simple-text";
-export { loadSlots, getVariantById, getVariantsBySlotAndRarity, loadCreatureName } from "./config/traits";
+export { getVariantById, loadCreatureName } from "./config/traits";
 export { loadConfig, formatMessage } from "./config/loader";
+export { loadSpecies, getSpeciesById, getAllSpecies, pickSpecies, pickTraitForSlot, getTraitDefinition } from "./config/species";
+export { previewBreed, executeBreed, calculateInheritance } from "./engine/breed";
+export { archiveCreature, releaseCreature, isCollectionFull } from "./engine/archive";
 export { logger } from "./logger";
 export * from "./types";

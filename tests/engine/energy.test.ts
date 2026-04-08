@@ -1,20 +1,12 @@
-import { calculateEnergyCost, processEnergyGain, spendEnergy } from "../../src/engine/energy";
-import { GameState, CreatureSlot } from "../../src/types";
-
-function makeSlots(rarities: string[]): CreatureSlot[] {
-  const slotIds = ["eyes", "mouth", "body", "tail"] as const;
-  return rarities.map((r, i) => ({
-    slotId: slotIds[i % slotIds.length],
-    variantId: `test_${r}_${i}`,
-    rarity: r as any,
-  }));
-}
+import { processEnergyGain, spendEnergy } from "../../src/engine/energy";
+import { GameState } from "../../src/types";
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
-    version: 3,
+    version: 4,
     profile: { level: 1, xp: 0, totalCatches: 0, totalMerges: 0, totalTicks: 0, currentStreak: 0, longestStreak: 0, lastActiveDate: "" },
     collection: [],
+    archive: [],
     energy: 10,
     lastEnergyGainAt: Date.now(),
     nearby: [],
@@ -25,42 +17,6 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     ...overrides,
   };
 }
-
-describe("calculateEnergyCost", () => {
-  test("all common = 1 energy", () => {
-    const slots = makeSlots(["common", "common", "common", "common"]);
-    expect(calculateEnergyCost(slots)).toBe(1);
-  });
-
-  test("all epic = 3 energy", () => {
-    const slots = makeSlots(["epic", "epic", "epic", "epic"]);
-    expect(calculateEnergyCost(slots)).toBe(3);
-  });
-
-  test("all mythic = 5 energy", () => {
-    const slots = makeSlots(["mythic", "mythic", "mythic", "mythic"]);
-    expect(calculateEnergyCost(slots)).toBe(5);
-  });
-
-  test("all uncommon = 1 energy", () => {
-    const slots = makeSlots(["uncommon", "uncommon", "uncommon", "uncommon"]);
-    expect(calculateEnergyCost(slots)).toBe(1);
-  });
-
-  test("all rare = 2 energy", () => {
-    const slots = makeSlots(["rare", "rare", "rare", "rare"]);
-    expect(calculateEnergyCost(slots)).toBe(2);
-  });
-
-  test("all legendary = 4 energy", () => {
-    const slots = makeSlots(["legendary", "legendary", "legendary", "legendary"]);
-    expect(calculateEnergyCost(slots)).toBe(4);
-  });
-
-  test("empty slots returns 1 energy", () => {
-    expect(calculateEnergyCost([])).toBe(1);
-  });
-});
 
 describe("processEnergyGain", () => {
   test("gains 1 energy when 30 min have passed", () => {
@@ -108,4 +64,3 @@ describe("spendEnergy", () => {
     expect(() => spendEnergy(state, 5)).toThrow();
   });
 });
-
