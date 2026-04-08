@@ -45,7 +45,17 @@
       "epic": 3,
       "legendary": 4,
       "mythic": 5
-    }
+    },
+    "baseMergeCost": 3,
+    "maxMergeCost": 8,
+    "rareThreashold": 0.05
+  },
+  "breed": {
+    "inheritanceBase": 0.50,
+    "inheritanceRarityScale": 0.80,
+    "inheritanceMin": 0.45,
+    "inheritanceMax": 0.58,
+    "referenceSpawnRate": 0.12
   },
   "merge": {
     "slotWeightBase": 1.0,
