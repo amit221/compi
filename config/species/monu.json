@@ -1,0 +1,70 @@
+{
+  "id": "monu",
+  "name": "Monu",
+  "description": "A slow, heavy presence. Feels like it has been sitting in the same spot for centuries.",
+  "spawnWeight": 9,
+  "art": [" ┌─────┐", " │EE│", " │ MM │", " │BB│", " └TT┘"],
+  "traitPools": {
+    "eyes": [
+      { "id": "mnu_eye_01", "name": "Pebble", "art": "·.·", "spawnRate": 0.15 },
+      { "id": "mnu_eye_02", "name": "Settled", "art": "°.°", "spawnRate": 0.13 },
+      { "id": "mnu_eye_03", "name": "Worn", "art": "-.–", "spawnRate": 0.12 },
+      { "id": "mnu_eye_04", "name": "Still", "art": "○.○", "spawnRate": 0.10 },
+      { "id": "mnu_eye_05", "name": "Lichen", "art": "◦.◦", "spawnRate": 0.09 },
+      { "id": "mnu_eye_06", "name": "Moss", "art": "◐.◐", "spawnRate": 0.08 },
+      { "id": "mnu_eye_07", "name": "Deep", "art": "◑.◑", "spawnRate": 0.07 },
+      { "id": "mnu_eye_08", "name": "Root", "art": "◎.◎", "spawnRate": 0.06 },
+      { "id": "mnu_eye_09", "name": "Fossil", "art": "◉.◉", "spawnRate": 0.05 },
+      { "id": "mnu_eye_10", "name": "Bedrock", "art": "●.●", "spawnRate": 0.03 },
+      { "id": "mnu_eye_11", "name": "Monolith", "art": "⊙.⊙", "spawnRate": 0.015 },
+      { "id": "mnu_eye_12", "name": "Eternal", "art": "◈.◈", "spawnRate": 0.005 }
+    ],
+    "mouth": [
+      { "id": "mnu_mth_01", "name": "Flat", "art": "_", "spawnRate": 0.16 },
+      { "id": "mnu_mth_02", "name": "Hum", "art": "~", "spawnRate": 0.14 },
+      { "id": "mnu_mth_03", "name": "Settle", "art": ".", "spawnRate": 0.12 },
+      { "id": "mnu_mth_04", "name": "Rumble", "art": "≈", "spawnRate": 0.11 },
+      { "id": "mnu_mth_05", "name": "Drone", "art": "∘", "spawnRate": 0.10 },
+      { "id": "mnu_mth_06", "name": "Erode", "art": "∿", "spawnRate": 0.09 },
+      { "id": "mnu_mth_07", "name": "Groan", "art": "⌒", "spawnRate": 0.07 },
+      { "id": "mnu_mth_08", "name": "Quake", "art": "ω", "spawnRate": 0.06 },
+      { "id": "mnu_mth_09", "name": "Tremor", "art": "△", "spawnRate": 0.05 },
+      { "id": "mnu_mth_10", "name": "Chasm", "art": "◇", "spawnRate": 0.03 },
+      { "id": "mnu_mth_11", "name": "Epoch", "art": "✦", "spawnRate": 0.01 }
+    ],
+    "body": [
+      { "id": "mnu_bod_01", "name": "Dust", "art": "··", "spawnRate": 0.10 },
+      { "id": "mnu_bod_02", "name": "Silt", "art": "∙∙", "spawnRate": 0.09 },
+      { "id": "mnu_bod_03", "name": "Clay", "art": "::", "spawnRate": 0.08 },
+      { "id": "mnu_bod_04", "name": "Grit", "art": "░░", "spawnRate": 0.08 },
+      { "id": "mnu_bod_05", "name": "Sand", "art": "--", "spawnRate": 0.07 },
+      { "id": "mnu_bod_06", "name": "Shale", "art": "⌇⌇", "spawnRate": 0.065 },
+      { "id": "mnu_bod_07", "name": "Stone", "art": "▒▒", "spawnRate": 0.06 },
+      { "id": "mnu_bod_08", "name": "Slate", "art": "≈≈", "spawnRate": 0.055 },
+      { "id": "mnu_bod_09", "name": "Basalt", "art": "++", "spawnRate": 0.05 },
+      { "id": "mnu_bod_10", "name": "Granite", "art": "∿∿", "spawnRate": 0.045 },
+      { "id": "mnu_bod_11", "name": "Ore", "art": "##", "spawnRate": 0.04 },
+      { "id": "mnu_bod_12", "name": "Iron", "art": "▓▓", "spawnRate": 0.035 },
+      { "id": "mnu_bod_13", "name": "Marble", "art": "◈◈", "spawnRate": 0.03 },
+      { "id": "mnu_bod_14", "name": "Obsidian", "art": "◆◆", "spawnRate": 0.025 },
+      { "id": "mnu_bod_15", "name": "Amber", "art": "⬡⬡", "spawnRate": 0.02 },
+      { "id": "mnu_bod_16", "name": "Fossil", "art": "⊙⊙", "spawnRate": 0.01 },
+      { "id": "mnu_bod_17", "name": "Relic", "art": "✦✦", "spawnRate": 0.005 },
+      { "id": "mnu_bod_18", "name": "Core", "art": "★★", "spawnRate": 0.003 }
+    ],
+    "tail": [
+      { "id": "mnu_tal_01", "name": "Drag", "art": "~~", "spawnRate": 0.15 },
+      { "id": "mnu_tal_02", "name": "Scrape", "art": "_/", "spawnRate": 0.13 },
+      { "id": "mnu_tal_03", "name": "Slide", "art": "~/", "spawnRate": 0.12 },
+      { "id": "mnu_tal_04", "name": "Trail", "art": "/\\", "spawnRate": 0.10 },
+      { "id": "mnu_tal_05", "name": "Grind", "art": "⌇~", "spawnRate": 0.09 },
+      { "id": "mnu_tal_06", "name": "Root", "art": "~⌇", "spawnRate": 0.08 },
+      { "id": "mnu_tal_07", "name": "Crack", "art": "/⌇\\", "spawnRate": 0.07 },
+      { "id": "mnu_tal_08", "name": "Tremor", "art": "⌇⌇", "spawnRate": 0.05 },
+      { "id": "mnu_tal_09", "name": "Quake", "art": "≋≋", "spawnRate": 0.04 },
+      { "id": "mnu_tal_10", "name": "Fossil", "art": "☄~", "spawnRate": 0.03 },
+      { "id": "mnu_tal_11", "name": "Ancient", "art": "☄☄", "spawnRate": 0.02 },
+      { "id": "mnu_tal_12", "name": "Tectonic", "art": "✧✧", "spawnRate": 0.005 }
+    ]
+  }
+}
