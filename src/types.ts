@@ -1,24 +1,8 @@
-// src/types.ts — Compi v2
-
-// --- Rarity (6 tiers) ---
-
-export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic";
-
-export const RARITY_ORDER: Rarity[] = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
-
-export const RARITY_STARS: Record<Rarity, number> = {
-  common: 1,
-  uncommon: 2,
-  rare: 3,
-  epic: 4,
-  legendary: 5,
-  mythic: 6,
-};
+// src/types.ts — Compi v3 (multi-species)
 
 // --- Slots (4) ---
 
 export type SlotId = "eyes" | "mouth" | "body" | "tail";
-
 export const SLOT_IDS: SlotId[] = ["eyes", "mouth", "body", "tail"];
 
 // --- Traits ---
@@ -29,11 +13,33 @@ export interface TraitVariant {
   art: string;
 }
 
+export interface TraitDefinition {
+  id: string;
+  name: string;
+  art: string;
+  spawnRate: number; // 0.001 to 0.30
+}
+
 export interface CreatureSlot {
   slotId: SlotId;
   variantId: string;
-  rarity: Rarity;
+  // rarity removed — spawn rate lives in species config
 }
+
+// --- Species ---
+
+export interface SpeciesDefinition {
+  id: string;
+  name: string;
+  description: string;
+  spawnWeight: number;
+  art: string[]; // multi-line ASCII template
+  traitPools: Record<SlotId, TraitDefinition[]>;
+}
+
+// --- Collection ---
+
+export const MAX_COLLECTION_SIZE = 15;
 
 // --- Time ---
 
@@ -49,6 +55,7 @@ export interface Tick {
 
 export interface NearbyCreature {
   id: string;
+  speciesId: string;
   name: string;
   slots: CreatureSlot[];
   spawnedAt: number;
@@ -56,11 +63,13 @@ export interface NearbyCreature {
 
 export interface CollectionCreature {
   id: string;
+  speciesId: string;
   name: string;
   slots: CreatureSlot[];
   caughtAt: number;
   generation: number;
   mergedFrom?: [string, string];
+  archived: boolean;
 }
 
 export interface BatchState {
@@ -85,9 +94,10 @@ export interface GameSettings {
 }
 
 export interface GameState {
-  version: number;
+  version: number; // 4
   profile: PlayerProfile;
   collection: CollectionCreature[];
+  archive: CollectionCreature[];
   energy: number;
   lastEnergyGainAt: number;
   nearby: NearbyCreature[];
@@ -127,32 +137,36 @@ export interface CatchResult {
   failPenalty: number;
 }
 
-export interface SlotUpgradeChance {
+export interface SlotInheritance {
   slotId: SlotId;
-  currentRarity: Rarity;
-  nextRarity: Rarity;
-  chance: number;
+  parentAVariant: TraitDefinition;
+  parentBVariant: TraitDefinition;
+  parentAChance: number; // normalized probability
+  parentBChance: number;
 }
 
-export interface MergePreview {
-  target: CollectionCreature;
-  food: CollectionCreature;
-  slotChances: SlotUpgradeChance[];
+export interface BreedPreview {
+  parentA: CollectionCreature;
+  parentB: CollectionCreature;
+  slotInheritance: SlotInheritance[];
+  energyCost: number;
 }
 
-export interface MergeResult {
-  success: true;
-  target: CollectionCreature;
-  food: CollectionCreature;
-  upgradedSlot: SlotId;
-  previousRarity: Rarity;
-  newRarity: Rarity;
-  graftedVariantName: string;
+export interface BreedResult {
+  child: CollectionCreature;
+  parentA: CollectionCreature;
+  parentB: CollectionCreature;
+  inheritedFrom: Record<SlotId, "A" | "B">;
+}
+
+export interface ArchiveResult {
+  creature: CollectionCreature;
 }
 
 export interface StatusResult {
   profile: PlayerProfile;
   collectionCount: number;
+  archiveCount: number;
   energy: number;
   nearbyCount: number;
   batchAttemptsRemaining: number;
@@ -197,19 +211,26 @@ export interface BalanceConfig {
     minCatchRate: number;
     maxCatchRate: number;
     failPenaltyPerMiss: number;
-    rarityPenalty: Record<string, number>;
-    xpPerRarity: Record<string, number>;
+    maxTraitSpawnRate: number; // reference point for difficulty scaling (0.12)
+    difficultyScale: number; // how much rarity affects catch rate (0.50)
+    xpBase: number; // base XP for a catch
+    xpRarityMultiplier: number; // XP bonus per rare trait
   };
   energy: {
     gainIntervalMs: number;
     maxEnergy: number;
     startingEnergy: number;
     sessionBonus: number;
-    costPerRarity: Record<string, number>;
+    baseMergeCost: number; // flat cost per merge
+    maxMergeCost: number; // cap
+    rareThreashold: number; // spawn rate below which trait counts as "rare" for cost
   };
-  merge: {
-    slotWeightBase: number;
-    slotWeightPerTier: number;
+  breed: {
+    inheritanceBase: number; // 0.50
+    inheritanceRarityScale: number; // 0.80
+    inheritanceMin: number; // 0.45
+    inheritanceMax: number; // 0.58
+    referenceSpawnRate: number; // 0.12
   };
   progression: {
     xpPerLevel: number;
@@ -227,9 +248,10 @@ export interface BalanceConfig {
 export interface Renderer {
   renderScan(result: ScanResult): string;
   renderCatch(result: CatchResult): string;
-  renderMergePreview(preview: MergePreview): string;
-  renderMergeResult(result: MergeResult): string;
+  renderBreedPreview(preview: BreedPreview): string;
+  renderBreedResult(result: BreedResult): string;
   renderCollection(collection: CollectionCreature[]): string;
+  renderArchive(archive: CollectionCreature[]): string;
   renderEnergy(energy: number, maxEnergy: number): string;
   renderStatus(result: StatusResult): string;
   renderNotification(notification: Notification): string;
