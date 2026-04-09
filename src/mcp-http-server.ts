@@ -9,14 +9,24 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import express from "express";
 import cors from "cors";
+import * as fs from "fs";
+import * as path from "path";
 import { registerTools } from "./mcp-tools";
-import { buildAppHtml } from "./renderers/ansi-to-html";
 
 const PORT = parseInt(process.env.COMPI_PORT || "3456", 10);
 
 const appUri = "ui://compi/display.html";
 const APP_MIME = "text/html;profile=mcp-app";
-let latestOutput = "";
+
+// Load the static MCP App HTML template (client-side ANSI→HTML converter)
+let appHtml = "";
+try {
+  appHtml = fs.readFileSync(path.resolve(__dirname, "mcp-app.html"), "utf-8");
+} catch {
+  try {
+    appHtml = fs.readFileSync(path.resolve(__dirname, "..", "src", "mcp-app.html"), "utf-8");
+  } catch {}
+}
 
 function createServer(): McpServer {
   const server = new McpServer({
@@ -24,17 +34,14 @@ function createServer(): McpServer {
     version: "0.3.0",
   });
 
-  // MCP App resource -- serves pre-rendered HTML
+  // MCP App resource — serves static HTML that converts ANSI→HTML client-side via postMessage
   server.registerResource(appUri, appUri, { mimeType: APP_MIME }, async () => ({
-    contents: [{ uri: appUri, mimeType: APP_MIME, text: buildAppHtml(latestOutput) }],
+    contents: [{ uri: appUri, mimeType: APP_MIME, text: appHtml }],
   }));
 
   const appMeta = { ui: { resourceUri: appUri }, "ui/resourceUri": appUri };
 
-  registerTools(server, {
-    appMeta,
-    onOutput: (content) => { latestOutput = content; },
-  });
+  registerTools(server, { appMeta });
 
   return server;
 }
