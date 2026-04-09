@@ -5,4 +5,6 @@ description: View your player profile and game stats
 
 Call the compi `status` MCP tool to view player stats.
 
-CRITICAL: Output the tool's text response AS-IS. Do NOT put it in a code block. Do NOT summarize, paraphrase, or reformat. The response contains HTML that must be rendered.
+The result is displayed in the visual panel above. Respond with ONLY "Your status is displayed above."
+
+Do NOT output the raw tool response.
