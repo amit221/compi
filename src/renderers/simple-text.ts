@@ -68,22 +68,26 @@ function renderCreatureLines(slots: CreatureSlot[], speciesId?: string): string[
 
   if (species?.art) {
     // Use species art template with placeholder replacement
+    // Color the entire line with the slot color so frame characters match
     return species.art.map((line) => {
       let result = line;
-      let coloredResult = line;
       const replacements: [string, string, string][] = [
         ["EE", slotArt["eyes"] ?? "", slotColor["eyes"] ?? WHITE],
         ["MM", slotArt["mouth"] ?? "", slotColor["mouth"] ?? WHITE],
         ["BB", slotArt["body"] ?? "", slotColor["body"] ?? WHITE],
         ["TT", slotArt["tail"] ?? "", slotColor["tail"] ?? WHITE],
       ];
+      let lineColor: string | null = null;
       for (const [placeholder, art, color] of replacements) {
         if (result.includes(placeholder)) {
           result = result.replace(placeholder, art);
-          coloredResult = coloredResult.replace(placeholder, `${color}${art}${RESET}`);
+          lineColor = color;
         }
       }
-      return "      " + coloredResult;
+      if (lineColor) {
+        return "      " + lineColor + result + RESET;
+      }
+      return "      " + result;
     });
   }
 

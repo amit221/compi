@@ -13,6 +13,9 @@
     "sessionStart": [
       {
         "command": "node \"${CURSOR_PLUGIN_ROOT}/scripts/tick-hook.js\""
+      },
+      {
+        "command": "node \"${CURSOR_PLUGIN_ROOT}/scripts/start-http-server.js\""
       }
     ]
   }

@@ -4,7 +4,7 @@
  */
 
 export const ANSI_TO_CSS: Record<string, string> = {
-  "30": "#1a1a2e", "31": "#ff1744", "32": "#00e676", "33": "#ffea00",
+  "30": "#000", "31": "#ff1744", "32": "#00e676", "33": "#ffea00",
   "34": "#448aff", "35": "#d500f9", "36": "#00e5ff", "37": "#e0e0e0",
   "90": "#9e9e9e", "91": "#ff1744", "92": "#00e676", "93": "#ffea00",
   "94": "#448aff", "95": "#d500f9", "96": "#00e5ff", "97": "#ffffff",
@@ -52,7 +52,7 @@ export function ansiToHtml(text: string): string {
 export function buildAppHtml(ansiContent: string): string {
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#1a1a2e;color:#e0e0e0;font-family:'Cascadia Code','Fira Code',Consolas,monospace;font-size:14px;padding:16px;line-height:1.5}
+body{background:#000;color:#e0e0e0;font-family:'Cascadia Code','Fira Code',Consolas,monospace;font-size:14px;padding:16px;line-height:1.5}
 pre{white-space:pre-wrap;word-wrap:break-word}
 </style></head><body><pre>${ansiToHtml(ansiContent)}</pre></body></html>`;
 }
