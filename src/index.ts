@@ -6,5 +6,6 @@ export { loadConfig, formatMessage } from "./config/loader";
 export { loadSpecies, getSpeciesById, getAllSpecies, pickSpecies, pickTraitForSlot, getTraitDefinition } from "./config/species";
 export { previewBreed, executeBreed, calculateInheritance } from "./engine/breed";
 export { archiveCreature, releaseCreature, isCollectionFull } from "./engine/archive";
+export { calculateTraitRarityScore, calculateColorRarityScore, calculateSlotScore, calculateCreatureScore } from "./engine/rarity";
 export { logger } from "./logger";
 export * from "./types";
