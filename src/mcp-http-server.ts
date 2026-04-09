@@ -17,6 +17,26 @@ const PORT = parseInt(process.env.COMPI_PORT || "3456", 10);
 const appUri = "ui://compi/display.html";
 const APP_MIME = "text/html;profile=mcp-app";
 let latestOutput = "";
+let outputVersion = 0;
+let waitForOutput: ((version: number) => Promise<string>) | null = null;
+
+// Creates a promise that resolves when latestOutput is updated
+function createOutputWaiter() {
+  let currentVersion = outputVersion;
+  return new Promise<string>((resolve) => {
+    // If already updated since we started waiting, resolve immediately
+    const check = () => {
+      if (outputVersion > currentVersion) {
+        resolve(latestOutput);
+      } else {
+        setTimeout(check, 50);
+      }
+    };
+    // Wait up to 3 seconds, then return whatever we have
+    setTimeout(() => resolve(latestOutput), 3000);
+    check();
+  });
+}
 
 function buildHtml(ansiContent: string): string {
   const body = ansiContent ? ansiToHtml(ansiContent) : "";
@@ -33,15 +53,17 @@ function createServer(): McpServer {
     version: "0.3.0",
   });
 
-  server.registerResource(appUri, appUri, { mimeType: APP_MIME }, async () => ({
-    contents: [{ uri: appUri, mimeType: APP_MIME, text: buildHtml(latestOutput) }],
-  }));
+  server.registerResource(appUri, appUri, { mimeType: APP_MIME }, async () => {
+    // Wait for the tool to finish and set latestOutput
+    const content = await createOutputWaiter();
+    return { contents: [{ uri: appUri, mimeType: APP_MIME, text: buildHtml(content) }] };
+  });
 
   const appMeta = { ui: { resourceUri: appUri }, "ui/resourceUri": appUri };
 
   registerTools(server, {
     appMeta,
-    onOutput: (content) => { latestOutput = content; },
+    onOutput: (content) => { latestOutput = content; outputVersion++; },
     renderHtml: buildHtml,
   });
 
