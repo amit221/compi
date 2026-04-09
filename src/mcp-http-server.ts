@@ -9,9 +9,8 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import express from "express";
 import cors from "cors";
-import * as fs from "fs";
-import * as path from "path";
 import { registerTools } from "./mcp-tools";
+import { ansiToHtml } from "./renderers/ansi-to-html";
 
 const PORT = parseInt(process.env.COMPI_PORT || "3456", 10);
 
@@ -19,14 +18,17 @@ const appUri = "ui://compi/display.html";
 const APP_MIME = "text/html;profile=mcp-app";
 let latestOutput = "";
 
-// Load the polling HTML template (has client-side ANSI→HTML + fetch from /api/latest-output)
-let appHtml = "";
-try {
-  appHtml = fs.readFileSync(path.resolve(__dirname, "mcp-app.html"), "utf-8");
-} catch {
-  try {
-    appHtml = fs.readFileSync(path.resolve(__dirname, "..", "src", "mcp-app.html"), "utf-8");
-  } catch {}
+function buildHtml(ansiContent: string): string {
+  const body = ansiContent ? ansiToHtml(ansiContent) : "";
+  // If empty, auto-reload after 500ms (resource fetched before tool finished)
+  const reloadScript = !ansiContent
+    ? `<script>setTimeout(function(){window.location.reload()},500)</script>`
+    : "";
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#e0e0e0;font-family:'Cascadia Code','Fira Code',Consolas,monospace;font-size:14px;padding:16px;line-height:1.5}
+pre{white-space:pre-wrap;word-wrap:break-word}
+</style></head><body><pre>${body}</pre>${reloadScript}</body></html>`;
 }
 
 function createServer(): McpServer {
@@ -35,9 +37,9 @@ function createServer(): McpServer {
     version: "0.3.0",
   });
 
-  // MCP App resource — serves HTML with polling JS that fetches colored output
+  // MCP App resource — pre-rendered HTML, auto-reloads if empty
   server.registerResource(appUri, appUri, { mimeType: APP_MIME }, async () => ({
-    contents: [{ uri: appUri, mimeType: APP_MIME, text: appHtml }],
+    contents: [{ uri: appUri, mimeType: APP_MIME, text: buildHtml(latestOutput) }],
   }));
 
   const appMeta = { ui: { resourceUri: appUri }, "ui/resourceUri": appUri };
