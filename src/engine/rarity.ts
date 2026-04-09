@@ -12,13 +12,13 @@ import { loadConfig } from "../config/loader";
  */
 export function calculateTraitRarityScore(
   speciesId: string,
-  slotId: string,
+  slotId: SlotId,
   variantId: string
 ): number {
   const species = getSpeciesById(speciesId);
   if (!species) return 50;
 
-  const pool = species.traitPools[slotId as SlotId];
+  const pool = species.traitPools[slotId];
   if (!pool || pool.length === 0) return 50;
   if (pool.length === 1) return 50;
 
