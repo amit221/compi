@@ -78,6 +78,7 @@ describe("StateManager v4", () => {
       energy: 8,
       lastEnergyGainAt: 5000,
       batch: null,
+      lastSpawnAt: 0,
       recentTicks: [],
       claimedMilestones: [],
       settings: { notificationLevel: "moderate" },

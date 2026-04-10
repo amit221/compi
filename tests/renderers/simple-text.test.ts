@@ -52,6 +52,7 @@ describe("renderScan", () => {
   const result: ScanResult = {
     energy: 6,
     batch: null,
+    nextBatchInMs: 900000,
     nearby: [
       { index: 1, creature: makeNearby("c1", "Sparks"), catchRate: 0.55, energyCost: 3 },
       { index: 2, creature: makeNearby("c2", "Muddle"), catchRate: 0.92, energyCost: 1 },
@@ -348,6 +349,7 @@ describe("species-specific art", () => {
     const result: ScanResult = {
       energy: 6,
       batch: null,
+      nextBatchInMs: 900000,
       nearby: [
         { index: 0, creature: makeNearby("c1", "Sparks"), catchRate: 0.55, energyCost: 3 },
       ],
@@ -374,6 +376,7 @@ describe("per-slot color display", () => {
     const result: ScanResult = {
       energy: 6,
       batch: null,
+      nextBatchInMs: 900000,
       nearby: [
         { index: 0, creature: makeNearby("c1", "Sparks", "cyan"), catchRate: 0.55, energyCost: 3 },
       ],
@@ -386,6 +389,7 @@ describe("per-slot color display", () => {
     const result: ScanResult = {
       energy: 6,
       batch: null,
+      nextBatchInMs: 900000,
       nearby: [
         { index: 0, creature: makeNearby("c1", "Sparks", "cyan"), catchRate: 0.55, energyCost: 3 },
       ],

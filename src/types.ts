@@ -107,6 +107,7 @@ export interface GameState {
   lastEnergyGainAt: number;
   nearby: NearbyCreature[];
   batch: BatchState | null;
+  lastSpawnAt: number;
   recentTicks: Tick[];
   claimedMilestones: string[];
   settings: GameSettings;
@@ -130,6 +131,7 @@ export interface ScanResult {
   nearby: ScanEntry[];
   energy: number;
   batch: BatchState | null;
+  nextBatchInMs: number;
 }
 
 export interface CatchResult {
@@ -206,8 +208,7 @@ export interface MilestoneConfig {
 export interface BalanceConfig {
   colors: Record<string, number>;
   batch: {
-    ticksPerSpawnCheck: number;
-    spawnProbability: number;
+    spawnIntervalMs: number;
     batchLingerMs: number;
     sharedAttempts: number;
     timeOfDay: Record<string, [number, number]>;

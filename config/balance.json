@@ -8,8 +8,7 @@
     "red": 0.04
   },
   "batch": {
-    "ticksPerSpawnCheck": 10,
-    "spawnProbability": 0.6,
+    "spawnIntervalMs": 1800000,
     "batchLingerMs": 1800000,
     "sharedAttempts": 3,
     "timeOfDay": {

@@ -11,6 +11,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     lastEnergyGainAt: Date.now(),
     nearby: [],
     batch: null,
+    lastSpawnAt: 0,
     recentTicks: [],
     claimedMilestones: [],
     settings: { notificationLevel: "moderate" },

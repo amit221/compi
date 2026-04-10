@@ -23,6 +23,7 @@ function defaultState(): GameState {
     lastEnergyGainAt: Date.now(),
     nearby: [],
     batch: null,
+    lastSpawnAt: 0,
     recentTicks: [],
     claimedMilestones: [],
     settings: {
@@ -88,8 +89,12 @@ export class StateManager {
         logger.info("Incompatible state version, creating fresh state", { path: this.filePath });
         return defaultState();
       }
-      // Backfill color to slots for existing v4 states; remove creature-level color
+      // Backfill lastSpawnAt for existing v4 states
       const state = raw as unknown as GameState;
+      if (state.lastSpawnAt === undefined) {
+        (state as any).lastSpawnAt = 0;
+      }
+      // Backfill color to slots for existing v4 states; remove creature-level color
       for (const list of [state.collection, state.nearby, state.archive]) {
         if (Array.isArray(list)) {
           for (const c of list as any[]) {

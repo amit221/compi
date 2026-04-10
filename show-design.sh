@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# ANSI codes
+RESET="\x1b[0m"
+BOLD="\x1b[1m"
+DIM="\x1b[2m"
+WHITE="\x1b[97m"
+GREY="\x1b[90m"
+MAGENTA="\x1b[35m"
+CYAN="\x1b[36m"
+YELLOW="\x1b[33m"
+
+# Background colors
+BG_RARE="\x1b[48;5;55m"      # Dark purple
+BG_UNCOMMON="\x1b[48;5;23m"  # Dark teal
+BG_NONE=""
+
+echo ""
+echo "════════════════════════════════════════════════════════════════════════"
+echo "                    COMPI TRAIT COLOR REDESIGN"
+echo "════════════════════════════════════════════════════════════════════════"
+echo ""
+
+echo "${BOLD}CURRENT DESIGN (Colors everywhere)${RESET}"
+echo "───────────────────────────────────────────────────────────────────────"
+echo ""
+echo "      ◆.◆                 ${DIM}eyes${RESET}   ${MAGENTA}Gem Gaze${RESET} ${DIM}[66]${RESET}"
+echo "     ( . )                ${DIM}mouth${RESET}  ${MAGENTA}Dot${RESET} ${DIM}[26]${RESET}"
+echo "    ╱ ◈◈ ╲               ${DIM}body${RESET}   ${YELLOW}Prism${RESET} ${DIM}[92]${RESET}"
+echo "      \\~\\                 ${DIM}tail${RESET}   ${CYAN}Swish${RESET} ${DIM}[13]${RESET}"
+echo ""
+echo "${GREY}Problem: Trait names are colored, scores are hidden. Colors don't mean anything.${RESET}"
+echo ""
+echo ""
+
+echo "${BOLD}NEW DESIGN (Color = Rarity Signal)${RESET}"
+echo "───────────────────────────────────────────────────────────────────────"
+echo ""
+echo "      ◆.◆                 ${DIM}eyes${RESET}   ${BG_RARE}${WHITE} Gem Gaze ${RESET} ${DIM}[66]${RESET}"
+echo "     ( . )                ${DIM}mouth${RESET}  ${WHITE}Dot${RESET} ${DIM}[26]${RESET}"
+echo "    ╱ ◈◈ ╲               ${DIM}body${RESET}   ${BG_RARE}${WHITE} Prism ${RESET} ${DIM}[92]${RESET}"
+echo "      \\~\\                 ${DIM}tail${RESET}   ${BG_UNCOMMON}${WHITE} Swish ${RESET} ${DIM}[13]${RESET}"
+echo ""
+echo "${GREY}Rarity Levels:${RESET}"
+echo "  ${BG_RARE}${WHITE} RARE ${RESET}      = Bright background (uncommon trait)"
+echo "  ${BG_UNCOMMON}${WHITE} UNCOMMON ${RESET} = Muted background (less common)"
+echo "  ${WHITE}COMMON${RESET}     = No background (very common)"
+echo ""
+echo "${GREY}Benefits:${RESET}"
+echo "  • Creature stays simple (black lines, not colorful)"
+echo "  • Rarity is instantly visible (colored background only on standouts)"
+echo "  • Colors mean something (not just decoration)"
+echo "  • Eyes go straight to the important traits"
+echo ""
+echo "════════════════════════════════════════════════════════════════════════"

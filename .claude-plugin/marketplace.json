@@ -1,0 +1,14 @@
+{
+  "name": "compi",
+  "owner": {
+    "name": "amit221"
+  },
+  "plugins": [
+    {
+      "name": "compi",
+      "source": "./",
+      "description": "Terminal creature collection game — catch digital beings as you work",
+      "version": "0.1.0"
+    }
+  ]
+}

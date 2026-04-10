@@ -5,7 +5,7 @@ import { attemptCatch, calculateCatchRate, calculateEnergyCost } from "./catch";
 import { processEnergyGain } from "./energy";
 import { previewBreed, executeBreed } from "./breed";
 import { archiveCreature, releaseCreature, isCollectionFull } from "./archive";
-import { TICKS_PER_SPAWN_CHECK, SPAWN_PROBABILITY } from "../config/constants";
+import { SPAWN_INTERVAL_MS } from "../config/constants";
 
 export class GameEngine {
   private state: GameState;
@@ -24,13 +24,13 @@ export class GameEngine {
     const despawned = cleanupBatch(this.state, tick.timestamp);
 
     let spawned = false;
-    if (!this.state.batch && this.state.profile.totalTicks % TICKS_PER_SPAWN_CHECK === 0) {
-      if (rng() < SPAWN_PROBABILITY) {
-        const creatures = spawnBatch(this.state, tick.timestamp, rng);
-        if (creatures.length > 0) {
-          spawned = true;
-          notifications.push({ message: `${creatures.length} creatures appeared nearby!`, level: "moderate" });
-        }
+    const timeSinceLastSpawn = tick.timestamp - this.state.lastSpawnAt;
+    if (!this.state.batch && timeSinceLastSpawn >= SPAWN_INTERVAL_MS) {
+      const creatures = spawnBatch(this.state, tick.timestamp, rng);
+      if (creatures.length > 0) {
+        spawned = true;
+        this.state.lastSpawnAt = tick.timestamp;
+        notifications.push({ message: `${creatures.length} creatures appeared nearby!`, level: "moderate" });
       }
     }
 
@@ -48,7 +48,10 @@ export class GameEngine {
       catchRate: calculateCatchRate(creature.speciesId, creature.slots, this.state.batch?.failPenalty ?? 0),
       energyCost: calculateEnergyCost(creature.speciesId, creature.slots),
     }));
-    return { nearby, energy: this.state.energy, batch: this.state.batch };
+    const now = Date.now();
+    const timeSinceSpawn = now - this.state.lastSpawnAt;
+    const nextBatchInMs = Math.max(0, SPAWN_INTERVAL_MS - timeSinceSpawn);
+    return { nearby, energy: this.state.energy, batch: this.state.batch, nextBatchInMs };
   }
 
   catch(nearbyIndex: number, rng: () => number = Math.random): CatchResult {

@@ -36,6 +36,7 @@ function makeState(
     lastEnergyGainAt: Date.now(),
     nearby: [],
     batch: null,
+    lastSpawnAt: 0,
     recentTicks: [],
     claimedMilestones: [],
     settings: { notificationLevel: "moderate" },

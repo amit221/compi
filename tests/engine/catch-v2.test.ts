@@ -68,6 +68,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     lastEnergyGainAt: Date.now(),
     nearby: [makeNearby("c1", ["common1", "common2", "common3", "common4"])],
     batch: { attemptsRemaining: 3, failPenalty: 0, spawnedAt: Date.now() },
+    lastSpawnAt: 0,
     recentTicks: [],
     claimedMilestones: [],
     settings: { notificationLevel: "moderate" },

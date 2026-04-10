@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compi Trait Color Design</title>
+  <style>
+    body {
+      background: #1a1a1a;
+      color: #e0e0e0;
+      font-family: "Courier New", monospace;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: #fff;
+      margin-bottom: 30px;
+    }
+    .comparison {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 50px;
+      flex-wrap: wrap;
+    }
+    .design {
+      flex: 1;
+      min-width: 350px;
+    }
+    .design h2 {
+      color: #aaa;
+      font-size: 14px;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+    }
+    .creature {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 30px;
+      padding: 10px;
+      background: #222;
+      border-left: 3px solid #444;
+    }
+    .art {
+      font-family: monospace;
+      white-space: pre;
+      flex-shrink: 0;
+      line-height: 1.2;
+      color: #666;
+    }
+    .traits {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 8px;
+    }
+    .trait {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .trait-label {
+      width: 50px;
+      color: #888;
+      font-size: 12px;
+    }
+    .trait-info {
+      flex: 1;
+      padding: 4px 8px;
+      border-radius: 3px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+    }
+    .trait-score {
+      color: #888;
+      font-weight: normal;
+      margin-left: 10px;
+    }
+
+    /* Rarity levels */
+    .rare {
+      background: #4a3f8f;
+      color: #e0d5ff;
+      text-shadow: 0 0 8px rgba(200, 180, 255, 0.6);
+    }
+    .uncommon {
+      background: #3f5a4a;
+      color: #d5ffe0;
+      text-shadow: 0 0 8px rgba(180, 255, 200, 0.4);
+    }
+    .common {
+      background: transparent;
+      color: #e0e0e0;
+    }
+
+    .current {
+      opacity: 0.6;
+    }
+    .current .trait-info {
+      padding: 4px 0;
+    }
+    .current .trait-name {
+      color: #666;
+    }
+
+    .note {
+      color: #888;
+      font-size: 12px;
+      margin-top: 5px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Compi Trait Display Redesign</h1>
+
+    <div class="comparison">
+      <!-- Current Design -->
+      <div class="design current">
+        <h2>Current (Colors everywhere)</h2>
+
+        <div class="creature">
+          <div class="art">  ◆.◆
+ ( . )
+╱ ◈◈ ╲
+  \~\</div>
+          <div class="traits">
+            <div class="trait">
+              <div class="trait-label">eyes</div>
+              <span style="color: #d4a5d4;">Gem Gaze</span>
+              <span class="trait-score">[66]</span>
+            </div>
+            <div class="trait">
+              <div class="trait-label">mouth</div>
+              <span style="color: #d4a5d4;">Dot</span>
+              <span class="trait-score">[26]</span>
+            </div>
+            <div class="trait">
+              <div class="trait-label">body</div>
+              <span style="color: #ccaa44;">Prism</span>
+              <span class="trait-score">[92]</span>
+            </div>
+            <div class="trait">
+              <div class="trait-label">tail</div>
+              <span style="color: #44aacc;">Swish</span>
+              <span class="trait-score">[13]</span>
+            </div>
+          </div>
+        </div>
+        <div class="note">Colors decorate, don't inform. Hard to tell which traits are valuable.</div>
+      </div>
+
+      <!-- New Design -->
+      <div class="design">
+        <h2>New (Color = Rarity)</h2>
+
+        <div class="creature">
+          <div class="art">  ◆.◆
+ ( . )
+╱ ◈◈ ╲
+  \~\</div>
+          <div class="traits">
+            <div class="trait">
+              <div class="trait-label">eyes</div>
+              <div class="trait-info rare">
+                Gem Gaze
+                <span class="trait-score">[66]</span>
+              </div>
+            </div>
+            <div class="trait">
+              <div class="trait-label">mouth</div>
+              <div class="trait-info common">
+                Dot
+                <span class="trait-score">[26]</span>
+              </div>
+            </div>
+            <div class="trait">
+              <div class="trait-label">body</div>
+              <div class="trait-info rare">
+                Prism
+                <span class="trait-score">[92]</span>
+              </div>
+            </div>
+            <div class="trait">
+              <div class="trait-label">tail</div>
+              <div class="trait-info uncommon">
+                Swish
+                <span class="trait-score">[13]</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="note">Color + background only on trait info. Rarity is instantly visible.</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 50px; padding: 20px; background: #222; border-left: 3px solid #666;">
+      <h2 style="color: #aaa; margin-top: 0;">Design Principles</h2>
+      <ul style="color: #ccc; line-height: 2;">
+        <li><strong>Creature art:</strong> Monochrome (black lines). Simple, readable, not distracting.</li>
+        <li><strong>Trait backgrounds:</strong> Colored ONLY behind trait info based on score rarity.</li>
+        <li><strong>Rare traits:</strong> Bright background + saturated text. Visual weight matches importance.</li>
+        <li><strong>Common traits:</strong> No background, white text. Recedes visually.</li>
+        <li><strong>Color concentrates meaning:</strong> One zone (trait info) holds all the quality signals.</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
