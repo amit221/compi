@@ -9,10 +9,10 @@
  ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝
 ```
 
-### Collect creatures while you code — without ever leaving your agent.
+### Collect compis while you code — without ever leaving your agent.
 
 Your coding activity spawns unique ASCII creatures with randomized traits across 6 rarity tiers.
-Scan to discover them. Catch the ones you want. Merge to upgrade. **15.6 billion possible combinations.**
+Scan to discover them. Catch the ones you want. Breed pairs to pass rare traits to the next generation. **Hundreds of millions of possible combinations.**
 
 Works with **Claude Code** | **Cursor** | **Codex** | and more coming soon
 
@@ -25,30 +25,30 @@ Works with **Claude Code** | **Cursor** | **Codex** | and more coming soon
 ---
 
 <div align="center">
-<img src="assets/compi-demo.gif" alt="Compi gameplay — scan, catch, and collect creatures in your terminal" width="680" />
+<img src="assets/compi-demo.gif" alt="Compi gameplay — scan, catch, and collect compis in your terminal" width="680" />
 </div>
 
 ## How It Works
 
 ```
 1. Code normally        Your prompts, tool calls, and commits generate "ticks"
-2. Creatures spawn      Every ~10 ticks, a batch of 3-5 creatures appears nearby
+2. Compis spawn         Every ~30 minutes a batch of 3-5 compis appears nearby
 3. Scan & catch         Run /scan to see them, /catch to grab the ones you want
-4. Merge & upgrade      Sacrifice one creature to boost another's rarity tier
+4. Breed next-gen       Pair two compis to produce a child that inherits their best traits
 ```
 
-Each creature is built from **4 trait slots** (eyes, mouth, body, tail) with individual rarity and unique ASCII art. Rarer traits glow in different colors — from gray commons to red mythics.
+Each compi belongs to one of **6 species** and is built from a handful of trait slots (typically eyes, mouth, body, tail) — each with its own rarity and unique ASCII art. Rarer traits glow in different colors, from gray commons to red mythics.
 
 <div align="center">
-<img src="assets/banner.svg" alt="compi creatures across rarity tiers" width="700" />
+<img src="assets/banner.svg" alt="compis across rarity tiers" width="700" />
 </div>
 
 ## Why Compi?
 
 - **Zero context-switching** — the game lives inside your coding agent, not a separate app
-- **Your work fuels the game** — creatures spawn from your actual coding activity
-- **Real depth** — 6 rarity tiers, weighted catch rates, merge strategy, streaks, leveling
-- **Every creature is unique** — 4 slots x 6 rarities x multiple variants = billions of combos
+- **Your work fuels the game** — compis spawn from your actual coding activity
+- **Real depth** — 6 species, 6 rarity tiers, weighted catch rates, breeding & inheritance, streaks, leveling
+- **Every compi is unique** — species × trait variants × 6 colors = hundreds of millions of combos
 - **Lightweight** — hooks only, no background processes, no performance impact
 - **Open source** — MIT licensed, community-driven
 
@@ -110,49 +110,36 @@ To change the port, set `COMPI_PORT` in your environment before Cursor launches 
 
 **Option 2: Play alongside your work**
 
-Compi runs in the background of any Claude Code or Cursor session. Creatures spawn as you work — you'll see notifications and can interact with `/scan`, `/catch`, `/merge` at any time without interrupting your workflow.
+Compi runs in the background of any Claude Code or Cursor session. Compis spawn as you work — you'll see notifications and can interact with `/scan`, `/catch`, `/breed` at any time without interrupting your workflow.
 
 ## Commands
 
 | Command | CLI | What it does |
 |---------|-----|-------------|
-| `/scan` | `compi scan` | Show nearby creatures with traits, catch rates, and energy costs |
-| `/catch [n]` | `compi catch [n]` | Catch creature #N from the current batch |
-| `/merge [a] [b]` | `compi merge [a] [b]` | Sacrifice creature B to upgrade creature A |
-| `/collection` | `compi collection` | Browse your caught creatures and their traits |
+| `/scan` | `compi scan` | Show nearby compis with traits, catch rates, and energy costs |
+| `/catch [n]` | `compi catch [n]` | Catch compi #N from the current batch |
+| `/collection` | `compi collection` | Browse your caught compis and their traits |
+| `/breed [a] [b]` | `compi breed [a] [b]` | Pair two same-species compis to produce a child that inherits their traits |
+| `/archive [id]` | `compi archive [id]` | View your archive, or move a compi into it |
 | `/energy` | `compi energy` | Check your current energy level |
 | `/status` | `compi status` | Player profile, stats, and progress |
 | `/settings` | `compi settings` | Configure notifications and preferences |
+| `/list` | `compi list` | Show all available Compi commands |
 
 ## Contributing
 
 Compi is open source and contributions are welcome! Found a bug, have an idea for a new trait variant, or want to suggest a balance tweak? **[Open an issue](https://github.com/amit221/compi/issues/new)** — that's the best place to start a conversation before sending a PR.
 
-## Stay in the loop
-
-- **Twitter/X:** follow [@compi_game](https://twitter.com/compi_game) for update announcements, new creatures, and release notes
-- **Reddit:** join the community at [r/compi](https://reddit.com/r/compi) to share rare catches, swap strategies, and talk merge combos
-- **GitHub:** [watch the repo](https://github.com/amit221/compi) to get notified on releases
-
 <div align="center">
 
 ---
 
-```
-   ╭─────────────────────────────╮
-   │  gotta catch 'em while you  │
-   │          commit             │
-   ╰─────────────────────────────╯
-```
-
 ### Enjoying Compi? Help it grow.
 
-[![Star on GitHub](https://img.shields.io/github/stars/amit221/compi?style=for-the-badge&logo=github&color=yellow&label=Star)](https://github.com/amit221/compi)
-[![Follow on X](https://img.shields.io/badge/Follow-%40compi__game-black?style=for-the-badge&logo=x)](https://twitter.com/compi_game)
-[![Join Reddit](https://img.shields.io/badge/Join-r%2Fcompi-FF4500?style=for-the-badge&logo=reddit&logoColor=white)](https://reddit.com/r/compi)
+⭐ **[Star the repo](https://github.com/amit221/compi)** so others can find it
+🐦 **[Follow on X](https://x.com/AmitWagner)** for new compis and releases
+💬 **[Join r/compiCli](https://reddit.com/r/compiCli)** to show off rare catches and swap merge combos
 
-**⭐ Star** the repo so others can find it &nbsp;·&nbsp; **🐦 Follow** for new creatures and releases &nbsp;·&nbsp; **💬 Join** the community to show off rare catches
-
-<sub>Built with ❤️ for the terminal. MIT licensed. No telemetry, no background processes, no bullshit.</sub>
+<sub>Built for the terminal. MIT licensed. No telemetry, no background processes, no bullshit.</sub>
 
 </div>
