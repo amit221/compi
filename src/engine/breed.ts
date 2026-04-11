@@ -10,6 +10,7 @@ import {
   BreedPreview,
   BreedResult,
   TraitDefinition,
+  BreedableEntry,
 } from "../types";
 import { loadConfig } from "../config/loader";
 import { getSpeciesById, getTraitDefinition } from "../config/species";
@@ -255,4 +256,45 @@ export function executeBreed(
     parentB,
     inheritedFrom: inheritedFrom as Record<SlotId, "A" | "B">,
   };
+}
+
+/**
+ * List creatures from the collection that have at least one valid breeding partner
+ * (same species, both non-archived, not themselves). Each entry uses a 1-indexed
+ * position matching the creature's raw position in `state.collection`.
+ */
+export function listBreedable(state: GameState): BreedableEntry[] {
+  const entries: BreedableEntry[] = [];
+
+  for (let i = 0; i < state.collection.length; i++) {
+    const creature = state.collection[i];
+    if (creature.archived) continue;
+
+    let partnerCount = 0;
+    for (let j = 0; j < state.collection.length; j++) {
+      if (i === j) continue;
+      const candidate = state.collection[j];
+      if (candidate.archived) continue;
+      if (candidate.speciesId !== creature.speciesId) continue;
+      partnerCount++;
+    }
+
+    if (partnerCount > 0) {
+      entries.push({
+        creatureIndex: i + 1,
+        creature,
+        partnerCount,
+      });
+    }
+  }
+
+  return entries;
+}
+
+// TEMPORARY STUB - Task 3 will replace this
+export function listPartnersFor(
+  _state: GameState,
+  _creatureId: string
+): unknown {
+  throw new Error("listPartnersFor: not yet implemented (stub for Task 3)");
 }
