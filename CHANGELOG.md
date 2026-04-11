@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file. This file is maintained automatically by [release-please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.2.2](https://github.com/amit221/compi/compare/v0.2.1...v0.2.2) (2026-04-11)
+
+
+### Bug Fixes
+
+* bundle MCP servers into scripts/ so plugin installs work ([c798e4c](https://github.com/amit221/compi/commit/c798e4c5c3798e132cc43189a9331d24a2f54f0e))
+* **ci:** remove fragile if-expression from build-bundles workflow ([6ff47ee](https://github.com/amit221/compi/commit/6ff47eee0e7734e7784609639639b2eb94c1c311))
+
 ## [0.2.1](https://github.com/amit221/compi/compare/v0.2.0...v0.2.1) (2026-04-11)
 
 
