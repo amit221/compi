@@ -7,12 +7,46 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+concurrency:
+  group: release-please
+  cancel-in-progress: true
 jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
       - uses: googleapis/release-please-action@v4
+        id: release
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
           target-branch: master
+
+      - name: Checkout release PR branch
+        if: ${{ steps.release.outputs.pr }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJson(steps.release.outputs.pr).headBranchName }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        if: ${{ steps.release.outputs.pr }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Build and commit dist
+        if: ${{ steps.release.outputs.pr }}
+        run: |
+          npm ci
+          npm run build
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f dist/
+          if git diff --cached --quiet; then
+            echo "dist/ unchanged, nothing to commit"
+          else
+            git commit -m "chore(release): build artifacts"
+            git push origin HEAD:${{ fromJson(steps.release.outputs.pr).headBranchName }}
+          fi
