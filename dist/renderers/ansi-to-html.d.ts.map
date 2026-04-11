@@ -1,1 +1,0 @@
-{"version":3,"file":"ansi-to-html.d.ts","sourceRoot":"","sources":["../../src/renderers/ansi-to-html.ts"],"names":[],"mappings":"AAAA;;;;GAIG;AAEH,eAAO,MAAM,WAAW,EAAE,MAAM,CAAC,MAAM,EAAE,MAAM,CAK9C,CAAC;AAEF,wBAAgB,UAAU,CAAC,IAAI,EAAE,MAAM,GAAG,MAAM,CAqC/C;AAED,wBAAgB,YAAY,CAAC,WAAW,EAAE,MAAM,GAAG,MAAM,CAMxD"}

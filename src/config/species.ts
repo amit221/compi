@@ -1,6 +1,22 @@
-import * as fs from "fs";
-import * as path from "path";
+import compiData from "../../config/species/compi.json";
+import flikkData from "../../config/species/flikk.json";
+import glichData from "../../config/species/glich.json";
+import jinxData from "../../config/species/jinx.json";
+import monuData from "../../config/species/monu.json";
+import whiskiData from "../../config/species/whiski.json";
 import { SpeciesDefinition, TraitDefinition, SlotId } from "../types";
+
+// Species files are imported statically so the bundled MCP server doesn't
+// need filesystem access at runtime. When adding a new species JSON file
+// under config/species/, add its import here and append it to SPECIES_DATA.
+const SPECIES_DATA: SpeciesDefinition[] = [
+  compiData,
+  flikkData,
+  glichData,
+  jinxData,
+  monuData,
+  whiskiData,
+] as unknown as SpeciesDefinition[];
 
 let _speciesCache: SpeciesDefinition[] | null = null;
 let _speciesById: Map<string, SpeciesDefinition> = new Map();
@@ -28,15 +44,7 @@ function ensureLoaded(): void {
 }
 
 export function loadSpecies(): SpeciesDefinition[] {
-  const speciesDir = path.resolve(__dirname, "../../config/species");
-  if (!fs.existsSync(speciesDir)) return [];
-  const files = fs.readdirSync(speciesDir).filter((f) => f.endsWith(".json"));
-  const species: SpeciesDefinition[] = [];
-  for (const file of files) {
-    const raw = fs.readFileSync(path.join(speciesDir, file), "utf-8");
-    species.push(JSON.parse(raw) as SpeciesDefinition);
-  }
-  return species;
+  return SPECIES_DATA;
 }
 
 export function getSpeciesById(id: string): SpeciesDefinition | undefined {

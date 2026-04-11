@@ -1,16 +1,8 @@
-import * as fs from "fs";
-import * as path from "path";
+import balanceData from "../../config/balance.json";
 import { BalanceConfig, MilestoneCondition } from "../types";
 
-let cached: BalanceConfig | null = null;
-
 export function loadConfig(): BalanceConfig {
-  if (cached) return cached;
-
-  const configPath = path.resolve(__dirname, "../../config/balance.json");
-  const raw = fs.readFileSync(configPath, "utf-8");
-  cached = JSON.parse(raw) as BalanceConfig;
-  return cached;
+  return balanceData as unknown as BalanceConfig;
 }
 
 export function formatMessage(

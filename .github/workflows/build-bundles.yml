@@ -1,0 +1,42 @@
+name: build-bundles
+on:
+  push:
+    branches:
+      - master
+permissions:
+  contents: write
+concurrency:
+  group: build-bundles
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Skip runs where the head commit is itself our bundle-update commit,
+    # so we don't loop.
+    if: ${{ !contains(github.event.head_commit.message, 'chore(build): update plugin bundles') }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: Commit bundle changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/mcp-server.js scripts/mcp-server-cursor.js
+          if git diff --cached --quiet; then
+            echo "No bundle changes to commit"
+          else
+            git commit -m "chore(build): update plugin bundles"
+            git push origin HEAD:master
+          fi
