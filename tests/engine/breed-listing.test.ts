@@ -1,6 +1,6 @@
 // tests/engine/breed-listing.test.ts — listBreedable & listPartnersFor tests
 
-import { listBreedable, listPartnersFor } from "../../src/engine/breed";
+import { listBreedable, listPartnersFor, buildBreedTable } from "../../src/engine/breed";
 import {
   GameState,
   CollectionCreature,
@@ -207,5 +207,86 @@ describe("listPartnersFor", () => {
       makeCreature("b", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
     ]);
     expect(() => listPartnersFor(state, 1)).toThrow(/archived/i);
+  });
+});
+
+describe("buildBreedTable", () => {
+  it("returns empty species array for empty collection", () => {
+    const state = makeState([]);
+    expect(buildBreedTable(state)).toEqual({ species: [] });
+  });
+
+  it("returns empty species array when no species has 2+ members", () => {
+    const state = makeState([
+      makeCreature("a", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+      makeCreature("b", "flikk", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+    ]);
+    expect(buildBreedTable(state).species).toEqual([]);
+  });
+
+  it("groups creatures by species and only includes species with >= 2 members", () => {
+    const state = makeState([
+      makeCreature("a", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+      makeCreature("b", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+      makeCreature("c", "flikk", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+    ]);
+    const table = buildBreedTable(state);
+    expect(table.species).toHaveLength(1);
+    expect(table.species[0].speciesId).toBe("compi");
+    expect(table.species[0].rows).toHaveLength(2);
+    expect(table.species[0].rows[0].creatureIndex).toBe(1);
+    expect(table.species[0].rows[1].creatureIndex).toBe(2);
+  });
+
+  it("silhouette is the slots of the first non-archived creature of the species", () => {
+    const state = makeState([
+      makeCreature("a", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL], {
+        archived: true,
+      }),
+      makeCreature("b", "compi", ["eye_r01", C_MOUTH, C_BODY, C_TAIL]),
+      makeCreature("c", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+    ]);
+    const table = buildBreedTable(state);
+    expect(table.species).toHaveLength(1);
+    const eyesVariant = table.species[0].silhouette.find(
+      (s) => s.slotId === "eyes"
+    )?.variantId;
+    expect(eyesVariant).toBe("eye_r01");
+  });
+
+  it("excludes archived creatures from rows and the >= 2 count", () => {
+    const state = makeState([
+      makeCreature("a", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+      makeCreature("b", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL], {
+        archived: true,
+      }),
+      makeCreature("c", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+    ]);
+    const table = buildBreedTable(state);
+    expect(table.species).toHaveLength(1);
+    expect(table.species[0].rows).toHaveLength(2);
+    expect(table.species[0].rows.map((r) => r.creature.id)).toEqual(["a", "c"]);
+  });
+
+  it("preserves creatureIndex as the original 1-indexed collection position", () => {
+    const state = makeState([
+      makeCreature("x", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+      makeCreature("y", "flikk", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+      makeCreature("z", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+    ]);
+    const table = buildBreedTable(state);
+    const compi = table.species.find((s) => s.speciesId === "compi");
+    expect(compi?.rows.map((r) => r.creatureIndex)).toEqual([1, 3]);
+  });
+
+  it("species are returned in first-encountered order", () => {
+    const state = makeState([
+      makeCreature("a", "flikk", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+      makeCreature("b", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+      makeCreature("c", "flikk", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+      makeCreature("d", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+    ]);
+    const table = buildBreedTable(state);
+    expect(table.species.map((s) => s.speciesId)).toEqual(["flikk", "compi"]);
   });
 });

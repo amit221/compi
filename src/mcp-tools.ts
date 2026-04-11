@@ -94,32 +94,28 @@ export function runBreedCommand(
   const { indexA, indexB, confirm } = args;
   const collection = engine.getState().collection;
 
-  // List mode: no indexes → show all breedable creatures
+  // List mode: no indexes → show the species-grouped breed table
   if (indexA === undefined && indexB === undefined) {
     return {
-      output: renderer.renderBreedableList(engine.listBreedable()),
+      output: renderer.renderBreedTable(engine.buildBreedTable()),
       mutated: false,
     };
   }
 
-  // Partner mode: only indexA → show that creature and its partners
+  // One-arg mode is no longer supported
   if (indexA !== undefined && indexB === undefined) {
-    return {
-      output: renderer.renderBreedPartners(engine.listBreedPartners(indexA)),
-      mutated: false,
-    };
+    throw new Error(
+      "Pick two creatures to breed. Run /breed to see all breedable creatures, or /breed N M to preview a pair."
+    );
   }
-
-  // Error case: only indexB supplied without indexA
   if (indexA === undefined && indexB !== undefined) {
     throw new Error(
-      "indexA is required. Run /breed to see breedable creatures, or /breed N to pick a first parent."
+      "indexA is required. Run /breed to see all breedable creatures, or /breed N M to preview a pair."
     );
   }
 
-  // Both indexes present: preview or execute
+  // Preview / execute mode
   if (indexA === undefined || indexB === undefined) {
-    // Truly unreachable after the branches above, but keeps TS's narrowing happy.
     throw new Error("Both indexA and indexB are required to preview or confirm a breed.");
   }
   if (indexA < 1 || indexA > collection.length) {

@@ -1,9 +1,9 @@
-import { GameState, Tick, TickResult, ScanResult, ScanEntry, CatchResult, BreedPreview, BreedResult, ArchiveResult, StatusResult, Notification, BreedableEntry, BreedPartnersView } from "../types";
+import { GameState, Tick, TickResult, ScanResult, ScanEntry, CatchResult, BreedPreview, BreedResult, ArchiveResult, StatusResult, Notification, BreedTable } from "../types";
 import { processNewTick } from "./ticks";
 import { spawnBatch, cleanupBatch } from "./batch";
 import { attemptCatch, calculateCatchRate, calculateEnergyCost } from "./catch";
 import { processEnergyGain } from "./energy";
-import { previewBreed, executeBreed, listBreedable, listPartnersFor } from "./breed";
+import { previewBreed, executeBreed, buildBreedTable } from "./breed";
 import { archiveCreature, releaseCreature, isCollectionFull } from "./archive";
 import { SPAWN_INTERVAL_MS } from "../config/constants";
 
@@ -69,12 +69,8 @@ export class GameEngine {
     return executeBreed(this.state, parentAId, parentBId, rng);
   }
 
-  listBreedable(): BreedableEntry[] {
-    return listBreedable(this.state);
-  }
-
-  listBreedPartners(creatureIndex: number): BreedPartnersView {
-    return listPartnersFor(this.state, creatureIndex);
+  buildBreedTable(): BreedTable {
+    return buildBreedTable(this.state);
   }
 
   archive(creatureId: string): ArchiveResult {

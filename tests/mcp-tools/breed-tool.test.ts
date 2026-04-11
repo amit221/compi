@@ -75,10 +75,10 @@ function makeEngine(collection: CollectionCreature[], energy = 30) {
   return new GameEngine(makeState(collection, energy));
 }
 
-describe("runBreedCommand — list mode", () => {
+describe("runBreedCommand — list mode (table)", () => {
   const renderer = new SimpleTextRenderer();
 
-  it("returns the breedable list when no indexes are supplied", () => {
+  it("renders the breed table when no indexes are supplied", () => {
     const engine = makeEngine([
       makeCreature("a", "compi", "Bolt", V),
       makeCreature("b", "compi", "Spark", V),
@@ -86,7 +86,8 @@ describe("runBreedCommand — list mode", () => {
     const result = runBreedCommand(engine, renderer, {});
     expect(result.mutated).toBe(false);
     const out = stripAnsi(result.output);
-    expect(out).toMatch(/Breedable creatures/);
+    expect(out).toMatch(/BREED/);
+    expect(out).toMatch(/compi/);
     expect(out).toMatch(/Bolt/);
     expect(out).toMatch(/Spark/);
   });
@@ -99,27 +100,26 @@ describe("runBreedCommand — list mode", () => {
   });
 });
 
-describe("runBreedCommand — partner mode", () => {
+describe("runBreedCommand — one-arg error", () => {
   const renderer = new SimpleTextRenderer();
 
-  it("returns the partners view for indexA only", () => {
+  it("throws a helpful error when only indexA is supplied", () => {
     const engine = makeEngine([
       makeCreature("a", "compi", "Bolt", V),
       makeCreature("b", "compi", "Spark", V),
-      makeCreature("c", "compi", "Zap", V),
     ]);
-    const result = runBreedCommand(engine, renderer, { indexA: 1 });
-    expect(result.mutated).toBe(false);
-    const out = stripAnsi(result.output);
-    expect(out).toMatch(/#1 Bolt/);
-    expect(out).toMatch(/Spark/);
-    expect(out).toMatch(/Zap/);
+    expect(() => runBreedCommand(engine, renderer, { indexA: 1 })).toThrow(
+      /Pick two creatures/i
+    );
   });
 
-  it("throws when indexA is out of range in partner mode", () => {
-    const engine = makeEngine([makeCreature("a", "compi", "Bolt", V)]);
-    expect(() => runBreedCommand(engine, renderer, { indexA: 99 })).toThrow(
-      /index/i
+  it("throws a helpful error when only indexB is supplied", () => {
+    const engine = makeEngine([
+      makeCreature("a", "compi", "Bolt", V),
+      makeCreature("b", "compi", "Spark", V),
+    ]);
+    expect(() => runBreedCommand(engine, renderer, { indexB: 2 })).toThrow(
+      /indexA is required/i
     );
   });
 });
@@ -186,23 +186,7 @@ describe("runBreedCommand — execute mode", () => {
 
     expect(result.mutated).toBe(true);
     expect(stripAnsi(result.output)).toMatch(/BREED SUCCESS/);
-    // Two parents consumed, one child born
     expect(engine.getState().collection.length).toBe(beforeCount - 1);
-    // Energy was spent
     expect(engine.getState().energy).toBeLessThan(beforeEnergy);
-  });
-});
-
-describe("runBreedCommand — input validation", () => {
-  const renderer = new SimpleTextRenderer();
-
-  it("throws a helpful error when only indexB is supplied (indexA missing)", () => {
-    const engine = makeEngine([
-      makeCreature("a", "compi", "Bolt", V),
-      makeCreature("b", "compi", "Spark", V),
-    ]);
-    expect(() =>
-      runBreedCommand(engine, renderer, { indexB: 2 })
-    ).toThrow(/indexA is required/);
   });
 });

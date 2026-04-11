@@ -9,8 +9,9 @@ import {
   CollectionCreature,
   CreatureSlot,
   SlotId,
-  BreedableEntry,
-  BreedPartnersView,
+  BreedTable,
+  BreedTableSpecies,
+  BreedTableRow,
 } from "../types";
 import { MAX_ENERGY } from "../engine/energy";
 import { getVariantById } from "../config/traits";
@@ -127,6 +128,50 @@ function renderCreatureLines(slots: CreatureSlot[], speciesId?: string): string[
   const tailLine = "      " + centerLine(tailArt, `${tailC}${tailArt}${RESET}`);
 
   return [eyesLine, mouthLine, bodyLine, tailLine];
+}
+
+/**
+ * Render a creature's slots as art lines overridden to a single neutral grey,
+ * regardless of per-slot rarity. Used as a species "silhouette" next to the
+ * breed table. The slot art itself still comes from the species template.
+ */
+function renderGreySilhouette(slots: CreatureSlot[], speciesId: string): string[] {
+  const slotArt: Record<string, string> = {};
+  for (const s of slots) {
+    const trait = getTraitDefinition(speciesId, s.variantId);
+    slotArt[s.slotId] = trait?.art ?? "???";
+  }
+
+  const species = getSpeciesById(speciesId);
+  const GREY = COLOR_ANSI.grey;
+
+  if (species?.art) {
+    return species.art.map((line) => {
+      let result = line;
+      const replacements: [string, string][] = [
+        ["EE", slotArt["eyes"] ?? ""],
+        ["MM", slotArt["mouth"] ?? ""],
+        ["BB", slotArt["body"] ?? ""],
+        ["TT", slotArt["tail"] ?? ""],
+      ];
+      for (const [placeholder, art] of replacements) {
+        result = result.replace(placeholder, art);
+      }
+      return GREY + result + RESET;
+    });
+  }
+
+  // Fallback: same shape as the non-species path in renderCreatureLines
+  const eyesArt = slotArt["eyes"] ?? "o.o";
+  const mouthArt = slotArt["mouth"] ?? " - ";
+  const bodyArt = slotArt["body"] ?? " ░░ ";
+  const tailArt = slotArt["tail"] ?? "~";
+  return [
+    `      ${GREY}${eyesArt}${RESET}`,
+    `     ${GREY}(${mouthArt})${RESET}`,
+    `    ${GREY}╱${bodyArt}╲${RESET}`,
+    `      ${GREY}${tailArt}${RESET}`,
+  ];
 }
 
 // --- Progress bars ---
@@ -309,7 +354,13 @@ export class SimpleTextRenderer implements Renderer {
       const slotLabel = si.slotId.padEnd(5);
       const pctA = `${Math.round(si.parentAChance * 100)}%`;
       const pctB = `${Math.round(si.parentBChance * 100)}%`;
-      lines.push(`    ${WHITE}${slotLabel}${RESET}  ${DIM}A:${RESET} ${pctA}  ${DIM}B:${RESET} ${pctB}`);
+      const traitScoreA = Math.round(calculateTraitRarityScore(parentA.speciesId, si.slotId, si.parentAVariant.id));
+      const traitScoreB = Math.round(calculateTraitRarityScore(parentB.speciesId, si.slotId, si.parentBVariant.id));
+      const colorA = calculateRarityColor(traitScoreA);
+      const colorB = calculateRarityColor(traitScoreB);
+      lines.push(
+        `    ${WHITE}${slotLabel}${RESET}  ${DIM}A:${RESET} ${colorA}${si.parentAVariant.name} [${traitScoreA}]${RESET} ${pctA}  ${DIM}B:${RESET} ${colorB}${si.parentBVariant.name} [${traitScoreB}]${RESET} ${pctB}`
+      );
     }
     lines.push("");
     lines.push(`  ${DIM}Energy cost: ${energyCost}${RESET}${ENERGY_ICON}`);
@@ -345,32 +396,6 @@ export class SimpleTextRenderer implements Renderer {
     lines.push("");
     lines.push(divider());
 
-    return lines.join("\n");
-  }
-
-  renderBreedableList(entries: BreedableEntry[]): string {
-    const lines: string[] = [];
-
-    if (entries.length === 0) {
-      return "  No breedable pairs yet — you need 2+ creatures of the same species.\n  Use /scan and /catch to find more.";
-    }
-
-    lines.push(`  ${DIM}Breedable creatures (${entries.length})${RESET}`);
-    lines.push(`  ${DIM}Run /breed N to see partners for creature #N${RESET}`);
-    lines.push("");
-
-    for (const entry of entries) {
-      const creature = entry.creature;
-      const score = calculateCreatureScore(creature.speciesId, creature.slots);
-      const num = `${entry.creatureIndex}.`;
-      const partnerWord = entry.partnerCount === 1 ? "partner" : "partners";
-      lines.push(
-        `  ${BOLD}${num}${RESET} ${BOLD}${creature.name}${RESET}  ${DIM}${creature.speciesId}${RESET}  Lv ${creature.generation}  ⭐ ${score}  ${DIM}(${entry.partnerCount} ${partnerWord})${RESET}`
-      );
-    }
-
-    lines.push("");
-    lines.push(divider());
     return lines.join("\n");
   }
 
@@ -454,35 +479,85 @@ export class SimpleTextRenderer implements Renderer {
     return notification.message;
   }
 
-  renderBreedPartners(view: BreedPartnersView): string {
+  renderBreedTable(table: BreedTable): string {
+    if (table.species.length === 0) {
+      return "  No breedable pairs yet — you need 2+ creatures of the same species.\n  Use /scan and /catch to find more.";
+    }
+
     const lines: string[] = [];
-    const { creatureIndex, creature, partners } = view;
-    const score = calculateCreatureScore(creature.speciesId, creature.slots);
+    const totalCreatures = table.species.reduce((n, s) => n + s.rows.length, 0);
 
-    lines.push(`  ${DIM}Selected:${RESET} ${BOLD}#${creatureIndex} ${creature.name}${RESET}  ${DIM}${creature.speciesId}${RESET}  Lv ${creature.generation}  ⭐ ${score}`);
-    for (const line of renderCreatureSideBySide(creature.slots, creature.speciesId)) {
-      lines.push(line);
-    }
+    lines.push(`  ${DIM}${"═".repeat(74)}${RESET}`);
+    lines.push(`  ${BOLD}BREED${RESET}   ${DIM}${totalCreatures} creatures, ${table.species.length} species${RESET}`);
+    lines.push(`  ${DIM}${"═".repeat(74)}${RESET}`);
     lines.push("");
 
-    if (partners.length === 0) {
-      lines.push(`  ${DIM}${creature.name} has no same-species partners.${RESET}`);
-      lines.push(`  ${DIM}Run /breed to see all breedable creatures.${RESET}`);
-      lines.push(divider());
-      return lines.join("\n");
+    for (const s of table.species) {
+      this.appendBreedSpeciesSection(lines, s);
+      lines.push("");
     }
 
-    lines.push(`  ${BOLD}Compatible partners (${partners.length}):${RESET}`);
-    for (const p of partners) {
-      const pScore = calculateCreatureScore(p.creature.speciesId, p.creature.slots);
-      const num = `${p.partnerIndex}.`;
-      lines.push(
-        `    ${BOLD}${num}${RESET} ${BOLD}${p.creature.name}${RESET}  Lv ${p.creature.generation}  ⭐ ${pScore}  ${DIM}(cost ${p.energyCost})${RESET}${ENERGY_ICON}`
-      );
-    }
-    lines.push("");
-    lines.push(`  ${DIM}Run /breed ${creatureIndex} N to preview breeding with partner #N${RESET}`);
-    lines.push(divider());
+    lines.push(`  ${DIM}${"─".repeat(74)}${RESET}`);
+    lines.push(`  ${DIM}Run /breed N M to preview a pair  ·  add --confirm to execute${RESET}`);
+    lines.push(`  ${DIM}${"─".repeat(74)}${RESET}`);
+
     return lines.join("\n");
+  }
+
+  private appendBreedSpeciesSection(lines: string[], species: BreedTableSpecies): void {
+    lines.push(`  ${BOLD}${species.speciesId}${RESET}  ${DIM}${species.rows.length} creatures${RESET}`);
+    lines.push(`  ${DIM}${"─".repeat(74)}${RESET}`);
+
+    const header = `  ${DIM}  #    NAME       LV    EYES             MOUTH            BODY             TAIL${RESET}`;
+    const rule = `  ${DIM}  ───  ─────────  ──    ──────────────   ──────────────   ──────────────   ──────────────${RESET}`;
+
+    const silhouette = renderGreySilhouette(species.silhouette, species.speciesId);
+    const rowTexts: string[] = [header, rule];
+    for (const row of species.rows) {
+      rowTexts.push(this.breedRowLine(row, species.speciesId));
+    }
+
+    const total = Math.max(silhouette.length, rowTexts.length);
+    for (let i = 0; i < total; i++) {
+      const sil = silhouette[i] ?? "";
+      const txt = rowTexts[i] ?? "";
+      lines.push(this.padSilhouette(sil) + " " + txt);
+    }
+  }
+
+  private padSilhouette(silhouetteLine: string): string {
+    const visible = silhouetteLine.replace(/\x1b\[[0-9;]*m/g, "");
+    const target = 14;
+    const pad = Math.max(0, target - stringWidth(visible));
+    return "  " + silhouetteLine + " ".repeat(pad);
+  }
+
+  private breedRowLine(row: BreedTableRow, speciesId: string): string {
+    const { creatureIndex, creature } = row;
+    const num = String(creatureIndex).padStart(3);
+    const nameCell = creature.name.padEnd(9);
+    const lv = String(creature.generation).padStart(2);
+
+    const order: SlotId[] = ["eyes", "mouth", "body", "tail"];
+    const cells: string[] = [];
+    for (const slotId of order) {
+      const slot = creature.slots.find((s) => s.slotId === slotId);
+      if (!slot) {
+        cells.push(`${DIM}—${RESET}`.padEnd(16));
+        continue;
+      }
+      const variant = getTraitDefinition(speciesId, slot.variantId);
+      const traitName = variant?.name ?? slot.variantId;
+      const score = Math.round(
+        calculateTraitRarityScore(speciesId, slot.slotId, slot.variantId)
+      );
+      const color = calculateRarityColor(score);
+      const label = `${traitName} [${score}]`;
+      const visibleLen = stringWidth(label);
+      const pad = Math.max(0, 14 - visibleLen);
+      cells.push(`${color}${label}${RESET}` + " ".repeat(pad));
+    }
+
+    return `  ${num}  ${BOLD}${nameCell}${RESET}  ${lv}   ` + cells.join("   ");
   }
 }

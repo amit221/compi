@@ -83,11 +83,12 @@ console.log(renderer.renderCollection(engine.getState().collection));
 section("/breed  (list mode, no args)");
 console.log(runBreedCommand(engine, renderer, {}).output);
 
-section("/breed 1  (partner mode: show partners for #1 Bolt)");
-console.log(runBreedCommand(engine, renderer, { indexA: 1 }).output);
-
-section("/breed 4  (partner mode: #4 Ember is a flikk, has no compi partners)");
-console.log(runBreedCommand(engine, renderer, { indexA: 4 }).output);
+section("/breed 1  (one-arg error: partner mode is no longer supported)");
+try {
+  console.log(runBreedCommand(engine, renderer, { indexA: 1 }).output);
+} catch (e) {
+  console.log("  ERROR: " + (e as Error).message);
+}
 
 section("/breed 1 2  (preview mode: Bolt + Spark)");
 console.log(runBreedCommand(engine, renderer, { indexA: 1, indexB: 2 }).output);
@@ -99,9 +100,9 @@ try {
   console.log("  ERROR: " + (e as Error).message);
 }
 
-section("/breed 99  (out-of-range error)");
+section("/breed 99 2  (out-of-range error)");
 try {
-  console.log(runBreedCommand(engine, renderer, { indexA: 99 }).output);
+  console.log(runBreedCommand(engine, renderer, { indexA: 99, indexB: 2 }).output);
 } catch (e) {
   console.log("  ERROR: " + (e as Error).message);
 }

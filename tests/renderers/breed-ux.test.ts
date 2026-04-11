@@ -1,4 +1,4 @@
-// tests/renderers/breed-ux.test.ts — renderer tests for breed UX redesign
+// tests/renderers/breed-ux.test.ts — renderer tests for breed UX polish
 
 import { SimpleTextRenderer } from "../../src/renderers/simple-text";
 import {
@@ -6,11 +6,9 @@ import {
   CreatureSlot,
   SlotId,
   SLOT_IDS,
-  BreedableEntry,
-  BreedPartnersView,
+  BreedTable,
 } from "../../src/types";
 
-// Strip ANSI codes to make string assertions readable.
 function stripAnsi(s: string): string {
   return s.replace(/\x1b\[[0-9;]*m/g, "");
 }
@@ -56,70 +54,111 @@ describe("renderCollection numbering", () => {
   });
 });
 
-describe("renderBreedableList", () => {
-  it("lists each breedable creature with its index and partner count", () => {
+describe("renderBreedTable", () => {
+  it("returns an empty-state message when no species has 2+ members", () => {
     const renderer = new SimpleTextRenderer();
-    const entries: BreedableEntry[] = [
-      {
-        creatureIndex: 1,
-        creature: makeCreature("a", "compi", "Bolt", V),
-        partnerCount: 2,
-      },
-      {
-        creatureIndex: 3,
-        creature: makeCreature("c", "compi", "Spark", V),
-        partnerCount: 2,
-      },
-    ];
-    const out = stripAnsi(renderer.renderBreedableList(entries));
-    expect(out).toMatch(/\b1\.\s+Bolt\b/);
-    expect(out).toMatch(/2 partners/);
-    expect(out).toMatch(/\b3\.\s+Spark\b/);
-  });
-
-  it("shows an empty-state message when nothing is breedable", () => {
-    const renderer = new SimpleTextRenderer();
-    const out = stripAnsi(renderer.renderBreedableList([]));
+    const out = stripAnsi(renderer.renderBreedTable({ species: [] }));
     expect(out).toMatch(/No breedable pairs/i);
   });
-});
 
-describe("renderBreedPartners", () => {
-  it("shows the selected creature and its partners with index and cost", () => {
+  it("prints a species section with bold header and column labels", () => {
     const renderer = new SimpleTextRenderer();
-    const view: BreedPartnersView = {
-      creatureIndex: 3,
-      creature: makeCreature("a", "compi", "Bolt", V),
-      partners: [
+    const table: BreedTable = {
+      species: [
         {
-          partnerIndex: 7,
-          creature: makeCreature("b", "compi", "Spark", V),
-          energyCost: 4,
-        },
-        {
-          partnerIndex: 12,
-          creature: makeCreature("c", "compi", "Zap", V),
-          energyCost: 5,
+          speciesId: "compi",
+          silhouette: makeCreature("sil", "compi", "_", V).slots,
+          rows: [
+            { creatureIndex: 1, creature: makeCreature("a", "compi", "Bolt", V) },
+            { creatureIndex: 2, creature: makeCreature("b", "compi", "Spark", V) },
+          ],
         },
       ],
     };
-    const out = stripAnsi(renderer.renderBreedPartners(view));
-    expect(out).toMatch(/#3/);
-    expect(out).toMatch(/Bolt/);
-    expect(out).toMatch(/\b7\.\s+Spark\b/);
-    expect(out).toMatch(/cost 4/);
-    expect(out).toMatch(/\b12\.\s+Zap\b/);
-    expect(out).toMatch(/cost 5/);
+    const out = stripAnsi(renderer.renderBreedTable(table));
+    expect(out).toMatch(/compi/);
+    expect(out).toMatch(/NAME/);
+    expect(out).toMatch(/EYES/);
+    expect(out).toMatch(/MOUTH/);
+    expect(out).toMatch(/BODY/);
+    expect(out).toMatch(/TAIL/);
   });
 
-  it("shows an empty-state message when no partners", () => {
+  it("includes each creature's number, name, level, and trait names", () => {
     const renderer = new SimpleTextRenderer();
-    const view: BreedPartnersView = {
-      creatureIndex: 1,
-      creature: makeCreature("a", "compi", "Lonely", V),
-      partners: [],
+    const table: BreedTable = {
+      species: [
+        {
+          speciesId: "compi",
+          silhouette: makeCreature("sil", "compi", "_", V).slots,
+          rows: [
+            {
+              creatureIndex: 3,
+              creature: {
+                ...makeCreature("a", "compi", "Bolt", V),
+                generation: 2,
+              },
+            },
+            {
+              creatureIndex: 7,
+              creature: {
+                ...makeCreature("b", "compi", "Spark", V),
+                generation: 1,
+              },
+            },
+          ],
+        },
+      ],
     };
-    const out = stripAnsi(renderer.renderBreedPartners(view));
-    expect(out).toMatch(/no same-species partners/i);
+    const out = stripAnsi(renderer.renderBreedTable(table));
+    expect(out).toMatch(/\b3\b.*Bolt/);
+    expect(out).toMatch(/\b7\b.*Spark/);
+    expect(out).toMatch(/Pebble/);
+  });
+
+  it("shows a trait rarity score in brackets next to each trait name", () => {
+    const renderer = new SimpleTextRenderer();
+    const table: BreedTable = {
+      species: [
+        {
+          speciesId: "compi",
+          silhouette: makeCreature("sil", "compi", "_", V).slots,
+          rows: [
+            { creatureIndex: 1, creature: makeCreature("a", "compi", "Bolt", V) },
+          ],
+        },
+      ],
+    };
+    const out = stripAnsi(renderer.renderBreedTable(table));
+    expect(out).toMatch(/\[\d+\]/);
+  });
+
+  it("prints a section per species", () => {
+    const renderer = new SimpleTextRenderer();
+    const table: BreedTable = {
+      species: [
+        {
+          speciesId: "compi",
+          silhouette: makeCreature("sil", "compi", "_", V).slots,
+          rows: [
+            { creatureIndex: 1, creature: makeCreature("a", "compi", "Bolt", V) },
+            { creatureIndex: 2, creature: makeCreature("b", "compi", "Spark", V) },
+          ],
+        },
+        {
+          speciesId: "flikk",
+          silhouette: makeCreature("sil2", "flikk", "_", V).slots,
+          rows: [
+            { creatureIndex: 3, creature: makeCreature("c", "flikk", "Ember", V) },
+            { creatureIndex: 4, creature: makeCreature("d", "flikk", "Blaze", V) },
+          ],
+        },
+      ],
+    };
+    const out = stripAnsi(renderer.renderBreedTable(table));
+    expect(out).toMatch(/compi/);
+    expect(out).toMatch(/flikk/);
+    expect(out).toMatch(/Bolt/);
+    expect(out).toMatch(/Ember/);
   });
 });
