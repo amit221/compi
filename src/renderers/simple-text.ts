@@ -10,7 +10,6 @@ import {
   CreatureSlot,
   SlotId,
   BreedableEntry,
-  BreedablePartner,
   BreedPartnersView,
 } from "../types";
 import { MAX_ENERGY } from "../engine/energy";
@@ -315,7 +314,7 @@ export class SimpleTextRenderer implements Renderer {
     lines.push("");
     lines.push(`  ${DIM}Energy cost: ${energyCost}${RESET}${ENERGY_ICON}`);
     lines.push(divider());
-    lines.push(`  ${DIM}/breed confirm to proceed${RESET}`);
+    lines.push(`  ${DIM}Add --confirm to the same /breed command to proceed${RESET}`);
 
     return lines.join("\n");
   }
