@@ -214,6 +214,8 @@ describe("renderBreedPreview", () => {
   const preview: BreedPreview = {
     parentA,
     parentB,
+    parentAIndex: 1,
+    parentBIndex: 2,
     slotInheritance: [
       { slotId: "eyes", parentAVariant: { id: "eye_c01", name: "Dot Eyes", art: "o.o", spawnRate: 0.10 }, parentBVariant: { id: "eye_c01", name: "Dot Eyes", art: "o.o", spawnRate: 0.10 }, parentAChance: 0.50, parentBChance: 0.50 },
       { slotId: "mouth", parentAVariant: { id: "mth_c01", name: "Flat Line", art: " - ", spawnRate: 0.10 }, parentBVariant: { id: "mth_c01", name: "Flat Line", art: " - ", spawnRate: 0.10 }, parentAChance: 0.50, parentBChance: 0.50 },

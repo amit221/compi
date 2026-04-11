@@ -182,8 +182,10 @@ export function previewBreed(
   const speciesId = parentA.speciesId;
   const slotInheritance = buildSlotInheritance(speciesId, parentA, parentB);
   const energyCost = calculateBreedCost(speciesId, parentA, parentB);
+  const parentAIndex = state.collection.indexOf(parentA) + 1;
+  const parentBIndex = state.collection.indexOf(parentB) + 1;
 
-  return { parentA, parentB, slotInheritance, energyCost };
+  return { parentA, parentB, parentAIndex, parentBIndex, slotInheritance, energyCost };
 }
 
 /**

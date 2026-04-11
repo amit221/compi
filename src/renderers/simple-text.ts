@@ -283,22 +283,22 @@ export class SimpleTextRenderer implements Renderer {
   }
 
   renderBreedPreview(preview: BreedPreview): string {
-    const { parentA, parentB, slotInheritance, energyCost } = preview;
+    const { parentA, parentB, parentAIndex, parentBIndex, slotInheritance, energyCost } = preview;
     const lines: string[] = [];
 
-    lines.push(`  Breed ${BOLD}${parentA.name}${RESET} ${DIM}(Lv ${parentA.generation})${RESET} + ${BOLD}${parentB.name}${RESET} ${DIM}(Lv ${parentB.generation})${RESET}?`);
+    lines.push(`  Breed ${BOLD}#${parentAIndex} ${parentA.name}${RESET} ${DIM}(Lv ${parentA.generation})${RESET} + ${BOLD}#${parentBIndex} ${parentB.name}${RESET} ${DIM}(Lv ${parentB.generation})${RESET}?`);
     lines.push(`  ${DIM}Both parents will be consumed.${RESET}`);
     lines.push("");
 
     const scoreA = calculateCreatureScore(parentA.speciesId, parentA.slots);
-    lines.push(`  ${BOLD}Parent A: ${parentA.name}${RESET}  ⭐ ${scoreA}`);
+    lines.push(`  ${BOLD}Parent A: #${parentAIndex} ${parentA.name}${RESET}  ⭐ ${scoreA}`);
     for (const line of renderCreatureSideBySide(parentA.slots, parentA.speciesId)) {
       lines.push(line);
     }
     lines.push("");
 
     const scoreB = calculateCreatureScore(parentB.speciesId, parentB.slots);
-    lines.push(`  ${BOLD}Parent B: ${parentB.name}${RESET}  ⭐ ${scoreB}`);
+    lines.push(`  ${BOLD}Parent B: #${parentBIndex} ${parentB.name}${RESET}  ⭐ ${scoreB}`);
     for (const line of renderCreatureSideBySide(parentB.slots, parentB.speciesId)) {
       lines.push(line);
     }
@@ -314,7 +314,7 @@ export class SimpleTextRenderer implements Renderer {
     lines.push("");
     lines.push(`  ${DIM}Energy cost: ${energyCost}${RESET}${ENERGY_ICON}`);
     lines.push(divider());
-    lines.push(`  ${DIM}Add --confirm to the same /breed command to proceed${RESET}`);
+    lines.push(`  ${DIM}Run /breed ${parentAIndex} ${parentBIndex} --confirm to proceed${RESET}`);
 
     return lines.join("\n");
   }

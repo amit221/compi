@@ -155,6 +155,10 @@ export interface SlotInheritance {
 export interface BreedPreview {
   parentA: CollectionCreature;
   parentB: CollectionCreature;
+  /** 1-indexed position of parentA in state.collection at preview time */
+  parentAIndex: number;
+  /** 1-indexed position of parentB in state.collection at preview time */
+  parentBIndex: number;
   slotInheritance: SlotInheritance[];
   energyCost: number;
 }
