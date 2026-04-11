@@ -285,4 +285,6 @@ export interface Renderer {
   renderEnergy(energy: number, maxEnergy: number): string;
   renderStatus(result: StatusResult): string;
   renderNotification(notification: Notification): string;
+  renderBreedableList(entries: BreedableEntry[]): string;
+  renderBreedPartners(view: BreedPartnersView): string;
 }

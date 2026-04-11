@@ -9,6 +9,9 @@ import {
   CollectionCreature,
   CreatureSlot,
   SlotId,
+  BreedableEntry,
+  BreedablePartner,
+  BreedPartnersView,
 } from "../types";
 import { MAX_ENERGY } from "../engine/energy";
 import { getVariantById } from "../config/traits";
@@ -346,6 +349,32 @@ export class SimpleTextRenderer implements Renderer {
     return lines.join("\n");
   }
 
+  renderBreedableList(entries: BreedableEntry[]): string {
+    const lines: string[] = [];
+
+    if (entries.length === 0) {
+      return "  No breedable pairs yet — you need 2+ creatures of the same species.\n  Use /scan and /catch to find more.";
+    }
+
+    lines.push(`  ${DIM}Breedable creatures (${entries.length})${RESET}`);
+    lines.push(`  ${DIM}Run /breed N to see partners for creature #N${RESET}`);
+    lines.push("");
+
+    for (const entry of entries) {
+      const creature = entry.creature;
+      const score = calculateCreatureScore(creature.speciesId, creature.slots);
+      const num = `${entry.creatureIndex}.`;
+      const partnerWord = entry.partnerCount === 1 ? "partner" : "partners";
+      lines.push(
+        `  ${BOLD}${num}${RESET} ${BOLD}${creature.name}${RESET}  ${DIM}${creature.speciesId}${RESET}  Lv ${creature.generation}  ⭐ ${score}  ${DIM}(${entry.partnerCount} ${partnerWord})${RESET}`
+      );
+    }
+
+    lines.push("");
+    lines.push(divider());
+    return lines.join("\n");
+  }
+
   renderCollection(collection: CollectionCreature[]): string {
     const lines: string[] = [];
 
@@ -424,5 +453,9 @@ export class SimpleTextRenderer implements Renderer {
 
   renderNotification(notification: Notification): string {
     return notification.message;
+  }
+
+  renderBreedPartners(_view: BreedPartnersView): string {
+    return "  (not yet implemented)";
   }
 }

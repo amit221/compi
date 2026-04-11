@@ -55,3 +55,31 @@ describe("renderCollection numbering", () => {
     expect(out).toMatch(/\b2\.\s+Ember\b/);
   });
 });
+
+describe("renderBreedableList", () => {
+  it("lists each breedable creature with its index and partner count", () => {
+    const renderer = new SimpleTextRenderer();
+    const entries: BreedableEntry[] = [
+      {
+        creatureIndex: 1,
+        creature: makeCreature("a", "compi", "Bolt", V),
+        partnerCount: 2,
+      },
+      {
+        creatureIndex: 3,
+        creature: makeCreature("c", "compi", "Spark", V),
+        partnerCount: 2,
+      },
+    ];
+    const out = stripAnsi(renderer.renderBreedableList(entries));
+    expect(out).toMatch(/\b1\.\s+Bolt\b/);
+    expect(out).toMatch(/2 partners/);
+    expect(out).toMatch(/\b3\.\s+Spark\b/);
+  });
+
+  it("shows an empty-state message when nothing is breedable", () => {
+    const renderer = new SimpleTextRenderer();
+    const out = stripAnsi(renderer.renderBreedableList([]));
+    expect(out).toMatch(/No breedable pairs/i);
+  });
+});
