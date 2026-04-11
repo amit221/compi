@@ -7,7 +7,7 @@
 Your coding activity spawns unique ASCII creatures with randomized traits across 6 rarity tiers.
 Scan to discover them. Catch the ones you want. Breed pairs to pass rare traits to the next generation. **Hundreds of millions of possible combinations.**
 
-Works with **Claude Code** | **Cursor** | **Codex** | and more coming soon
+Works with **Claude Code** | **Cursor** | and more coming soon
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org)
@@ -116,6 +116,8 @@ Compi runs in the background of any Claude Code or Cursor session. Compis spawn 
 | `/status` | `compi status` | Player profile, stats, and progress |
 | `/settings` | `compi settings` | Configure notifications and preferences |
 | `/list` | `compi list` | Show all available Compi commands |
+
+> **Tip — let your agent do the work.** Slash commands are great for one-off actions, but for anything repetitive or finicky you can just ask your agent in plain English. For example: *"catch compi 1 and 2, and don't stop until you succeed"* — your agent will keep retrying on its own, handle failures, and report back when it's done. Chain commands, automate grinds, or script whole play sessions without leaving chat.
 
 ## Contributing
 
