@@ -73,7 +73,7 @@ describe("buildAppHtml", () => {
     const result = buildAppHtml("hello");
     expect(result).toContain("<!DOCTYPE html>");
     expect(result).toContain("<pre>hello</pre>");
-    expect(result).toContain("background:#1a1a2e");
+    expect(result).toContain("background:#000");
   });
 
   it("converts ANSI codes inside the HTML wrapper", () => {

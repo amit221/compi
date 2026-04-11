@@ -90,9 +90,7 @@ Compi isn't on the official Cursor Marketplace yet, but Cursor's `/add-plugin` c
 
 Then **restart Cursor** and verify it shows up under **Settings → Plugins**.
 
-On Cursor, Compi runs as an HTTP MCP server on `localhost:3456` (auto-started by the `sessionStart` hook) and renders output as an HTML panel via MCP Apps. The slash commands (`/scan`, `/catch`, `/collection`, …) work the same as in Claude Code.
-
-To change the port, set `COMPI_PORT` in your environment before Cursor launches and update the `url` in `.cursor-plugin/plugin.json` to match.
+On Cursor, Compi runs as a stdio MCP server that Cursor spawns on demand and renders output as an HTML panel via MCP Apps. The slash commands (`/scan`, `/catch`, `/collection`, …) work the same as in Claude Code.
 
 ## Playing
 

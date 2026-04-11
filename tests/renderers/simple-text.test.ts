@@ -370,69 +370,26 @@ describe("renderNotification", () => {
 });
 
 // --- Color display ---
+//
+// The renderer used to color creature art and trait names based on the slot's
+// `color` field. That was replaced by rarity-based coloring (see simple-text.ts
+// `renderCreatureLines` / `renderCreatureSideBySide`, which call
+// `calculateRarityColor`). The slot `color` field is no longer consulted by
+// the renderer, so the old "per-slot color display" tests were removed.
 
-describe("per-slot color display", () => {
-  test("renderScan uses cyan ANSI code for cyan-slotted creature", () => {
+describe("rarity-based color display", () => {
+  test("renderScan emits ANSI color codes for trait rarity", () => {
     const result: ScanResult = {
       energy: 6,
       batch: null,
       nextBatchInMs: 900000,
       nearby: [
-        { index: 0, creature: makeNearby("c1", "Sparks", "cyan"), catchRate: 0.55, energyCost: 3 },
+        { index: 0, creature: makeNearby("c1", "Sparks"), catchRate: 0.55, energyCost: 3 },
       ],
     };
     const out = renderer.renderScan(result);
-    expect(out).toContain("\x1b[36m"); // cyan ANSI code
-  });
-
-  test("renderScan does not show [color] tag", () => {
-    const result: ScanResult = {
-      energy: 6,
-      batch: null,
-      nextBatchInMs: 900000,
-      nearby: [
-        { index: 0, creature: makeNearby("c1", "Sparks", "cyan"), catchRate: 0.55, energyCost: 3 },
-      ],
-    };
-    const out = renderer.renderScan(result);
-    expect(out).not.toContain("[cyan]");
-  });
-
-  test("renderCollection uses magenta ANSI code for magenta-slotted creature", () => {
-    const collection = [makeCollection("c1", "Sparks", 4, "magenta")];
-    const out = renderer.renderCollection(collection);
-    expect(out).toContain("\x1b[35m"); // magenta ANSI code
-    expect(out).not.toContain("[magenta]");
-  });
-
-  test("renderCatch uses red ANSI code on success", () => {
-    const result: CatchResult = {
-      success: true,
-      creature: makeNearby("c1", "Sparks", "red"),
-      energySpent: 3,
-      fled: false,
-      xpEarned: 25,
-      attemptsRemaining: 3,
-      failPenalty: 0,
-    };
-    const out = renderer.renderCatch(result);
-    expect(out).toContain("\x1b[31m"); // red ANSI code
-    expect(out).not.toContain("[red]");
-  });
-
-  test("renderBreedResult uses cyan ANSI code for cyan-slotted child", () => {
-    const parentA = makeCollection("c1", "Sparks", 4, "cyan");
-    const parentB = makeCollection("c2", "Muddle", 1, "yellow");
-    const child = makeCollection("c3", "Sparks", 5, "cyan");
-
-    const result: BreedResult = {
-      child,
-      parentA,
-      parentB,
-      inheritedFrom: { eyes: "A", mouth: "B", body: "A", tail: "B" },
-    };
-    const out = renderer.renderBreedResult(result);
-    expect(out).toContain("\x1b[36m"); // cyan ANSI code
+    // Rarity colors are ANSI foreground codes in the 30-37 / 90-97 range.
+    expect(out).toMatch(/\x1b\[(3[0-7]|9[0-7])m/);
     expect(out).not.toContain("[cyan]");
   });
 });

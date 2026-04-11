@@ -12,7 +12,8 @@
   "hooks": "./hooks/cursor-hooks.json",
   "mcpServers": {
     "compi": {
-      "url": "http://localhost:3456/mcp"
+      "command": "node",
+      "args": ["${CURSOR_PLUGIN_ROOT}/dist/mcp-server-cursor.js"]
     }
   }
 }

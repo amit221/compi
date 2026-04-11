@@ -1,5 +1,7 @@
 /**
- * Shared MCP tool registration for both stdio (Claude Code) and HTTP (Cursor) servers.
+ * Shared MCP tool registration for both stdio MCP servers:
+ *   - `mcp-server.ts` (Claude Code) — text-only output via ANSI display file.
+ *   - `mcp-server-cursor.ts` (Cursor) — HTML MCP Apps via embedded resource.
  */
 import * as path from "path";
 import * as os from "os";
@@ -27,7 +29,7 @@ export interface RegisterToolsOptions {
   writeDisplayFile?: boolean;
   /** If provided, use server.registerTool() with _meta for MCP Apps */
   appMeta?: Record<string, unknown>;
-  /** Callback to capture rendered output (used by HTTP server for resource) */
+  /** Callback to capture rendered output (used by Cursor server for its persistent UI resource) */
   onOutput?: (content: string) => void;
   /** If provided, render ANSI to HTML and include as embedded resource in result */
   renderHtml?: (ansiContent: string) => string;

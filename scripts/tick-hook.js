@@ -36,6 +36,8 @@ let input = "";
 process.stdin.setEncoding("utf-8");
 process.stdin.on("data", (chunk) => { input += chunk; });
 process.stdin.on("end", () => {
+  // Cursor prefixes hook stdin with a UTF-8 BOM on Windows; strip it before parsing.
+  if (input.charCodeAt(0) === 0xfeff) input = input.slice(1);
   try {
     const data = JSON.parse(input);
     const sessionId = data.session_id || "";

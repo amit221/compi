@@ -1,6 +1,7 @@
 /**
  * ANSI escape code to HTML converter.
- * Used by the HTTP MCP server (Cursor) and MCP Apps.
+ * Used by the Cursor stdio MCP server to pre-render tool output as an
+ * HTML MCP App iframe.
  */
 
 export const ANSI_TO_CSS: Record<string, string> = {
