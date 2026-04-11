@@ -193,6 +193,28 @@ export interface BreedPartnersView {
   partners: BreedablePartner[];
 }
 
+export interface BreedTableRow {
+  /** 1-indexed position in state.collection */
+  creatureIndex: number;
+  creature: CollectionCreature;
+}
+
+export interface BreedTableSpecies {
+  speciesId: string;
+  /**
+   * Slots of the first non-archived creature of this species in collection order.
+   * The renderer draws these as a single grey "species silhouette" to the left
+   * of the table — the slots are not associated with any specific row.
+   */
+  silhouette: CreatureSlot[];
+  rows: BreedTableRow[];
+}
+
+export interface BreedTable {
+  /** One entry per species that has >= 2 non-archived creatures. */
+  species: BreedTableSpecies[];
+}
+
 export interface ArchiveResult {
   creature: CollectionCreature;
 }
@@ -289,6 +311,5 @@ export interface Renderer {
   renderEnergy(energy: number, maxEnergy: number): string;
   renderStatus(result: StatusResult): string;
   renderNotification(notification: Notification): string;
-  renderBreedableList(entries: BreedableEntry[]): string;
-  renderBreedPartners(view: BreedPartnersView): string;
+  renderBreedTable(table: BreedTable): string;
 }

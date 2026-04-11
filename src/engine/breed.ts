@@ -13,6 +13,9 @@ import {
   BreedableEntry,
   BreedablePartner,
   BreedPartnersView,
+  BreedTable,
+  BreedTableSpecies,
+  BreedTableRow,
 } from "../types";
 import { loadConfig } from "../config/loader";
 import { getSpeciesById, getTraitDefinition } from "../config/species";
@@ -336,4 +339,46 @@ export function listPartnersFor(
   }
 
   return { creatureIndex, creature, partners };
+}
+
+/**
+ * Build the data for the /breed top-level view: creatures grouped by species,
+ * only including species with >= 2 non-archived members. Each species entry
+ * carries a "silhouette" (the slots of the first non-archived creature of that
+ * species) which the renderer draws in a single neutral grey to the left of
+ * the table.
+ */
+export function buildBreedTable(state: GameState): BreedTable {
+  // Preserve first-encountered species order
+  const speciesOrder: string[] = [];
+  const bySpecies = new Map<string, BreedTableRow[]>();
+  const silhouetteBy = new Map<string, CreatureSlot[]>();
+
+  for (let i = 0; i < state.collection.length; i++) {
+    const creature = state.collection[i];
+    if (creature.archived) continue;
+
+    if (!bySpecies.has(creature.speciesId)) {
+      bySpecies.set(creature.speciesId, []);
+      speciesOrder.push(creature.speciesId);
+      silhouetteBy.set(creature.speciesId, creature.slots);
+    }
+    bySpecies.get(creature.speciesId)!.push({
+      creatureIndex: i + 1,
+      creature,
+    });
+  }
+
+  const species: BreedTableSpecies[] = [];
+  for (const speciesId of speciesOrder) {
+    const rows = bySpecies.get(speciesId)!;
+    if (rows.length < 2) continue;
+    species.push({
+      speciesId,
+      silhouette: silhouetteBy.get(speciesId)!,
+      rows,
+    });
+  }
+
+  return { species };
 }
