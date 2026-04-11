@@ -12,6 +12,8 @@ Display the following list of available Compi commands to the user:
 | `/compi:collection` | Browse your caught creatures and their traits |
 | `/compi:breed` | Breed two creatures from your collection (index-based) |
 | `/compi:breedable` | List creatures that have a valid breeding partner |
+| `/compi:archive` | View archive or archive a creature |
+| `/compi:release` | Permanently release a creature |
 | `/compi:energy` | Show current energy level |
 | `/compi:status` | View your player profile and game stats |
 | `/compi:settings` | View or change game settings |
