@@ -136,3 +136,76 @@ describe("listBreedable", () => {
     expect(result.find((e) => e.creature.id === "z")?.creatureIndex).toBe(3);
   });
 });
+
+describe("listPartnersFor", () => {
+  it("returns the selected creature and its compatible partners with energy cost", () => {
+    const state = makeState([
+      makeCreature("a", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+      makeCreature("b", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+      makeCreature("c", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+    ]);
+    const view = listPartnersFor(state, 1);
+    expect(view.creatureIndex).toBe(1);
+    expect(view.creature.id).toBe("a");
+    expect(view.partners).toHaveLength(2);
+    expect(view.partners.map((p) => p.creature.id).sort()).toEqual(["b", "c"]);
+    expect(view.partners[0].partnerIndex).toBeGreaterThan(0);
+    expect(view.partners[0].energyCost).toBeGreaterThan(0);
+  });
+
+  it("excludes the selected creature itself", () => {
+    const state = makeState([
+      makeCreature("a", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+      makeCreature("b", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+    ]);
+    const view = listPartnersFor(state, 1);
+    expect(view.partners.every((p) => p.creature.id !== "a")).toBe(true);
+  });
+
+  it("excludes archived partners", () => {
+    const state = makeState([
+      makeCreature("a", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+      makeCreature("b", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL], {
+        archived: true,
+      }),
+      makeCreature("c", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+    ]);
+    const view = listPartnersFor(state, 1);
+    expect(view.partners).toHaveLength(1);
+    expect(view.partners[0].creature.id).toBe("c");
+    expect(view.partners[0].partnerIndex).toBe(3);
+  });
+
+  it("excludes different-species creatures", () => {
+    const state = makeState([
+      makeCreature("a", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+      makeCreature("b", "flikk", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+    ]);
+    const view = listPartnersFor(state, 1);
+    expect(view.partners).toHaveLength(0);
+  });
+
+  it("throws when index is out of range (too high)", () => {
+    const state = makeState([
+      makeCreature("a", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+    ]);
+    expect(() => listPartnersFor(state, 5)).toThrow(/index/i);
+  });
+
+  it("throws when index is out of range (zero or negative)", () => {
+    const state = makeState([
+      makeCreature("a", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+    ]);
+    expect(() => listPartnersFor(state, 0)).toThrow(/index/i);
+  });
+
+  it("throws when the selected creature is archived", () => {
+    const state = makeState([
+      makeCreature("a", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL], {
+        archived: true,
+      }),
+      makeCreature("b", "compi", [C_EYES, C_MOUTH, C_BODY, C_TAIL]),
+    ]);
+    expect(() => listPartnersFor(state, 1)).toThrow(/archived/i);
+  });
+});

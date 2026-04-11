@@ -11,6 +11,8 @@ import {
   BreedResult,
   TraitDefinition,
   BreedableEntry,
+  BreedablePartner,
+  BreedPartnersView,
 } from "../types";
 import { loadConfig } from "../config/loader";
 import { getSpeciesById, getTraitDefinition } from "../config/species";
@@ -291,10 +293,45 @@ export function listBreedable(state: GameState): BreedableEntry[] {
   return entries;
 }
 
-// TEMPORARY STUB - Task 3 will replace this
+/**
+ * For a creature at the given 1-indexed collection position, return it and
+ * its list of compatible (same-species, non-archived, non-self) partners with
+ * each partner's 1-indexed collection position and the energy cost to breed.
+ *
+ * Throws on out-of-range or archived selection.
+ */
 export function listPartnersFor(
-  _state: GameState,
-  _creatureId: string
-): unknown {
-  throw new Error("listPartnersFor: not yet implemented (stub for Task 3)");
+  state: GameState,
+  creatureIndex: number
+): BreedPartnersView {
+  if (creatureIndex < 1 || creatureIndex > state.collection.length) {
+    throw new Error(
+      `No creature at index ${creatureIndex}. You have ${state.collection.length} creatures.`
+    );
+  }
+
+  const creature = state.collection[creatureIndex - 1];
+  if (creature.archived) {
+    throw new Error(
+      `Creature at index ${creatureIndex} is archived and cannot breed.`
+    );
+  }
+
+  const partners: BreedablePartner[] = [];
+  for (let j = 0; j < state.collection.length; j++) {
+    if (j === creatureIndex - 1) continue;
+    const candidate = state.collection[j];
+    if (candidate.archived) continue;
+    if (candidate.speciesId !== creature.speciesId) continue;
+
+    // Reuse previewBreed just for the energy cost. This also validates the pair.
+    const preview = previewBreed(state, creature.id, candidate.id);
+    partners.push({
+      partnerIndex: j + 1,
+      creature: candidate,
+      energyCost: preview.energyCost,
+    });
+  }
+
+  return { creatureIndex, creature, partners };
 }
