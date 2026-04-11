@@ -166,6 +166,29 @@ export interface BreedResult {
   inheritedFrom: Record<SlotId, "A" | "B">;
 }
 
+export interface BreedableEntry {
+  /** 1-indexed position in the collection array */
+  creatureIndex: number;
+  creature: CollectionCreature;
+  /** Number of same-species, non-archived partners this creature has */
+  partnerCount: number;
+}
+
+export interface BreedablePartner {
+  /** 1-indexed position in the collection array */
+  partnerIndex: number;
+  creature: CollectionCreature;
+  /** Energy cost to breed the selected creature with this partner */
+  energyCost: number;
+}
+
+export interface BreedPartnersView {
+  /** 1-indexed position of the selected creature */
+  creatureIndex: number;
+  creature: CollectionCreature;
+  partners: BreedablePartner[];
+}
+
 export interface ArchiveResult {
   creature: CollectionCreature;
 }
