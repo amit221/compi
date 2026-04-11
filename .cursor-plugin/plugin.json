@@ -1,19 +1,28 @@
 {
   "name": "compi",
   "displayName": "Compi",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Terminal creature collection game — catch digital beings as you work",
-  "author": { "name": "compi" },
+  "author": {
+    "name": "compi"
+  },
   "repository": "https://github.com/amit221/compi",
   "license": "MIT",
-  "keywords": ["game", "terminal", "creatures", "collection"],
+  "keywords": [
+    "game",
+    "terminal",
+    "creatures",
+    "collection"
+  ],
   "category": "entertainment",
   "skills": "./cursor-skills/",
   "hooks": "./hooks/cursor-hooks.json",
   "mcpServers": {
     "compi": {
       "command": "node",
-      "args": ["${CURSOR_PLUGIN_ROOT}/dist/mcp-server-cursor.js"]
+      "args": [
+        "${CURSOR_PLUGIN_ROOT}/dist/mcp-server-cursor.js"
+      ]
     }
   }
 }
