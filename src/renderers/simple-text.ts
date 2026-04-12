@@ -68,7 +68,6 @@ function centerLine(rawText: string, coloredText: string): string {
 }
 
 function renderCreatureLines(slots: CreatureSlot[], speciesId?: string): string[] {
-  // Build slot-to-art map using species-aware lookup
   const slotArt: Record<string, string> = {};
   for (const s of slots) {
     const trait = speciesId
@@ -77,7 +76,6 @@ function renderCreatureLines(slots: CreatureSlot[], speciesId?: string): string[
     slotArt[s.slotId] = trait?.art ?? "???";
   }
 
-  // Build slot-to-color map (based on rarity, not slot color)
   const slotColor: Record<string, string> = {};
   for (const s of slots) {
     const rarityScore = speciesId ? calculateTraitRarityScore(speciesId, s.slotId, s.variantId) : 50;
@@ -85,63 +83,26 @@ function renderCreatureLines(slots: CreatureSlot[], speciesId?: string): string[
   }
 
   const species = speciesId ? getSpeciesById(speciesId) : undefined;
-
-  if (species?.art) {
-    return species.art.map((line, lineIndex) => {
-      let result = line;
-      const replacements: [string, string][] = [
-        ["EE", slotArt["eyes"] ?? ""],
-        ["MM", slotArt["mouth"] ?? ""],
-        ["BB", slotArt["body"] ?? ""],
-        ["TT", slotArt["tail"] ?? ""],
-      ];
-      for (const [placeholder, art] of replacements) {
-        result = result.replace(placeholder, art);
-      }
-
-      // Zone-based coloring: color entire line based on zone assignment
-      if (species.zones && species.zones[lineIndex]) {
-        const zoneSlot = species.zones[lineIndex];
-        const color = slotColor[zoneSlot] ?? WHITE;
-        return "      " + color + result + RESET;
-      }
-
-      // Fallback for species without zones: use old per-placeholder coloring
-      let lineColor: string | null = null;
-      for (const [placeholder, , color] of [
-        ["EE", slotArt["eyes"] ?? "", slotColor["eyes"] ?? WHITE],
-        ["MM", slotArt["mouth"] ?? "", slotColor["mouth"] ?? WHITE],
-        ["BB", slotArt["body"] ?? "", slotColor["body"] ?? WHITE],
-        ["TT", slotArt["tail"] ?? "", slotColor["tail"] ?? WHITE],
-      ] as [string, string, string][]) {
-        if (line.includes(placeholder)) {
-          lineColor = color;
-        }
-      }
-      if (lineColor) {
-        return "      " + lineColor + result + RESET;
-      }
-      return "      " + result;
-    });
+  if (!species?.art) {
+    return ["      ???"];
   }
 
-  // Fallback: original hardcoded layout (for backward compat)
-  const eyesArt = slotArt["eyes"] ?? "o.o";
-  const mouthArt = slotArt["mouth"] ?? " - ";
-  const bodyArt = slotArt["body"] ?? " ░░ ";
-  const tailArt = slotArt["tail"] ?? "~";
+  return species.art.map((line, lineIndex) => {
+    let result = line;
+    const replacements: [string, string][] = [
+      ["EE", slotArt["eyes"] ?? ""],
+      ["MM", slotArt["mouth"] ?? ""],
+      ["BB", slotArt["body"] ?? ""],
+      ["TT", slotArt["tail"] ?? ""],
+    ];
+    for (const [placeholder, art] of replacements) {
+      result = result.replace(placeholder, art);
+    }
 
-  const eyesC = slotColor["eyes"] ?? WHITE;
-  const mouthC = slotColor["mouth"] ?? WHITE;
-  const bodyC = slotColor["body"] ?? WHITE;
-  const tailC = slotColor["tail"] ?? WHITE;
-
-  const eyesLine = "      " + centerLine(eyesArt, `${eyesC}${eyesArt}${RESET}`);
-  const mouthLine = "      " + centerLine(`(${mouthArt})`, `${mouthC}(${mouthArt})${RESET}`);
-  const bodyLine = "      " + centerLine(`╱${bodyArt}╲`, `${bodyC}╱${bodyArt}╲${RESET}`);
-  const tailLine = "      " + centerLine(tailArt, `${tailC}${tailArt}${RESET}`);
-
-  return [eyesLine, mouthLine, bodyLine, tailLine];
+    const zoneSlot = species.zones?.[lineIndex];
+    const color = zoneSlot ? (slotColor[zoneSlot] ?? WHITE) : WHITE;
+    return "      " + color + result + RESET;
+  });
 }
 
 /**
@@ -159,33 +120,23 @@ function renderGreySilhouette(slots: CreatureSlot[], speciesId: string): string[
   const species = getSpeciesById(speciesId);
   const GREY = COLOR_ANSI.grey;
 
-  if (species?.art) {
-    return species.art.map((line) => {
-      let result = line;
-      const replacements: [string, string][] = [
-        ["EE", slotArt["eyes"] ?? ""],
-        ["MM", slotArt["mouth"] ?? ""],
-        ["BB", slotArt["body"] ?? ""],
-        ["TT", slotArt["tail"] ?? ""],
-      ];
-      for (const [placeholder, art] of replacements) {
-        result = result.replace(placeholder, art);
-      }
-      return GREY + result + RESET;
-    });
+  if (!species?.art) {
+    return [GREY + "???" + RESET];
   }
 
-  // Fallback: same shape as the non-species path in renderCreatureLines
-  const eyesArt = slotArt["eyes"] ?? "o.o";
-  const mouthArt = slotArt["mouth"] ?? " - ";
-  const bodyArt = slotArt["body"] ?? " ░░ ";
-  const tailArt = slotArt["tail"] ?? "~";
-  return [
-    `      ${GREY}${eyesArt}${RESET}`,
-    `     ${GREY}(${mouthArt})${RESET}`,
-    `    ${GREY}╱${bodyArt}╲${RESET}`,
-    `      ${GREY}${tailArt}${RESET}`,
-  ];
+  return species.art.map((line) => {
+    let result = line;
+    const replacements: [string, string][] = [
+      ["EE", slotArt["eyes"] ?? ""],
+      ["MM", slotArt["mouth"] ?? ""],
+      ["BB", slotArt["body"] ?? ""],
+      ["TT", slotArt["tail"] ?? ""],
+    ];
+    for (const [placeholder, art] of replacements) {
+      result = result.replace(placeholder, art);
+    }
+    return GREY + result + RESET;
+  });
 }
 
 // --- Progress bars ---

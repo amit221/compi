@@ -28,7 +28,6 @@ describe("loadSpecies", () => {
     expect(compi.name).toBe("Compi");
     expect(compi.description).toBeTruthy();
     expect(compi.spawnWeight).toBe(10);
-    // compi uses fallback art (no art field)
     for (const slotId of SLOT_IDS) {
       expect(compi.traitPools[slotId]).toBeDefined();
       expect(compi.traitPools[slotId]!.length).toBe(19);
@@ -131,6 +130,18 @@ describe("pickTraitForSlot", () => {
     }
     // Most common trait should appear more than rarest
     expect(counts["eye_c01"]).toBeGreaterThan(counts["eye_m02"] || 0);
+  });
+});
+
+describe("species zones", () => {
+  it("every species should have art and zones arrays of equal length", () => {
+    const species = getAllSpecies();
+    for (const s of species) {
+      expect(s.art).toBeDefined();
+      expect(s.art!.length).toBeGreaterThan(0);
+      expect(s.zones).toBeDefined();
+      expect(s.zones!.length).toBe(s.art!.length);
+    }
   });
 });
 
