@@ -43,7 +43,7 @@ process.stdin.on("end", () => {
     const sessionId = data.session_id || "";
     const eventType = data.hook_event_name || "";
 
-    const cliPath = path.resolve(__dirname, "..", "dist", "cli.js");
+    const cliPath = path.resolve(__dirname, "cli.js");
     const args = ["tick", `--session=${sessionId}`, `--event=${eventType}`, "--json"];
 
     execFileSync("node", [cliPath, ...args], {
@@ -62,7 +62,7 @@ process.stdin.on("end", () => {
     const data = JSON.parse(input);
     if (data.hook_event_name === "UserPromptSubmit" ||
         data.hook_event_name === "beforeSubmitPrompt") {
-      const cliPath = path.resolve(__dirname, "..", "dist", "cli.js");
+      const cliPath = path.resolve(__dirname, "cli.js");
       const result = execFileSync("node", [cliPath, "scan", "--json"], {
         timeout: 5000,
         encoding: "utf-8",

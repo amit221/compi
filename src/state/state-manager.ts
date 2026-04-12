@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { GameState } from "../types";
+import { loadConfig } from "../config/loader";
 import { logger } from "../logger";
 
 function defaultState(): GameState {
@@ -19,7 +20,7 @@ function defaultState(): GameState {
     },
     collection: [],
     archive: [],
-    energy: 5,
+    energy: loadConfig().energy.maxEnergy,
     lastEnergyGainAt: Date.now(),
     nearby: [],
     batch: null,

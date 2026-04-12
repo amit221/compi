@@ -30225,179 +30225,6 @@ var fs3 = __toESM(require("fs"));
 var fs2 = __toESM(require("fs"));
 var path2 = __toESM(require("path"));
 
-// src/logger.ts
-var fs = __toESM(require("fs"));
-var path = __toESM(require("path"));
-var os = __toESM(require("os"));
-var MAX_LOG_SIZE = 5 * 1024 * 1024;
-var LOG_DIR = process.env.COMPI_LOG_PATH || path.join(os.homedir(), ".compi");
-var LOG_FILE = path.join(LOG_DIR, "compi.log");
-function rotateIfNeeded() {
-  try {
-    const stat = fs.statSync(LOG_FILE);
-    if (stat.size >= MAX_LOG_SIZE) {
-      const backup = LOG_FILE + ".old";
-      fs.renameSync(LOG_FILE, backup);
-    }
-  } catch {
-  }
-}
-function write(level, message, extra) {
-  try {
-    fs.mkdirSync(LOG_DIR, { recursive: true });
-    rotateIfNeeded();
-    const timestamp = (/* @__PURE__ */ new Date()).toISOString();
-    let line = `[${timestamp}] ${level.toUpperCase()} ${message}`;
-    if (extra) {
-      line += " " + JSON.stringify(extra);
-    }
-    line += "\n";
-    fs.appendFileSync(LOG_FILE, line, "utf-8");
-  } catch {
-  }
-}
-var logger = {
-  debug: (msg, extra) => write("debug", msg, extra),
-  info: (msg, extra) => write("info", msg, extra),
-  warn: (msg, extra) => write("warn", msg, extra),
-  error: (msg, extra) => write("error", msg, extra)
-};
-
-// src/state/state-manager.ts
-function defaultState() {
-  const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
-  return {
-    version: 4,
-    profile: {
-      level: 1,
-      xp: 0,
-      totalCatches: 0,
-      totalMerges: 0,
-      totalTicks: 0,
-      currentStreak: 0,
-      longestStreak: 0,
-      lastActiveDate: today
-    },
-    collection: [],
-    archive: [],
-    energy: 5,
-    lastEnergyGainAt: Date.now(),
-    nearby: [],
-    batch: null,
-    lastSpawnAt: 0,
-    recentTicks: [],
-    claimedMilestones: [],
-    settings: {
-      notificationLevel: "moderate"
-    }
-  };
-}
-function migrateV3toV4(raw) {
-  const state = raw;
-  if (Array.isArray(state.collection)) {
-    for (const creature of state.collection) {
-      if (!creature.speciesId) creature.speciesId = "compi";
-      if (creature.archived === void 0) creature.archived = false;
-      delete creature.color;
-      if (Array.isArray(creature.slots)) {
-        for (const slot of creature.slots) {
-          delete slot.rarity;
-          if (!slot.color) slot.color = "white";
-        }
-      }
-    }
-  }
-  if (Array.isArray(state.nearby)) {
-    for (const creature of state.nearby) {
-      if (!creature.speciesId) creature.speciesId = "compi";
-      delete creature.color;
-      if (Array.isArray(creature.slots)) {
-        for (const slot of creature.slots) {
-          delete slot.rarity;
-          if (!slot.color) slot.color = "white";
-        }
-      }
-    }
-  }
-  if (!Array.isArray(state.archive)) {
-    state.archive = [];
-  }
-  state.version = 4;
-  return state;
-}
-var StateManager = class {
-  constructor(filePath) {
-    this.filePath = filePath;
-  }
-  load() {
-    try {
-      const data = fs2.readFileSync(this.filePath, "utf-8");
-      const raw = JSON.parse(data);
-      const version2 = raw.version;
-      if (version2 === 3) {
-        logger.info("Migrating state from v3 to v4", { path: this.filePath });
-        return migrateV3toV4(raw);
-      }
-      if (version2 !== 4) {
-        logger.info("Incompatible state version, creating fresh state", { path: this.filePath });
-        return defaultState();
-      }
-      const state = raw;
-      if (state.lastSpawnAt === void 0) {
-        state.lastSpawnAt = 0;
-      }
-      for (const list of [state.collection, state.nearby, state.archive]) {
-        if (Array.isArray(list)) {
-          for (const c of list) {
-            delete c.color;
-            if (Array.isArray(c.slots)) {
-              for (const slot of c.slots) {
-                if (!slot.color) slot.color = "white";
-              }
-            }
-          }
-        }
-      }
-      return state;
-    } catch (err) {
-      const errObj = err;
-      const isNotFound = errObj && errObj.code === "ENOENT";
-      if (isNotFound) {
-        logger.info("No state file found, creating default state", { path: this.filePath });
-      } else {
-        logger.error("Failed to load state, resetting to default", {
-          path: this.filePath,
-          error: err instanceof Error ? err.message : String(err)
-        });
-      }
-      return defaultState();
-    }
-  }
-  save(state) {
-    try {
-      const dir = path2.dirname(this.filePath);
-      fs2.mkdirSync(dir, { recursive: true });
-      const tmp = this.filePath + ".tmp";
-      fs2.writeFileSync(tmp, JSON.stringify(state, null, 2), "utf-8");
-      try {
-        fs2.renameSync(tmp, this.filePath);
-      } catch {
-        fs2.writeFileSync(this.filePath, JSON.stringify(state, null, 2), "utf-8");
-        try {
-          fs2.unlinkSync(tmp);
-        } catch {
-        }
-      }
-    } catch (err) {
-      logger.error("Failed to save state", {
-        path: this.filePath,
-        error: err instanceof Error ? err.message : String(err)
-      });
-      throw err;
-    }
-  }
-};
-
 // config/balance.json
 var balance_default = {
   colors: {
@@ -30562,6 +30389,179 @@ var balance_default = {
 function loadConfig() {
   return balance_default;
 }
+
+// src/logger.ts
+var fs = __toESM(require("fs"));
+var path = __toESM(require("path"));
+var os = __toESM(require("os"));
+var MAX_LOG_SIZE = 5 * 1024 * 1024;
+var LOG_DIR = process.env.COMPI_LOG_PATH || path.join(os.homedir(), ".compi");
+var LOG_FILE = path.join(LOG_DIR, "compi.log");
+function rotateIfNeeded() {
+  try {
+    const stat = fs.statSync(LOG_FILE);
+    if (stat.size >= MAX_LOG_SIZE) {
+      const backup = LOG_FILE + ".old";
+      fs.renameSync(LOG_FILE, backup);
+    }
+  } catch {
+  }
+}
+function write(level, message, extra) {
+  try {
+    fs.mkdirSync(LOG_DIR, { recursive: true });
+    rotateIfNeeded();
+    const timestamp = (/* @__PURE__ */ new Date()).toISOString();
+    let line = `[${timestamp}] ${level.toUpperCase()} ${message}`;
+    if (extra) {
+      line += " " + JSON.stringify(extra);
+    }
+    line += "\n";
+    fs.appendFileSync(LOG_FILE, line, "utf-8");
+  } catch {
+  }
+}
+var logger = {
+  debug: (msg, extra) => write("debug", msg, extra),
+  info: (msg, extra) => write("info", msg, extra),
+  warn: (msg, extra) => write("warn", msg, extra),
+  error: (msg, extra) => write("error", msg, extra)
+};
+
+// src/state/state-manager.ts
+function defaultState() {
+  const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+  return {
+    version: 4,
+    profile: {
+      level: 1,
+      xp: 0,
+      totalCatches: 0,
+      totalMerges: 0,
+      totalTicks: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+      lastActiveDate: today
+    },
+    collection: [],
+    archive: [],
+    energy: loadConfig().energy.maxEnergy,
+    lastEnergyGainAt: Date.now(),
+    nearby: [],
+    batch: null,
+    lastSpawnAt: 0,
+    recentTicks: [],
+    claimedMilestones: [],
+    settings: {
+      notificationLevel: "moderate"
+    }
+  };
+}
+function migrateV3toV4(raw) {
+  const state = raw;
+  if (Array.isArray(state.collection)) {
+    for (const creature of state.collection) {
+      if (!creature.speciesId) creature.speciesId = "compi";
+      if (creature.archived === void 0) creature.archived = false;
+      delete creature.color;
+      if (Array.isArray(creature.slots)) {
+        for (const slot of creature.slots) {
+          delete slot.rarity;
+          if (!slot.color) slot.color = "white";
+        }
+      }
+    }
+  }
+  if (Array.isArray(state.nearby)) {
+    for (const creature of state.nearby) {
+      if (!creature.speciesId) creature.speciesId = "compi";
+      delete creature.color;
+      if (Array.isArray(creature.slots)) {
+        for (const slot of creature.slots) {
+          delete slot.rarity;
+          if (!slot.color) slot.color = "white";
+        }
+      }
+    }
+  }
+  if (!Array.isArray(state.archive)) {
+    state.archive = [];
+  }
+  state.version = 4;
+  return state;
+}
+var StateManager = class {
+  constructor(filePath) {
+    this.filePath = filePath;
+  }
+  load() {
+    try {
+      const data = fs2.readFileSync(this.filePath, "utf-8");
+      const raw = JSON.parse(data);
+      const version2 = raw.version;
+      if (version2 === 3) {
+        logger.info("Migrating state from v3 to v4", { path: this.filePath });
+        return migrateV3toV4(raw);
+      }
+      if (version2 !== 4) {
+        logger.info("Incompatible state version, creating fresh state", { path: this.filePath });
+        return defaultState();
+      }
+      const state = raw;
+      if (state.lastSpawnAt === void 0) {
+        state.lastSpawnAt = 0;
+      }
+      for (const list of [state.collection, state.nearby, state.archive]) {
+        if (Array.isArray(list)) {
+          for (const c of list) {
+            delete c.color;
+            if (Array.isArray(c.slots)) {
+              for (const slot of c.slots) {
+                if (!slot.color) slot.color = "white";
+              }
+            }
+          }
+        }
+      }
+      return state;
+    } catch (err) {
+      const errObj = err;
+      const isNotFound = errObj && errObj.code === "ENOENT";
+      if (isNotFound) {
+        logger.info("No state file found, creating default state", { path: this.filePath });
+      } else {
+        logger.error("Failed to load state, resetting to default", {
+          path: this.filePath,
+          error: err instanceof Error ? err.message : String(err)
+        });
+      }
+      return defaultState();
+    }
+  }
+  save(state) {
+    try {
+      const dir = path2.dirname(this.filePath);
+      fs2.mkdirSync(dir, { recursive: true });
+      const tmp = this.filePath + ".tmp";
+      fs2.writeFileSync(tmp, JSON.stringify(state, null, 2), "utf-8");
+      try {
+        fs2.renameSync(tmp, this.filePath);
+      } catch {
+        fs2.writeFileSync(this.filePath, JSON.stringify(state, null, 2), "utf-8");
+        try {
+          fs2.unlinkSync(tmp);
+        } catch {
+        }
+      }
+    } catch (err) {
+      logger.error("Failed to save state", {
+        path: this.filePath,
+        error: err instanceof Error ? err.message : String(err)
+      });
+      throw err;
+    }
+  }
+};
 
 // src/config/constants.ts
 var config2 = loadConfig();

@@ -13,5 +13,13 @@
     "creatures",
     "collection",
     "pokemon"
-  ]
+  ],
+  "hooks": "./hooks/hooks.json",
+  "skills": "./skills/",
+  "mcpServers": {
+    "compi": {
+      "command": "node",
+      "args": ["./scripts/mcp-server.js"]
+    }
+  }
 }

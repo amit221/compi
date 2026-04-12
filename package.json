@@ -2,13 +2,14 @@
   "name": "compi",
   "version": "0.2.3",
   "description": "A terminal creature collection game — catch digital beings as you work",
-  "main": "dist/index.js",
+  "main": "scripts/cli.js",
   "bin": {
-    "compi": "dist/cli.js"
+    "compi": "scripts/cli.js"
   },
   "scripts": {
-    "build": "tsc && npm run bundle",
-    "bundle": "esbuild src/mcp-server.ts src/mcp-server-cursor.ts --bundle --platform=node --format=cjs --target=node20 --outdir=scripts --allow-overwrite",
+    "build": "tsc",
+    "build:all": "tsc && npm run bundle",
+    "bundle": "esbuild src/mcp-server.ts src/mcp-server-cursor.ts src/cli.ts --bundle --platform=node --format=cjs --target=node20 --outdir=scripts --allow-overwrite",
     "test": "jest",
     "test:watch": "jest --watch",
     "dev": "tsc --watch"
@@ -22,7 +23,6 @@
   ],
   "license": "MIT",
   "files": [
-    "dist/",
     "scripts/",
     "skills/",
     "cursor-skills/",
@@ -31,7 +31,7 @@
     ".cursor-plugin/",
     "README.md"
   ],
-  "prepublishOnly": "npm run build",
+  "prepublishOnly": "npm run build:all",
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "@types/node": "^20.14.0",

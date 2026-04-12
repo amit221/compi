@@ -11,7 +11,8 @@ Game state persists to `~/.compi/state.json` (override with `COMPI_STATE_PATH` e
 ## Commands
 
 ```bash
-npm run build       # TypeScript → dist/ (tsc)
+npm run build       # TypeScript type-check (tsc)
+npm run bundle      # esbuild → scripts/ (bundled CLI + MCP servers)
 npm test            # Run all tests (Jest with ts-jest)
 npm run test:watch  # Watch mode
 npm run dev         # tsc --watch
