@@ -10,7 +10,7 @@ This command takes no arguments. It lists all creatures in the user's collection
 2. Run this Bash command to display the output with colors:
 
 ```
-cat "$LOCALAPPDATA/Temp/compi_display.txt" && rm -f "$LOCALAPPDATA/Temp/compi_display.txt"
+_t="$(node -p "require('os').tmpdir()")" && cat "$_t/compi_display.txt" && rm -f "$_t/compi_display.txt"
 ```
 
 3. Respond: "Press Ctrl+O to expand the list above. Run `/breed N` to see partners for creature #N, or `/breed N M` to preview breeding."

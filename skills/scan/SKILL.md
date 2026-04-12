@@ -7,7 +7,7 @@ description: Show nearby creatures that can be caught
 1. Call the `mcp__plugin_compi_compi__scan` tool to scan for nearby creatures.
 2. Then run this Bash command to display the result with colors:
    ```
-   cat "$LOCALAPPDATA/Temp/compi_display.txt" && rm -f "$LOCALAPPDATA/Temp/compi_display.txt"
+   _t="$(node -p "require('os').tmpdir()")" && cat "$_t/compi_display.txt" && rm -f "$_t/compi_display.txt"
    ```
 
 After both steps, count the creatures from the MCP response and respond with ONLY:

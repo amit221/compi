@@ -12,7 +12,7 @@ If a creature ID is provided:
 1. Call `mcp__plugin_compi_compi__archive` with `id` set to the creature ID.
 2. Then run this Bash command to display it with colors:
    ```
-   cat "$LOCALAPPDATA/Temp/compi_display.txt" && rm -f "$LOCALAPPDATA/Temp/compi_display.txt"
+   _t="$(node -p "require('os').tmpdir()")" && cat "$_t/compi_display.txt" && rm -f "$_t/compi_display.txt"
    ```
 3. Respond with: "Press Ctrl+O to expand the archive result above."
 

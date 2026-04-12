@@ -7,7 +7,7 @@ description: View your player profile and game stats
 1. Call the `mcp__plugin_compi_compi__status` tool to view player stats.
 2. Then run this Bash command to display it with colors:
    ```
-   cat "$LOCALAPPDATA/Temp/compi_display.txt" && rm -f "$LOCALAPPDATA/Temp/compi_display.txt"
+   _t="$(node -p "require('os').tmpdir()")" && cat "$_t/compi_display.txt" && rm -f "$_t/compi_display.txt"
    ```
 
 After both steps, respond with ONLY:

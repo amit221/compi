@@ -23,7 +23,7 @@ Flow:
 After the tool call, run this Bash command to display the output with colors:
 
 ```
-cat "$LOCALAPPDATA/Temp/compi_display.txt" && rm -f "$LOCALAPPDATA/Temp/compi_display.txt"
+_t="$(node -p "require('os').tmpdir()")" && cat "$_t/compi_display.txt" && rm -f "$_t/compi_display.txt"
 ```
 
 Then respond based on which mode was used:
