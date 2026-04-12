@@ -9,6 +9,8 @@
   "scripts": {
     "build": "tsc && npm run bundle",
     "bundle": "esbuild src/mcp-server.ts src/mcp-server-cursor.ts --bundle --platform=node --format=cjs --target=node20 --outdir=scripts --allow-overwrite",
+    "prepublishOnly": "npm run build",
+    "prepare": "npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
     "dev": "tsc --watch"
@@ -31,7 +33,6 @@
     ".cursor-plugin/",
     "README.md"
   ],
-  "prepublishOnly": "npm run build",
   "devDependencies": {
     "@types/jest": "^29.5.12",
     "@types/node": "^20.14.0",
