@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file. This file is maintained automatically by [release-please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.2.3](https://github.com/amit221/compi/compare/v0.2.2...v0.2.3) (2026-04-12)
+
+
+### Bug Fixes
+
+* **ci:** auto-merge release PRs and create tags in one workflow run ([42ec1d1](https://github.com/amit221/compi/commit/42ec1d1f0ef642e6856aea38c55a4a65a73f8ca9))
+* use cross-platform temp path in skill display commands ([2db2466](https://github.com/amit221/compi/commit/2db246635ae3132dfbd0582e757f56ddf0a1907e))
+
 ## [0.2.2](https://github.com/amit221/compi/compare/v0.2.1...v0.2.2) (2026-04-11)
 
 
