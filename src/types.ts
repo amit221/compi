@@ -39,6 +39,7 @@ export interface SpeciesDefinition {
   description: string;
   spawnWeight: number;
   art: string[]; // multi-line ASCII template
+  zones?: SlotId[]; // one per art line, maps line to slot rarity color
   traitPools: Partial<Record<SlotId, TraitDefinition[]>>;
 }
 
