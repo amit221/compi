@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file. This file is maintained automatically by [release-please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.2.4](https://github.com/amit221/compi/compare/v0.2.3...v0.2.4) (2026-04-12)
+
+
+### Bug Fixes
+
+* new players start with full energy and complete plugin manifest ([00a7ff0](https://github.com/amit221/compi/commit/00a7ff0f56e9bd939f63a0ab7fc6062372423105)), closes [#8](https://github.com/amit221/compi/issues/8)
+
 ## [0.2.3](https://github.com/amit221/compi/compare/v0.2.2...v0.2.3) (2026-04-12)
 
 
