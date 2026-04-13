@@ -19,6 +19,8 @@ import {
 } from "../types";
 import { loadConfig } from "../config/loader";
 import { getSpeciesById, getTraitDefinition } from "../config/species";
+import { spendGold } from "./gold";
+import { grantXp } from "./progression";
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -236,6 +238,52 @@ export function executeBreed(
     inheritedFrom[si.slotId] = fromA ? "A" : "B";
   }
 
+  // --- Gold cost based on child avg rank ---
+  const config = loadConfig();
+  const childRanks = childSlots.map((s) => {
+    const m = s.variantId.match(/_r(\d+)$/);
+    return m ? parseInt(m[1], 10) : 0;
+  });
+  const childAvgRank =
+    childRanks.reduce((a, b) => a + b, 0) / childRanks.length;
+  const goldCost =
+    config.mergeGold.baseCost +
+    Math.floor(childAvgRank * config.mergeGold.rankMultiplier);
+  spendGold(state, goldCost);
+
+  // --- Guaranteed +1 upgrade to one random trait ---
+  const upgradeIndex = Math.floor(rng() * childSlots.length);
+  const upgradeSlot = childSlots[upgradeIndex];
+  const upgradeRankMatch = upgradeSlot.variantId.match(/_r(\d+)$/);
+  if (upgradeRankMatch) {
+    const currentRank = parseInt(upgradeRankMatch[1], 10);
+    upgradeSlot.variantId = upgradeSlot.variantId.replace(
+      /_r\d+$/,
+      `_r${currentRank + 1}`
+    );
+  }
+
+  // --- 30% chance to downgrade one other random trait ---
+  if (rng() < config.mergeGold.downgradeChance && childSlots.length > 1) {
+    // Pick a different slot than the one just upgraded
+    const otherIndices = childSlots
+      .map((_, i) => i)
+      .filter((i) => i !== upgradeIndex);
+    const pick = Math.floor(rng() * otherIndices.length);
+    const downgradeIndex = otherIndices[pick];
+    const downgradeSlot = childSlots[downgradeIndex];
+    const downgradeRankMatch = downgradeSlot.variantId.match(/_r(\d+)$/);
+    if (downgradeRankMatch) {
+      const currentRank = parseInt(downgradeRankMatch[1], 10);
+      if (currentRank > 0) {
+        downgradeSlot.variantId = downgradeSlot.variantId.replace(
+          /_r\d+$/,
+          `_r${currentRank - 1}`
+        );
+      }
+    }
+  }
+
   // Build child
   const child: CollectionCreature = {
     id: generateId(),
@@ -256,6 +304,7 @@ export function executeBreed(
   state.collection.push(child);
   state.energy -= energyCost;
   state.profile.totalMerges += 1;
+  grantXp(state, config.leveling.xpPerMerge);
 
   return {
     child,

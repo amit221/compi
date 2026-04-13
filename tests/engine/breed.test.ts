@@ -68,7 +68,7 @@ function makeState(
     recentTicks: [],
     claimedMilestones: [],
     settings: { notificationLevel: "moderate" },
-    gold: 10,
+    gold: 200,
     discoveredSpecies: [],
     activeQuest: null,
     sessionUpgradeCount: 0,
@@ -497,5 +497,201 @@ describe("breed — variable slots", () => {
     // Clean up mocks
     getSpeciesById.mockRestore();
     getTraitDefinition.mockRestore();
+  });
+});
+
+// --- merge gold cost + downgrade ---
+
+/**
+ * Helper that creates creatures with rank-encoded variantIds: `trait_<slotId>_r<rank>`.
+ * Used for gold cost, upgrade, and downgrade tests where rank parsing matters.
+ */
+function makeRankedCreature(
+  id: string,
+  speciesId: string,
+  ranks: number[]
+): CollectionCreature {
+  return {
+    id,
+    speciesId,
+    name: `Test ${id}`,
+    slots: SLOT_IDS.map((slotId, i) => ({
+      slotId,
+      variantId: `trait_${slotId}_r${ranks[i] ?? 0}`,
+      color: "white" as any,
+    })),
+    caughtAt: Date.now(),
+    generation: 0,
+    archived: false,
+  };
+}
+
+/**
+ * Build a mock species definition whose trait pools contain rank-encoded variants
+ * for all 4 slots. Each variant id is `trait_<slotId>_r<rank>` with a spawnRate of 0.12.
+ */
+function makeMockSpecies(speciesId: string, maxRank: number = 8) {
+  const traitPools: Record<string, Array<{ id: string; name: string; art: string; spawnRate: number }>> = {};
+  for (const slotId of SLOT_IDS) {
+    traitPools[slotId] = [];
+    for (let r = 0; r <= maxRank; r++) {
+      traitPools[slotId].push({
+        id: `trait_${slotId}_r${r}`,
+        name: `Trait ${slotId} rank ${r}`,
+        art: "o",
+        spawnRate: 0.12,
+      });
+    }
+  }
+  return {
+    id: speciesId,
+    name: speciesId,
+    description: "Mock species",
+    spawnWeight: 0.15,
+    art: ["art"],
+    traitPools,
+  };
+}
+
+describe("merge gold cost and downgrade", () => {
+  const MOCK_SPECIES_ID = "compi";
+  let mockSpecies: ReturnType<typeof makeMockSpecies>;
+  let allTraits: Map<string, any>;
+  let getSpeciesByIdSpy: jest.SpyInstance;
+  let getTraitDefinitionSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    mockSpecies = makeMockSpecies(MOCK_SPECIES_ID);
+    allTraits = new Map();
+    for (const traits of Object.values(mockSpecies.traitPools)) {
+      for (const t of traits) allTraits.set(t.id, t);
+    }
+
+    getSpeciesByIdSpy = jest.spyOn(speciesModule, "getSpeciesById").mockImplementation(
+      (id) => (id === MOCK_SPECIES_ID ? (mockSpecies as any) : undefined)
+    );
+    getTraitDefinitionSpy = jest.spyOn(speciesModule, "getTraitDefinition").mockImplementation(
+      (_speciesId, variantId) => allTraits.get(variantId) ?? undefined
+    );
+  });
+
+  afterEach(() => {
+    getSpeciesByIdSpy.mockRestore();
+    getTraitDefinitionSpy.mockRestore();
+  });
+
+  function makeRankedState(
+    collection: CollectionCreature[],
+    energy: number = 20,
+    gold: number = 200
+  ): GameState {
+    return {
+      version: 5,
+      profile: {
+        level: 1,
+        xp: 0,
+        totalCatches: 0,
+        totalMerges: 0,
+        totalTicks: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        lastActiveDate: "",
+        totalUpgrades: 0,
+        totalQuests: 0,
+      },
+      collection,
+      archive: [],
+      energy,
+      lastEnergyGainAt: Date.now(),
+      nearby: [],
+      batch: null,
+      lastSpawnAt: 0,
+      recentTicks: [],
+      claimedMilestones: [],
+      settings: { notificationLevel: "moderate" },
+      gold,
+      discoveredSpecies: [],
+      activeQuest: null,
+      sessionUpgradeCount: 0,
+      currentSessionId: "",
+    };
+  }
+
+  test("executeBreed deducts gold cost based on child avg rank", () => {
+    // Two parents with rank-2 traits — child avg rank = 2
+    // gold cost = baseCost(10) + floor(2 * rankMultiplier(5)) = 20
+    const parentA = makeRankedCreature("pA", MOCK_SPECIES_ID, [2, 2, 2, 2]);
+    const parentB = makeRankedCreature("pB", MOCK_SPECIES_ID, [2, 2, 2, 2]);
+    const state = makeRankedState([parentA, parentB], 20, 100);
+    const goldBefore = state.gold;
+    executeBreed(state, "pA", "pB", () => 0);
+    expect(state.gold).toBeLessThan(goldBefore);
+  });
+
+  test("executeBreed throws if not enough gold", () => {
+    // Rank-5 parents: child avg rank ~5, cost = 10 + floor(5*5) = 35
+    const parentA = makeRankedCreature("pA", MOCK_SPECIES_ID, [5, 5, 5, 5]);
+    const parentB = makeRankedCreature("pB", MOCK_SPECIES_ID, [5, 5, 5, 5]);
+    const state = makeRankedState([parentA, parentB], 20, 0);
+    expect(() => executeBreed(state, "pA", "pB", () => 0)).toThrow(/gold/i);
+  });
+
+  test("executeBreed applies guaranteed +1 upgrade to one random trait", () => {
+    // Rank-3 parents — child inherits rank 3, then one slot gets upgraded to rank 4
+    const parentA = makeRankedCreature("pA", MOCK_SPECIES_ID, [3, 3, 3, 3]);
+    const parentB = makeRankedCreature("pB", MOCK_SPECIES_ID, [3, 3, 3, 3]);
+    const state = makeRankedState([parentA, parentB], 20, 200);
+    // rng sequence: 4 rolls for slot selection (all pick A), 1 roll for upgradeIndex, 1 for downgrade check
+    const result = executeBreed(state, "pA", "pB", () => 0);
+    const ranks = result.child.slots.map((s) => {
+      const m = s.variantId.match(/_r(\d+)$/);
+      return m ? parseInt(m[1], 10) : 0;
+    });
+    expect(ranks.some((r) => r === 4)).toBe(true);
+  });
+
+  test("executeBreed does not downgrade when rng is above downgradeChance (0.30)", () => {
+    // rng() always returns 0.99 — downgrade check (0.99 < 0.30) is false → no downgrade
+    const parentA = makeRankedCreature("pA", MOCK_SPECIES_ID, [3, 3, 3, 3]);
+    const parentB = makeRankedCreature("pB", MOCK_SPECIES_ID, [3, 3, 3, 3]);
+    const state = makeRankedState([parentA, parentB], 20, 200);
+    const result = executeBreed(state, "pA", "pB", () => 0.99);
+    const ranks = result.child.slots.map((s) => {
+      const m = s.variantId.match(/_r(\d+)$/);
+      return m ? parseInt(m[1], 10) : 0;
+    });
+    // Exactly one upgrade (+1) and no downgrades: ranks should be [3,3,3,4] in some order
+    expect(ranks.filter((r) => r === 4)).toHaveLength(1);
+    expect(ranks.filter((r) => r === 2)).toHaveLength(0);
+  });
+
+  test("executeBreed downgrades a different trait when rng triggers it", () => {
+    // Control rng: slots picked, upgradeIndex=0, downgradeCheck passes, downgradeIndex=1
+    // rng values: [0,0,0,0] slot picks, [0] upgradeIndex=0, [0.1] downgrade check (< 0.30), [0.3] downgradeIndex
+    let call = 0;
+    const rngs = [0, 0, 0, 0, 0, 0.1, 0.3];
+    const rng = () => rngs[call++] ?? 0.5;
+
+    const parentA = makeRankedCreature("pA", MOCK_SPECIES_ID, [3, 3, 3, 3]);
+    const parentB = makeRankedCreature("pB", MOCK_SPECIES_ID, [3, 3, 3, 3]);
+    const state = makeRankedState([parentA, parentB], 20, 200);
+    const result = executeBreed(state, "pA", "pB", rng);
+    const ranks = result.child.slots.map((s) => {
+      const m = s.variantId.match(/_r(\d+)$/);
+      return m ? parseInt(m[1], 10) : 0;
+    });
+    // One upgraded (+1) and one downgraded (-1), all others stay at 3
+    expect(ranks.some((r) => r === 4)).toBe(true);
+    expect(ranks.some((r) => r === 2)).toBe(true);
+  });
+
+  test("executeBreed grants XP after merge", () => {
+    const parentA = makeRankedCreature("pA", MOCK_SPECIES_ID, [1, 1, 1, 1]);
+    const parentB = makeRankedCreature("pB", MOCK_SPECIES_ID, [1, 1, 1, 1]);
+    const state = makeRankedState([parentA, parentB], 20, 200);
+    const xpBefore = state.profile.xp;
+    executeBreed(state, "pA", "pB", () => 0);
+    // xpPerMerge = 25 from balance.json
+    expect(state.profile.xp).toBeGreaterThan(xpBefore);
   });
 });
