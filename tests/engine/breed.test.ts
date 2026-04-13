@@ -45,7 +45,7 @@ function makeState(
   energy: number = 20
 ): GameState {
   return {
-    version: 4,
+    version: 5,
     profile: {
       level: 1,
       xp: 0,
@@ -55,6 +55,8 @@ function makeState(
       currentStreak: 0,
       longestStreak: 0,
       lastActiveDate: "",
+      totalUpgrades: 0,
+      totalQuests: 0,
     },
     collection,
     archive: [],
@@ -66,6 +68,11 @@ function makeState(
     recentTicks: [],
     claimedMilestones: [],
     settings: { notificationLevel: "moderate" },
+    gold: 10,
+    discoveredSpecies: [],
+    activeQuest: null,
+    sessionUpgradeCount: 0,
+    currentSessionId: "",
   };
 }
 

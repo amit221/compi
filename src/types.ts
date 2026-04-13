@@ -1,4 +1,4 @@
-// src/types.ts — Compi v3 (multi-species)
+// src/types.ts — Compi v5
 
 // --- Slots (4) ---
 
@@ -93,6 +93,8 @@ export interface PlayerProfile {
   currentStreak: number;
   longestStreak: number;
   lastActiveDate: string;
+  totalUpgrades: number;
+  totalQuests: number;
 }
 
 export interface GameSettings {
@@ -100,7 +102,7 @@ export interface GameSettings {
 }
 
 export interface GameState {
-  version: number; // 4
+  version: number; // 5
   profile: PlayerProfile;
   collection: CollectionCreature[];
   archive: CollectionCreature[];
@@ -112,6 +114,57 @@ export interface GameState {
   recentTicks: Tick[];
   claimedMilestones: string[];
   settings: GameSettings;
+  gold: number;
+  discoveredSpecies: string[];
+  activeQuest: ActiveQuest | null;
+  sessionUpgradeCount: number;
+  currentSessionId: string;
+}
+
+// --- Quest ---
+export interface ActiveQuest {
+  id: string;
+  creatureIds: string[];
+  startedAtSession: number;
+  sessionsRemaining: number;
+  teamPower: number;
+}
+
+// --- Upgrade ---
+export interface UpgradeResult {
+  creatureId: string;
+  slotId: SlotId;
+  fromRank: number;
+  toRank: number;
+  goldCost: number;
+}
+
+// --- Quest Result ---
+export interface QuestStartResult {
+  quest: ActiveQuest;
+  creaturesLocked: string[];
+}
+
+export interface QuestCompleteResult {
+  questId: string;
+  goldEarned: number;
+  xpEarned: number;
+  creaturesReturned: string[];
+}
+
+// --- Level Up ---
+export interface LevelUpResult {
+  oldLevel: number;
+  newLevel: number;
+  xpOverflow: number;
+}
+
+// --- Discovery ---
+export interface DiscoveryResult {
+  speciesId: string;
+  isNew: boolean;
+  bonusXp: number;
+  totalDiscovered: number;
 }
 
 // --- Engine Results ---

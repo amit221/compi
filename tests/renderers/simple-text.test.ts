@@ -331,6 +331,7 @@ describe("renderStatus", () => {
       profile: {
         level: 1, xp: 0, totalCatches: 0, totalMerges: 0, totalTicks: 0,
         currentStreak: 0, longestStreak: 0, lastActiveDate: "2026-04-01",
+        totalUpgrades: 0, totalQuests: 0,
       },
       collectionCount: 2,
       archiveCount: 5,

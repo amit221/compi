@@ -3,8 +3,8 @@ import { GameState, NearbyCreature, SLOT_IDS, CREATURE_COLORS } from "../../src/
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
-    version: 4,
-    profile: { level: 1, xp: 0, totalCatches: 0, totalMerges: 0, totalTicks: 0, currentStreak: 0, longestStreak: 0, lastActiveDate: "" },
+    version: 5,
+    profile: { level: 1, xp: 0, totalCatches: 0, totalMerges: 0, totalTicks: 0, currentStreak: 0, longestStreak: 0, lastActiveDate: "", totalUpgrades: 0, totalQuests: 0 },
     collection: [],
     archive: [],
     energy: 10,
@@ -15,6 +15,11 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     recentTicks: [],
     claimedMilestones: [],
     settings: { notificationLevel: "moderate" },
+    gold: 10,
+    discoveredSpecies: [],
+    activeQuest: null,
+    sessionUpgradeCount: 0,
+    currentSessionId: "",
     ...overrides,
   };
 }

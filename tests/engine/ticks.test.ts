@@ -3,10 +3,11 @@ import { GameState, Tick } from "../../src/types";
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
-    version: 4,
+    version: 5,
     profile: {
       level: 1, xp: 0, totalCatches: 0, totalMerges: 0, totalTicks: 0,
       currentStreak: 0, longestStreak: 0, lastActiveDate: "2026-04-01",
+      totalUpgrades: 0, totalQuests: 0,
     },
     collection: [],
     archive: [],
@@ -18,6 +19,11 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     recentTicks: [],
     claimedMilestones: [],
     settings: { notificationLevel: "moderate" },
+    gold: 10,
+    discoveredSpecies: [],
+    activeQuest: null,
+    sessionUpgradeCount: 0,
+    currentSessionId: "",
     ...overrides,
   };
 }

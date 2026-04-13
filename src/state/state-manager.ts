@@ -7,7 +7,7 @@ import { logger } from "../logger";
 function defaultState(): GameState {
   const today = new Date().toISOString().split("T")[0];
   return {
-    version: 4,
+    version: 5,
     profile: {
       level: 1,
       xp: 0,
@@ -17,6 +17,8 @@ function defaultState(): GameState {
       currentStreak: 0,
       longestStreak: 0,
       lastActiveDate: today,
+      totalUpgrades: 0,
+      totalQuests: 0,
     },
     collection: [],
     archive: [],
@@ -30,6 +32,11 @@ function defaultState(): GameState {
     settings: {
       notificationLevel: "moderate",
     },
+    gold: 10,
+    discoveredSpecies: [],
+    activeQuest: null,
+    sessionUpgradeCount: 0,
+    currentSessionId: "",
   };
 }
 
@@ -74,6 +81,25 @@ function migrateV3toV4(raw: Record<string, unknown>): GameState {
   return state as unknown as GameState;
 }
 
+function migrateV4toV5(raw: Record<string, unknown>): GameState {
+  const state = raw as unknown as GameState;
+
+  // Add new profile fields
+  if (!state.profile) (state as any).profile = {};
+  if ((state.profile as any).totalUpgrades === undefined) (state.profile as any).totalUpgrades = 0;
+  if ((state.profile as any).totalQuests === undefined) (state.profile as any).totalQuests = 0;
+
+  // Add new top-level fields
+  if ((state as any).gold === undefined) (state as any).gold = 10;
+  if ((state as any).discoveredSpecies === undefined) (state as any).discoveredSpecies = [];
+  if ((state as any).activeQuest === undefined) (state as any).activeQuest = null;
+  if ((state as any).sessionUpgradeCount === undefined) (state as any).sessionUpgradeCount = 0;
+  if ((state as any).currentSessionId === undefined) (state as any).currentSessionId = "";
+
+  state.version = 5;
+  return state;
+}
+
 export class StateManager {
   constructor(private filePath: string) {}
 
@@ -84,13 +110,19 @@ export class StateManager {
       const version = raw.version as number;
       if (version === 3) {
         logger.info("Migrating state from v3 to v4", { path: this.filePath });
-        return migrateV3toV4(raw);
+        const v4 = migrateV3toV4(raw);
+        logger.info("Migrating state from v4 to v5", { path: this.filePath });
+        return migrateV4toV5(v4 as unknown as Record<string, unknown>);
       }
-      if (version !== 4) {
+      if (version === 4) {
+        logger.info("Migrating state from v4 to v5", { path: this.filePath });
+        return migrateV4toV5(raw);
+      }
+      if (version !== 5) {
         logger.info("Incompatible state version, creating fresh state", { path: this.filePath });
         return defaultState();
       }
-      // Backfill lastSpawnAt for existing v4 states
+      // Backfill lastSpawnAt for existing v5 states
       const state = raw as unknown as GameState;
       if (state.lastSpawnAt === undefined) {
         (state as any).lastSpawnAt = 0;

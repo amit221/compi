@@ -3,7 +3,7 @@ import * as path from "path";
 import * as os from "os";
 import { StateManager } from "../../src/state/state-manager";
 
-describe("StateManager v4", () => {
+describe("StateManager v5", () => {
   const tmpDir = path.join(os.tmpdir(), "compi-test-" + Date.now());
   const statePath = path.join(tmpDir, "state.json");
 
@@ -11,11 +11,11 @@ describe("StateManager v4", () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  test("creates default v4 state when no file exists", () => {
+  test("creates default v5 state when no file exists", () => {
     const sm = new StateManager(statePath);
     const state = sm.load();
 
-    expect(state.version).toBe(4);
+    expect(state.version).toBe(5);
     expect(state.profile.level).toBe(1);
     expect(state.collection).toEqual([]);
     expect(state.archive).toEqual([]);
@@ -31,10 +31,10 @@ describe("StateManager v4", () => {
 
     const loaded = sm.load();
     expect(loaded.profile.totalCatches).toBe(5);
-    expect(loaded.version).toBe(4);
+    expect(loaded.version).toBe(5);
   });
 
-  test("migrates v3 state to v4", () => {
+  test("migrates v3 state to v5", () => {
     // Write a v3 state file
     const v3State = {
       version: 3,
@@ -91,7 +91,7 @@ describe("StateManager v4", () => {
     const sm = new StateManager(statePath);
     const state = sm.load();
 
-    expect(state.version).toBe(4);
+    expect(state.version).toBe(5);
     expect(state.archive).toEqual([]);
 
     // Collection creature should have speciesId and archived, no rarity on slots
