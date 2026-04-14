@@ -30260,7 +30260,7 @@ var balance_default = {
     gainIntervalMs: 18e5,
     maxEnergy: 30,
     startingEnergy: 5,
-    sessionBonus: 1,
+    sessionBonus: 3,
     costPerRarity: {
       common: 1,
       uncommon: 1,
@@ -30382,6 +30382,38 @@ var balance_default = {
       normalSpawn: "Something flickering nearby...",
       milestone: "Milestone reached! +{energy} energy"
     }
+  },
+  upgrade: {
+    costs: [3, 5, 9, 15, 24, 38, 55],
+    maxRank: 7,
+    sessionCap: 2
+  },
+  quest: {
+    maxTeamSize: 3,
+    lockDurationSessions: 2,
+    rewardMultiplier: 0.6,
+    rewardFloor: 10,
+    xpReward: 15
+  },
+  mergeGold: {
+    baseCost: 10,
+    rankMultiplier: 5,
+    downgradeChance: 0.3
+  },
+  leveling: {
+    thresholds: [30, 50, 80, 120, 170, 240, 340, 480, 680, 960, 1350, 1900, 2700],
+    traitRankCaps: [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8],
+    xpPerCatch: 10,
+    xpPerUpgrade: 8,
+    xpPerMerge: 25,
+    xpPerQuest: 15,
+    xpDiscoveryBonus: 20
+  },
+  discovery: {
+    speciesUnlockLevels: {}
+  },
+  economy: {
+    startingGold: 10
   }
 };
 
@@ -30432,7 +30464,7 @@ var logger = {
 function defaultState() {
   const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
   return {
-    version: 4,
+    version: 5,
     profile: {
       level: 1,
       xp: 0,
@@ -30441,7 +30473,9 @@ function defaultState() {
       totalTicks: 0,
       currentStreak: 0,
       longestStreak: 0,
-      lastActiveDate: today
+      lastActiveDate: today,
+      totalUpgrades: 0,
+      totalQuests: 0
     },
     collection: [],
     archive: [],
@@ -30454,7 +30488,12 @@ function defaultState() {
     claimedMilestones: [],
     settings: {
       notificationLevel: "moderate"
-    }
+    },
+    gold: 10,
+    discoveredSpecies: [],
+    activeQuest: null,
+    sessionUpgradeCount: 0,
+    currentSessionId: ""
   };
 }
 function migrateV3toV4(raw) {
@@ -30490,6 +30529,19 @@ function migrateV3toV4(raw) {
   state.version = 4;
   return state;
 }
+function migrateV4toV5(raw) {
+  const state = raw;
+  if (!state.profile) state.profile = {};
+  if (state.profile.totalUpgrades === void 0) state.profile.totalUpgrades = 0;
+  if (state.profile.totalQuests === void 0) state.profile.totalQuests = 0;
+  if (state.gold === void 0) state.gold = 10;
+  if (state.discoveredSpecies === void 0) state.discoveredSpecies = [];
+  if (state.activeQuest === void 0) state.activeQuest = null;
+  if (state.sessionUpgradeCount === void 0) state.sessionUpgradeCount = 0;
+  if (state.currentSessionId === void 0) state.currentSessionId = "";
+  state.version = 5;
+  return state;
+}
 var StateManager = class {
   constructor(filePath) {
     this.filePath = filePath;
@@ -30501,9 +30553,15 @@ var StateManager = class {
       const version2 = raw.version;
       if (version2 === 3) {
         logger.info("Migrating state from v3 to v4", { path: this.filePath });
-        return migrateV3toV4(raw);
+        const v4 = migrateV3toV4(raw);
+        logger.info("Migrating state from v4 to v5", { path: this.filePath });
+        return migrateV4toV5(v4);
       }
-      if (version2 !== 4) {
+      if (version2 === 4) {
+        logger.info("Migrating state from v4 to v5", { path: this.filePath });
+        return migrateV4toV5(raw);
+      }
+      if (version2 !== 5) {
         logger.info("Incompatible state version, creating fresh state", { path: this.filePath });
         return defaultState();
       }
@@ -30612,6 +30670,8 @@ var compi_default = {
   name: "Compi",
   description: "A small digital axolotl that thrives in terminal environments.",
   spawnWeight: 10,
+  art: ["  EE", " (MM)", " \u2571BB\u2572", "  TT"],
+  zones: ["eyes", "mouth", "body", "tail"],
   traitPools: {
     eyes: [
       { id: "eye_c01", name: "Pebble Gaze", art: "\u25CB.\u25CB", spawnRate: 0.12 },
@@ -30707,6 +30767,7 @@ var flikk_default = {
   description: "A twitchy, buzzing creature that seems to vibrate in place. Always mid-movement.",
   spawnWeight: 11,
   art: ["  \\ _ /", " ( EE )", " ( MM )", "  ~BB~", "   \\/"],
+  zones: ["tail", "eyes", "mouth", "body", "tail"],
   traitPools: {
     eyes: [
       { id: "flk_eye_01", name: "Blink", art: "\u2022.\u2022", spawnRate: 0.12 },
@@ -30786,6 +30847,7 @@ var glich_default = {
   description: "A rendering error that became sentient. Parts flicker, repeat, or seem corrupted.",
   spawnWeight: 8,
   art: [" \u2590\u2591\u2591\u2591\u258C", " \u2590EE\u258C", " \u2590 MM \u258C", " \u2590BB\u258C", "  TT"],
+  zones: ["body", "eyes", "mouth", "body", "tail"],
   traitPools: {
     eyes: [
       { id: "glc_eye_01", name: "Static", art: "\xB7.\xB7", spawnRate: 0.1 },
@@ -30873,6 +30935,7 @@ var jinx_default = {
   description: "A cheeky little trickster. Asymmetric on purpose \u2014 nothing lines up right.",
   spawnWeight: 11,
   art: ["    ~", "  /EE )", " ( MM /", "  \\BB )", "   TT~"],
+  zones: ["tail", "eyes", "mouth", "body", "tail"],
   traitPools: {
     eyes: [
       { id: "jnx_eye_01", name: "Peek", art: "\xB7.\xB7", spawnRate: 0.13 },
@@ -30952,6 +31015,7 @@ var monu_default = {
   description: "A slow, heavy presence. Feels like it has been sitting in the same spot for centuries.",
   spawnWeight: 9,
   art: [" \u250C\u2500\u2500\u2500\u2500\u2500\u2510", " \u2502EE\u2502", " \u2502 MM \u2502", " \u2502BB\u2502", " \u2514TT\u2518"],
+  zones: ["body", "eyes", "mouth", "body", "tail"],
   traitPools: {
     eyes: [
       { id: "mnu_eye_01", name: "Pebble", art: "\xB7.\xB7", spawnRate: 0.15 },
@@ -31024,6 +31088,7 @@ var whiski_default = {
   description: "A rare, elusive cat. Quiet and always just out of reach.",
   spawnWeight: 5,
   art: [" /\\_/\\", "( EE )", " > MM <", "  TT"],
+  zones: ["eyes", "eyes", "mouth", "tail"],
   traitPools: {
     eyes: [
       { id: "wsk_eye_01", name: "Peer", art: "\xB7.\xB7", spawnRate: 0.11 },
@@ -31084,6 +31149,94 @@ var whiski_default = {
   }
 };
 
+// config/species/pyrax.json
+var pyrax_default = {
+  id: "pyrax",
+  name: "Pyrax",
+  description: "A smoldering ember-bird, half-formed from living flame, always trailing sparks.",
+  spawnWeight: 6,
+  art: ["  /EE\\,", " ( MM  >", "  \\BB /~", "   TT"],
+  zones: ["eyes", "mouth", "body", "tail"],
+  traitPools: {
+    eyes: [
+      { id: "pyr_eye_01", name: "Flicker", art: "\xB7\xB7", spawnRate: 0.14 },
+      { id: "pyr_eye_02", name: "Glow", art: "\xB0\xB0", spawnRate: 0.12 },
+      { id: "pyr_eye_03", name: "Ember", art: "\u2022\u2022", spawnRate: 0.1 },
+      { id: "pyr_eye_04", name: "Sear", art: "\xB7\xB0", spawnRate: 0.09 },
+      { id: "pyr_eye_05", name: "Kindle", art: "\xB0\xB7", spawnRate: 0.08 },
+      { id: "pyr_eye_06", name: "Smolder", art: "\u25E6\u25E6", spawnRate: 0.07 },
+      { id: "pyr_eye_07", name: "Scorch", art: ">\xB7", spawnRate: 0.065 },
+      { id: "pyr_eye_08", name: "Flare", art: "\u25D0\u25D0", spawnRate: 0.06 },
+      { id: "pyr_eye_09", name: "Ignite", art: "\u25D1\u25D1", spawnRate: 0.05 },
+      { id: "pyr_eye_10", name: "Blaze", art: "\u25CE\u25CE", spawnRate: 0.04 },
+      { id: "pyr_eye_11", name: "Burn", art: "\u25CF\u25CF", spawnRate: 0.03 },
+      { id: "pyr_eye_12", name: "Pyre", art: "\u25C7\u25C7", spawnRate: 0.025 },
+      { id: "pyr_eye_13", name: "Forge", art: "\u25C8\u25C8", spawnRate: 0.02 },
+      { id: "pyr_eye_14", name: "Furnace", art: "\u25C9\u25C9", spawnRate: 0.015 },
+      { id: "pyr_eye_15", name: "Inferno", art: "\u2299\u2299", spawnRate: 0.01 },
+      { id: "pyr_eye_16", name: "Nova", art: "\u2605\u2605", spawnRate: 5e-3 },
+      { id: "pyr_eye_17", name: "Supernova", art: "\u2727\u2727", spawnRate: 3e-3 }
+    ],
+    mouth: [
+      { id: "pyr_mth_01", name: "Crackle", art: "~~", spawnRate: 0.14 },
+      { id: "pyr_mth_02", name: "Hiss", art: "^^", spawnRate: 0.12 },
+      { id: "pyr_mth_03", name: "Pop", art: ".^", spawnRate: 0.1 },
+      { id: "pyr_mth_04", name: "Snap", art: "_^", spawnRate: 0.09 },
+      { id: "pyr_mth_05", name: "Sizzle", art: "^~", spawnRate: 0.08 },
+      { id: "pyr_mth_06", name: "Sputter", art: "~^", spawnRate: 0.07 },
+      { id: "pyr_mth_07", name: "Whoosh", art: "\u2307^", spawnRate: 0.06 },
+      { id: "pyr_mth_08", name: "Roar", art: "\u223F~", spawnRate: 0.05 },
+      { id: "pyr_mth_09", name: "Rage", art: "\u2307~", spawnRate: 0.04 },
+      { id: "pyr_mth_10", name: "Snarl", art: "\u2248^", spawnRate: 0.03 },
+      { id: "pyr_mth_11", name: "Scream", art: "\u21AF^", spawnRate: 0.025 },
+      { id: "pyr_mth_12", name: "Bellow", art: "\u223F^", spawnRate: 0.02 },
+      { id: "pyr_mth_13", name: "Blast", art: "\u26A1\xB7", spawnRate: 0.015 },
+      { id: "pyr_mth_14", name: "Eruption", art: "\u26A1^", spawnRate: 0.01 },
+      { id: "pyr_mth_15", name: "Hellfire", art: "\u2727^", spawnRate: 7e-3 },
+      { id: "pyr_mth_16", name: "Inferno", art: "\u2726\xB7", spawnRate: 5e-3 },
+      { id: "pyr_mth_17", name: "Cataclysm", art: "\u2605^", spawnRate: 3e-3 }
+    ],
+    body: [
+      { id: "pyr_bod_01", name: "Ash", art: "\u2591\u2591", spawnRate: 0.14 },
+      { id: "pyr_bod_02", name: "Soot", art: "\xB7\xB7", spawnRate: 0.12 },
+      { id: "pyr_bod_03", name: "Char", art: "\u2219\u2219", spawnRate: 0.1 },
+      { id: "pyr_bod_04", name: "Smoke", art: "::", spawnRate: 0.09 },
+      { id: "pyr_bod_05", name: "Cinder", art: "--", spawnRate: 0.08 },
+      { id: "pyr_bod_06", name: "Coal", art: "\u2307\u2307", spawnRate: 0.07 },
+      { id: "pyr_bod_07", name: "Ember", art: "\u2592\u2592", spawnRate: 0.06 },
+      { id: "pyr_bod_08", name: "Scald", art: "~~", spawnRate: 0.05 },
+      { id: "pyr_bod_09", name: "Blister", art: "\u2248\u2248", spawnRate: 0.04 },
+      { id: "pyr_bod_10", name: "Magma", art: "\u223F\u223F", spawnRate: 0.035 },
+      { id: "pyr_bod_11", name: "Lava", art: "\u2593\u2593", spawnRate: 0.03 },
+      { id: "pyr_bod_12", name: "Molten", art: "++", spawnRate: 0.025 },
+      { id: "pyr_bod_13", name: "Forge", art: "##", spawnRate: 0.02 },
+      { id: "pyr_bod_14", name: "Crucible", art: "\u25C6\u25C6", spawnRate: 0.015 },
+      { id: "pyr_bod_15", name: "Core", art: "\u25C8\u25C8", spawnRate: 0.01 },
+      { id: "pyr_bod_16", name: "Plasma", art: "\u2B21\u2B21", spawnRate: 5e-3 },
+      { id: "pyr_bod_17", name: "Solar", art: "\u2605\u2605", spawnRate: 3e-3 }
+    ],
+    tail: [
+      { id: "pyr_tal_01", name: "Wisp", art: "~/", spawnRate: 0.14 },
+      { id: "pyr_tal_02", name: "Trail", art: "~~", spawnRate: 0.12 },
+      { id: "pyr_tal_03", name: "Drift", art: "/~", spawnRate: 0.1 },
+      { id: "pyr_tal_04", name: "Smoke", art: "\u2307/", spawnRate: 0.09 },
+      { id: "pyr_tal_05", name: "Spark", art: "~\u2307", spawnRate: 0.08 },
+      { id: "pyr_tal_06", name: "Cinder", art: "/\u2307", spawnRate: 0.07 },
+      { id: "pyr_tal_07", name: "Ember", art: "\u2307~", spawnRate: 0.06 },
+      { id: "pyr_tal_08", name: "Scorch", art: "~\u223F", spawnRate: 0.05 },
+      { id: "pyr_tal_09", name: "Blaze", art: "\u2307\u2307", spawnRate: 0.04 },
+      { id: "pyr_tal_10", name: "Flare", art: "\u223F\u223F", spawnRate: 0.03 },
+      { id: "pyr_tal_11", name: "Torch", art: "\u21AF~", spawnRate: 0.025 },
+      { id: "pyr_tal_12", name: "Burn", art: "\u21AF\u21AF", spawnRate: 0.02 },
+      { id: "pyr_tal_13", name: "Pyre", art: "\u224B\u224B", spawnRate: 0.015 },
+      { id: "pyr_tal_14", name: "Inferno", art: "\u26A1\u2307", spawnRate: 0.01 },
+      { id: "pyr_tal_15", name: "Eruption", art: "\u2727\u2307", spawnRate: 7e-3 },
+      { id: "pyr_tal_16", name: "Phoenix", art: "\u2727\u2727", spawnRate: 5e-3 },
+      { id: "pyr_tal_17", name: "Eternal", art: "\u2604\u2604", spawnRate: 3e-3 }
+    ]
+  }
+};
+
 // src/config/species.ts
 var SPECIES_DATA = [
   compi_default,
@@ -31091,7 +31244,8 @@ var SPECIES_DATA = [
   glich_default,
   jinx_default,
   monu_default,
-  whiski_default
+  whiski_default,
+  pyrax_default
 ];
 var _speciesCache = null;
 var _speciesById = /* @__PURE__ */ new Map();
@@ -31486,6 +31640,18 @@ function spendEnergy(state, amount) {
   }
   state.energy -= amount;
 }
+var SESSION_ENERGY_BONUS = config3.energy.sessionBonus;
+function processSessionEnergyBonus(state, sessionId) {
+  if (!sessionId || state.currentSessionId === sessionId) {
+    return 0;
+  }
+  state.currentSessionId = sessionId;
+  state.sessionUpgradeCount = 0;
+  const maxGain = MAX_ENERGY - state.energy;
+  const gained = Math.min(SESSION_ENERGY_BONUS, maxGain);
+  state.energy += gained;
+  return gained;
+}
 
 // src/engine/catch.ts
 function calculateCatchRate(speciesId, slots, failPenalty) {
@@ -31572,6 +31738,47 @@ function attemptCatch(state, nearbyIndex, rng = Math.random) {
 // src/types.ts
 var SLOT_IDS = ["eyes", "mouth", "body", "tail"];
 var MAX_COLLECTION_SIZE = 15;
+
+// src/engine/gold.ts
+function earnGold(state, amount) {
+  if (amount < 0) throw new Error("Cannot earn negative gold");
+  state.gold += amount;
+}
+function spendGold(state, amount) {
+  if (state.gold < amount) throw new Error(`Not enough gold: have ${state.gold}, need ${amount}`);
+  state.gold -= amount;
+}
+
+// src/engine/progression.ts
+function getXpForNextLevel(level) {
+  const config4 = loadConfig();
+  const thresholds = config4.leveling.thresholds;
+  const index = Math.min(level - 1, thresholds.length - 1);
+  return thresholds[index];
+}
+function grantXp(state, amount) {
+  state.profile.xp += amount;
+  const oldLevel = state.profile.level;
+  let currentLevel = oldLevel;
+  while (true) {
+    const needed = getXpForNextLevel(currentLevel);
+    if (state.profile.xp >= needed) {
+      state.profile.xp -= needed;
+      currentLevel++;
+    } else {
+      break;
+    }
+  }
+  if (currentLevel > oldLevel) {
+    state.profile.level = currentLevel;
+    return {
+      oldLevel,
+      newLevel: currentLevel,
+      xpOverflow: state.profile.xp
+    };
+  }
+  return null;
+}
 
 // src/engine/breed.ts
 function generateId2() {
@@ -31697,6 +31904,40 @@ function executeBreed(state, parentAId, parentBId, rng = Math.random) {
     });
     inheritedFrom[si.slotId] = fromA ? "A" : "B";
   }
+  const config4 = loadConfig();
+  const childRanks = childSlots.map((s) => {
+    const m = s.variantId.match(/_r(\d+)$/);
+    return m ? parseInt(m[1], 10) : 0;
+  });
+  const childAvgRank = childRanks.reduce((a, b) => a + b, 0) / childRanks.length;
+  const goldCost = config4.mergeGold.baseCost + Math.floor(childAvgRank * config4.mergeGold.rankMultiplier);
+  spendGold(state, goldCost);
+  const upgradeIndex = Math.floor(rng() * childSlots.length);
+  const upgradeSlot = childSlots[upgradeIndex];
+  const upgradeRankMatch = upgradeSlot.variantId.match(/_r(\d+)$/);
+  if (upgradeRankMatch) {
+    const currentRank = parseInt(upgradeRankMatch[1], 10);
+    upgradeSlot.variantId = upgradeSlot.variantId.replace(
+      /_r\d+$/,
+      `_r${currentRank + 1}`
+    );
+  }
+  if (rng() < config4.mergeGold.downgradeChance && childSlots.length > 1) {
+    const otherIndices = childSlots.map((_, i) => i).filter((i) => i !== upgradeIndex);
+    const pick2 = Math.floor(rng() * otherIndices.length);
+    const downgradeIndex = otherIndices[pick2];
+    const downgradeSlot = childSlots[downgradeIndex];
+    const downgradeRankMatch = downgradeSlot.variantId.match(/_r(\d+)$/);
+    if (downgradeRankMatch) {
+      const currentRank = parseInt(downgradeRankMatch[1], 10);
+      if (currentRank > 0) {
+        downgradeSlot.variantId = downgradeSlot.variantId.replace(
+          /_r\d+$/,
+          `_r${currentRank - 1}`
+        );
+      }
+    }
+  }
   const child = {
     id: generateId2(),
     speciesId,
@@ -31713,6 +31954,7 @@ function executeBreed(state, parentAId, parentBId, rng = Math.random) {
   state.collection.push(child);
   state.energy -= energyCost;
   state.profile.totalMerges += 1;
+  grantXp(state, config4.leveling.xpPerMerge);
   return {
     child,
     parentA,
@@ -31776,6 +32018,473 @@ function isCollectionFull(state) {
   return state.collection.length >= MAX_COLLECTION_SIZE;
 }
 
+// src/engine/upgrade.ts
+function performUpgrade(state, creatureId, slotId) {
+  const config4 = loadConfig();
+  if (state.sessionUpgradeCount >= config4.upgrade.sessionCap) {
+    throw new Error(
+      `Session upgrade cap reached (${config4.upgrade.sessionCap} per session)`
+    );
+  }
+  const creature = state.collection.find((c) => c.id === creatureId);
+  if (!creature) {
+    throw new Error(`Creature not found: ${creatureId}`);
+  }
+  if (creature.archived) {
+    throw new Error(`Creature is archived: ${creatureId}`);
+  }
+  const slot = creature.slots.find((s) => s.slotId === slotId);
+  if (!slot) {
+    throw new Error(`Slot not found on creature: ${slotId}`);
+  }
+  const rankMatch = slot.variantId.match(/_r(\d+)$/);
+  const currentRank = rankMatch ? parseInt(rankMatch[1], 10) : 0;
+  if (currentRank >= config4.upgrade.maxRank) {
+    throw new Error(
+      `Trait ${slotId} is already at max rank (${config4.upgrade.maxRank})`
+    );
+  }
+  const cost = config4.upgrade.costs[currentRank];
+  spendGold(state, cost);
+  const newRank = currentRank + 1;
+  slot.variantId = slot.variantId.replace(/_r\d+$/, `_r${newRank}`);
+  state.sessionUpgradeCount++;
+  state.profile.totalUpgrades++;
+  grantXp(state, config4.leveling.xpPerUpgrade);
+  return {
+    creatureId,
+    slotId,
+    fromRank: currentRank,
+    toRank: newRank,
+    goldCost: cost
+  };
+}
+
+// src/engine/quest.ts
+function generateQuestId() {
+  return "q_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+function calculateTeamPower(state, creatureIds) {
+  let total = 0;
+  for (const id of creatureIds) {
+    const creature = state.collection.find((c) => c.id === id);
+    if (!creature) continue;
+    for (const slot of creature.slots) {
+      const rankMatch = slot.variantId.match(/_r(\d+)$/);
+      total += rankMatch ? parseInt(rankMatch[1], 10) : 0;
+    }
+  }
+  return total;
+}
+function calculateQuestReward(teamPower) {
+  const config4 = loadConfig();
+  return Math.max(
+    config4.quest.rewardFloor,
+    Math.floor(teamPower * config4.quest.rewardMultiplier)
+  );
+}
+function startQuest(state, creatureIds) {
+  const config4 = loadConfig();
+  if (state.activeQuest) {
+    throw new Error("Already on a quest. Wait for the current quest to complete.");
+  }
+  if (creatureIds.length === 0) {
+    throw new Error("Must send at least 1 creature on a quest.");
+  }
+  if (creatureIds.length > config4.quest.maxTeamSize) {
+    throw new Error(
+      `Max team size is ${config4.quest.maxTeamSize}, got ${creatureIds.length}`
+    );
+  }
+  for (const id of creatureIds) {
+    const creature = state.collection.find((c) => c.id === id);
+    if (!creature) {
+      throw new Error(`Creature not found: ${id}`);
+    }
+    if (creature.archived) {
+      throw new Error(`Creature is archived and cannot quest: ${id}`);
+    }
+  }
+  const teamPower = calculateTeamPower(state, creatureIds);
+  const quest = {
+    id: generateQuestId(),
+    creatureIds: [...creatureIds],
+    startedAtSession: 0,
+    // will be tracked by session ID
+    sessionsRemaining: config4.quest.lockDurationSessions,
+    teamPower
+  };
+  state.activeQuest = quest;
+  return {
+    quest,
+    creaturesLocked: [...creatureIds]
+  };
+}
+function checkQuest(state) {
+  if (!state.activeQuest) {
+    return null;
+  }
+  state.activeQuest.sessionsRemaining--;
+  if (state.activeQuest.sessionsRemaining > 0) {
+    return null;
+  }
+  const config4 = loadConfig();
+  const quest = state.activeQuest;
+  const goldReward = calculateQuestReward(quest.teamPower);
+  earnGold(state, goldReward);
+  grantXp(state, config4.leveling.xpPerQuest);
+  state.profile.totalQuests++;
+  state.activeQuest = null;
+  return {
+    questId: quest.id,
+    goldEarned: goldReward,
+    xpEarned: config4.leveling.xpPerQuest,
+    creaturesReturned: [...quest.creatureIds]
+  };
+}
+
+// src/engine/discovery.ts
+function recordDiscovery(state, speciesId) {
+  const config4 = loadConfig();
+  if (state.discoveredSpecies.includes(speciesId)) {
+    return {
+      speciesId,
+      isNew: false,
+      bonusXp: 0,
+      totalDiscovered: state.discoveredSpecies.length
+    };
+  }
+  state.discoveredSpecies.push(speciesId);
+  const bonusXp = config4.leveling.xpDiscoveryBonus;
+  grantXp(state, bonusXp);
+  return {
+    speciesId,
+    isNew: true,
+    bonusXp,
+    totalDiscovered: state.discoveredSpecies.length
+  };
+}
+
+// src/engine/advisor.ts
+var TIER_BOUNDARIES = [0, 5, 9, 12, 15, 17];
+var TIER_NAMES = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
+var POWER_MILESTONES = [25, 50, 100, 150, 200, 300, 500];
+function extractRank(variantId) {
+  const m = variantId.match(/_r(\d+)$/);
+  return m ? parseInt(m[1], 10) : 0;
+}
+function getTierName(rank) {
+  for (let i = TIER_BOUNDARIES.length - 1; i >= 0; i--) {
+    if (rank >= TIER_BOUNDARIES[i]) return TIER_NAMES[i];
+  }
+  return "common";
+}
+function getNextTierBoundary(rank) {
+  for (const boundary of TIER_BOUNDARIES) {
+    if (boundary > rank) return boundary;
+  }
+  return null;
+}
+function calculateTeamPower2(state) {
+  let total = 0;
+  const questCreatureIds = state.activeQuest?.creatureIds ?? [];
+  for (const creature of state.collection) {
+    if (creature.archived) continue;
+    if (questCreatureIds.includes(creature.id)) continue;
+    for (const slot of creature.slots) {
+      total += extractRank(slot.variantId);
+    }
+  }
+  return total;
+}
+function getProgressInfo(state) {
+  const config4 = loadConfig();
+  const xpToNextLevel = getXpForNextLevel(state.profile.level);
+  const xpPercent = xpToNextLevel > 0 ? Math.round(state.profile.xp / xpToNextLevel * 100) : 100;
+  let bestTrait = null;
+  let bestRank = -1;
+  for (const creature of state.collection) {
+    if (creature.archived) continue;
+    for (const slot of creature.slots) {
+      const rank = extractRank(slot.variantId);
+      if (rank > bestRank) {
+        bestRank = rank;
+        bestTrait = {
+          creatureName: creature.name,
+          slot: slot.slotId,
+          rank,
+          tierName: getTierName(rank)
+        };
+      }
+    }
+  }
+  let nearestTierThreshold = null;
+  let minDistance = Infinity;
+  for (const creature of state.collection) {
+    if (creature.archived) continue;
+    for (const slot of creature.slots) {
+      const rank = extractRank(slot.variantId);
+      const nextBoundary = getNextTierBoundary(rank);
+      if (nextBoundary !== null) {
+        const distance = nextBoundary - rank;
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearestTierThreshold = {
+            creatureName: creature.name,
+            slot: slot.slotId,
+            currentRank: rank,
+            targetRank: nextBoundary,
+            method: distance === 1 ? "upgrade" : "merge"
+          };
+        }
+      }
+    }
+  }
+  const teamPower = calculateTeamPower2(state);
+  let nextPowerMilestone = POWER_MILESTONES[POWER_MILESTONES.length - 1];
+  for (const milestone of POWER_MILESTONES) {
+    if (milestone > teamPower) {
+      nextPowerMilestone = milestone;
+      break;
+    }
+  }
+  let nextSpeciesUnlock = null;
+  const unlockLevels = config4.discovery?.speciesUnlockLevels ?? {};
+  let closestUnlockLevel = Infinity;
+  for (const [species, unlockLevel] of Object.entries(unlockLevels)) {
+    const lvl = unlockLevel;
+    if (lvl > state.profile.level && lvl < closestUnlockLevel) {
+      closestUnlockLevel = lvl;
+      nextSpeciesUnlock = { species, level: lvl };
+    }
+  }
+  const allSpecies = /* @__PURE__ */ new Set([
+    ...state.discoveredSpecies,
+    ...Object.keys(unlockLevels)
+  ]);
+  const totalSpecies = Math.max(allSpecies.size, state.discoveredSpecies.length);
+  return {
+    level: state.profile.level,
+    xp: state.profile.xp,
+    xpToNextLevel,
+    xpPercent,
+    nextSpeciesUnlock,
+    bestTrait,
+    nearestTierThreshold,
+    teamPower,
+    nextPowerMilestone,
+    collectionSize: state.collection.filter((c) => !c.archived).length,
+    collectionMax: MAX_COLLECTION_SIZE,
+    gold: state.gold,
+    energy: state.energy,
+    energyMax: MAX_ENERGY,
+    discoveredCount: state.discoveredSpecies.length,
+    totalSpecies
+  };
+}
+function getViableActions(state) {
+  const config4 = loadConfig();
+  const actions = [];
+  const questCreatureIds = state.activeQuest?.creatureIds ?? [];
+  if (state.nearby.length > 0 && state.batch && state.batch.attemptsRemaining > 0) {
+    for (let i = 0; i < state.nearby.length; i++) {
+      const creature = state.nearby[i];
+      const energyCost = 1;
+      if (state.energy >= energyCost) {
+        actions.push({
+          type: "catch",
+          label: `Catch ${creature.name} (#${i + 1})`,
+          cost: { energy: energyCost },
+          priority: 0,
+          reasoning: `Wild ${creature.speciesId} available`,
+          target: { nearbyIndex: i }
+        });
+      }
+    }
+  }
+  if (state.sessionUpgradeCount < config4.upgrade.sessionCap) {
+    for (let ci = 0; ci < state.collection.length; ci++) {
+      const creature = state.collection[ci];
+      if (creature.archived) continue;
+      if (questCreatureIds.includes(creature.id)) continue;
+      for (const slot of creature.slots) {
+        const rank = extractRank(slot.variantId);
+        if (rank >= config4.upgrade.maxRank) continue;
+        const cost = config4.upgrade.costs[rank];
+        if (state.gold < cost) continue;
+        const nextBoundary = getNextTierBoundary(rank);
+        const nearTier = nextBoundary !== null && nextBoundary - rank === 1;
+        actions.push({
+          type: "upgrade",
+          label: `Upgrade ${creature.name}'s ${slot.slotId} (rank ${rank} -> ${rank + 1})`,
+          cost: { gold: cost },
+          priority: 0,
+          reasoning: nearTier ? `Pushes ${slot.slotId} into ${getTierName(rank + 1)} tier` : `Increases ${slot.slotId} rank`,
+          target: { creatureIndex: ci + 1, slotId: slot.slotId }
+        });
+      }
+    }
+  }
+  const speciesGroups = {};
+  for (let ci = 0; ci < state.collection.length; ci++) {
+    const creature = state.collection[ci];
+    if (creature.archived) continue;
+    if (questCreatureIds.includes(creature.id)) continue;
+    if (!speciesGroups[creature.speciesId]) speciesGroups[creature.speciesId] = [];
+    speciesGroups[creature.speciesId].push(ci);
+  }
+  for (const [speciesId, indexes] of Object.entries(speciesGroups)) {
+    if (indexes.length < 2) continue;
+    const sorted = [...indexes].sort((a, b) => {
+      const powerA = state.collection[a].slots.reduce((s, sl) => s + extractRank(sl.variantId), 0);
+      const powerB = state.collection[b].slots.reduce((s, sl) => s + extractRank(sl.variantId), 0);
+      return powerB - powerA;
+    });
+    const ai = sorted[0];
+    const bi = sorted[1];
+    const avgRank = state.collection[ai].slots.reduce((s, sl) => s + extractRank(sl.variantId), 0) / 4;
+    const goldCost = config4.mergeGold.baseCost + Math.floor(avgRank * config4.mergeGold.rankMultiplier);
+    if (state.gold >= goldCost && state.energy >= config4.energy.baseMergeCost) {
+      actions.push({
+        type: "merge",
+        label: `Merge ${state.collection[ai].name} + ${state.collection[bi].name}`,
+        cost: { gold: goldCost, energy: config4.energy.baseMergeCost },
+        priority: 0,
+        reasoning: `${indexes.length} ${speciesId} available for merge`,
+        target: { creatureIndex: ai + 1, partnerIndex: bi + 1 }
+      });
+    }
+  }
+  if (!state.activeQuest) {
+    const availableCreatures = state.collection.filter(
+      (c) => !c.archived && !questCreatureIds.includes(c.id)
+    );
+    if (availableCreatures.length > 0) {
+      const teamSize = Math.min(availableCreatures.length, config4.quest.maxTeamSize);
+      actions.push({
+        type: "quest",
+        label: `Send ${teamSize} creature${teamSize > 1 ? "s" : ""} on a quest`,
+        cost: {},
+        priority: 0,
+        reasoning: "Earn gold while you wait"
+      });
+    }
+  }
+  if (state.nearby.length === 0 || !state.batch) {
+    actions.push({
+      type: "scan",
+      label: "Scan for new creatures",
+      cost: {},
+      priority: 0,
+      reasoning: state.nearby.length === 0 ? "No creatures nearby -- scan to find some" : "Check for new spawns"
+    });
+  }
+  if (state.collection.filter((c) => !c.archived).length >= MAX_COLLECTION_SIZE) {
+    actions.push({
+      type: "release",
+      label: "Release or archive a creature to make room",
+      cost: {},
+      priority: 0,
+      reasoning: "Collection is full (15/15)"
+    });
+  }
+  actions.push({
+    type: "collection",
+    label: "View collection",
+    cost: {},
+    priority: 0,
+    reasoning: "Review your creatures"
+  });
+  return actions;
+}
+function getAdvisorMode(action, result, state) {
+  if (action === "quest_complete") return "autopilot";
+  if (action === "catch") {
+    const catchResult = result;
+    if (catchResult.success) {
+      const speciesId = catchResult.creature.speciesId;
+      if (!state.discoveredSpecies.includes(speciesId)) {
+        return "advisor";
+      }
+      const sameSpeciesCount = state.collection.filter(
+        (c) => c.speciesId === speciesId && !c.archived
+      ).length;
+      if (sameSpeciesCount >= 2) return "advisor";
+    }
+  }
+  if (action === "upgrade") {
+    const upgradeResult = result;
+    const creature = state.collection.find((c) => c.id === upgradeResult.creatureId);
+    if (creature) {
+      for (const slot of creature.slots) {
+        const rank = extractRank(slot.variantId);
+        const nextBoundary = getNextTierBoundary(rank);
+        if (nextBoundary !== null && nextBoundary - rank === 1) return "advisor";
+      }
+    }
+  }
+  if (action === "merge" || action === "breed") return "advisor";
+  if (state.energy <= 2) {
+    return "advisor";
+  }
+  if (state.collection.filter((c) => !c.archived).length >= MAX_COLLECTION_SIZE) {
+    return "advisor";
+  }
+  if (action === "level_up") return "advisor";
+  return "autopilot";
+}
+function getSuggestedActions(action, result, state) {
+  const viable = getViableActions(state);
+  if (viable.length === 0) return [];
+  for (const a of viable) {
+    a.priority = scoreAction(a, action, result, state);
+  }
+  viable.sort((a, b) => a.priority - b.priority);
+  const collectionAction = viable.find((a) => a.type === "collection");
+  const nonCollection = viable.filter((a) => a.type !== "collection");
+  const top = nonCollection.slice(0, 4);
+  if (collectionAction) top.push(collectionAction);
+  top.forEach((a, i) => {
+    a.priority = i + 1;
+  });
+  return top;
+}
+function scoreAction(action, lastAction, lastResult, state) {
+  let score = 50;
+  if (action.type === "merge") score = 5;
+  if (action.type === "upgrade") {
+    score = 30;
+    if (action.target?.slotId) {
+      const creature = state.collection[(action.target.creatureIndex ?? 1) - 1];
+      if (creature) {
+        const slot = creature.slots.find((s) => s.slotId === action.target.slotId);
+        if (slot) {
+          const rank = extractRank(slot.variantId);
+          const nextBoundary = getNextTierBoundary(rank);
+          if (nextBoundary !== null && nextBoundary - rank === 1) score = 8;
+        }
+      }
+    }
+  }
+  if (action.type === "catch" && lastAction === "scan") score = 5;
+  if (action.type === "catch" && lastAction === "catch") score = 15;
+  if (action.type === "quest") {
+    score = 35;
+    if (state.energy <= 3) score = 12;
+  }
+  if (action.type === "scan") score = 40;
+  if (action.type === "release") score = 3;
+  if (action.type === "collection") score = 100;
+  return score;
+}
+function buildAdvisorContext(action, result, state) {
+  return {
+    mode: getAdvisorMode(action, result, state),
+    suggestedActions: getSuggestedActions(action, result, state),
+    progress: getProgressInfo(state)
+  };
+}
+
 // src/engine/game-engine.ts
 var GameEngine = class {
   state;
@@ -31785,8 +32494,20 @@ var GameEngine = class {
   processTick(tick, rng = Math.random) {
     const notifications = [];
     processNewTick(this.state, tick);
+    const sessionId = tick.sessionId ?? String(tick.timestamp);
+    const isNewSession = this.state.currentSessionId !== sessionId;
+    processSessionEnergyBonus(this.state, sessionId);
     const energyGained = processEnergyGain(this.state, tick.timestamp);
     const despawned = cleanupBatch(this.state, tick.timestamp);
+    if (this.state.activeQuest && isNewSession) {
+      const questResult = checkQuest(this.state);
+      if (questResult) {
+        notifications.push({
+          message: `Quest complete! Earned ${questResult.goldEarned} gold.`,
+          level: "moderate"
+        });
+      }
+    }
     let spawned = false;
     const timeSinceLastSpawn = tick.timestamp - this.state.lastSpawnAt;
     if (!this.state.batch && timeSinceLastSpawn >= SPAWN_INTERVAL_MS) {
@@ -31818,7 +32539,16 @@ var GameEngine = class {
     if (isCollectionFull(this.state)) {
       throw new Error("Collection is full (15 creatures). Archive or release a creature first.");
     }
-    return attemptCatch(this.state, nearbyIndex, rng);
+    const result = attemptCatch(this.state, nearbyIndex, rng);
+    if (result.success) {
+      const config4 = loadConfig();
+      grantXp(this.state, config4.leveling.xpPerCatch);
+      const discovery = recordDiscovery(this.state, result.creature.speciesId);
+      if (discovery.isNew) {
+        result.discovery = discovery;
+      }
+    }
+    return result;
   }
   breedPreview(parentAId, parentBId) {
     return previewBreed(this.state, parentAId, parentBId);
@@ -31842,8 +32572,29 @@ var GameEngine = class {
       archiveCount: this.state.archive.length,
       energy: this.state.energy,
       nearbyCount: this.state.nearby.length,
-      batchAttemptsRemaining: this.state.batch?.attemptsRemaining ?? 0
+      batchAttemptsRemaining: this.state.batch?.attemptsRemaining ?? 0,
+      gold: this.state.gold,
+      discoveredCount: this.state.discoveredSpecies.length,
+      activeQuest: this.state.activeQuest
     };
+  }
+  upgrade(creatureId, slotId) {
+    return performUpgrade(this.state, creatureId, slotId);
+  }
+  questStart(creatureIds) {
+    return startQuest(this.state, creatureIds);
+  }
+  questCheck() {
+    return checkQuest(this.state);
+  }
+  getGold() {
+    return this.state.gold;
+  }
+  getDiscoveredSpecies() {
+    return [...this.state.discoveredSpecies];
+  }
+  getAdvisorContext(action, result) {
+    return buildAdvisorContext(action, result, this.state);
   }
   getState() {
     return this.state;
@@ -31913,12 +32664,6 @@ function calculateRarityColor(rarityScore) {
   if (rarityScore <= 87.5) return COLOR_ANSI.yellow;
   return COLOR_ANSI.red;
 }
-var ART_WIDTH = 13;
-function centerLine(rawText, coloredText) {
-  const w = stringWidth(rawText);
-  const left = Math.floor((ART_WIDTH - w) / 2);
-  return " ".repeat(Math.max(0, left)) + coloredText;
-}
 function renderCreatureLines(slots, speciesId) {
   const slotArt = {};
   for (const s of slots) {
@@ -31931,41 +32676,24 @@ function renderCreatureLines(slots, speciesId) {
     slotColor[s.slotId] = calculateRarityColor(rarityScore);
   }
   const species = speciesId ? getSpeciesById(speciesId) : void 0;
-  if (species?.art) {
-    return species.art.map((line) => {
-      let result = line;
-      const replacements = [
-        ["EE", slotArt["eyes"] ?? "", slotColor["eyes"] ?? WHITE],
-        ["MM", slotArt["mouth"] ?? "", slotColor["mouth"] ?? WHITE],
-        ["BB", slotArt["body"] ?? "", slotColor["body"] ?? WHITE],
-        ["TT", slotArt["tail"] ?? "", slotColor["tail"] ?? WHITE]
-      ];
-      let lineColor = null;
-      for (const [placeholder, art, color] of replacements) {
-        if (result.includes(placeholder)) {
-          result = result.replace(placeholder, art);
-          lineColor = color;
-        }
-      }
-      if (lineColor) {
-        return "      " + lineColor + result + RESET;
-      }
-      return "      " + result;
-    });
+  if (!species?.art) {
+    return ["      ???"];
   }
-  const eyesArt = slotArt["eyes"] ?? "o.o";
-  const mouthArt = slotArt["mouth"] ?? " - ";
-  const bodyArt = slotArt["body"] ?? " \u2591\u2591 ";
-  const tailArt = slotArt["tail"] ?? "~";
-  const eyesC = slotColor["eyes"] ?? WHITE;
-  const mouthC = slotColor["mouth"] ?? WHITE;
-  const bodyC = slotColor["body"] ?? WHITE;
-  const tailC = slotColor["tail"] ?? WHITE;
-  const eyesLine = "      " + centerLine(eyesArt, `${eyesC}${eyesArt}${RESET}`);
-  const mouthLine = "      " + centerLine(`(${mouthArt})`, `${mouthC}(${mouthArt})${RESET}`);
-  const bodyLine = "      " + centerLine(`\u2571${bodyArt}\u2572`, `${bodyC}\u2571${bodyArt}\u2572${RESET}`);
-  const tailLine = "      " + centerLine(tailArt, `${tailC}${tailArt}${RESET}`);
-  return [eyesLine, mouthLine, bodyLine, tailLine];
+  return species.art.map((line, lineIndex) => {
+    let result = line;
+    const replacements = [
+      ["EE", slotArt["eyes"] ?? ""],
+      ["MM", slotArt["mouth"] ?? ""],
+      ["BB", slotArt["body"] ?? ""],
+      ["TT", slotArt["tail"] ?? ""]
+    ];
+    for (const [placeholder, art] of replacements) {
+      result = result.replace(placeholder, art);
+    }
+    const zoneSlot = species.zones?.[lineIndex];
+    const color = zoneSlot ? slotColor[zoneSlot] ?? WHITE : WHITE;
+    return "      " + color + result + RESET;
+  });
 }
 function renderGreySilhouette(slots, speciesId) {
   const slotArt = {};
@@ -31975,31 +32703,22 @@ function renderGreySilhouette(slots, speciesId) {
   }
   const species = getSpeciesById(speciesId);
   const GREY = COLOR_ANSI.grey;
-  if (species?.art) {
-    return species.art.map((line) => {
-      let result = line;
-      const replacements = [
-        ["EE", slotArt["eyes"] ?? ""],
-        ["MM", slotArt["mouth"] ?? ""],
-        ["BB", slotArt["body"] ?? ""],
-        ["TT", slotArt["tail"] ?? ""]
-      ];
-      for (const [placeholder, art] of replacements) {
-        result = result.replace(placeholder, art);
-      }
-      return GREY + result + RESET;
-    });
+  if (!species?.art) {
+    return [GREY + "???" + RESET];
   }
-  const eyesArt = slotArt["eyes"] ?? "o.o";
-  const mouthArt = slotArt["mouth"] ?? " - ";
-  const bodyArt = slotArt["body"] ?? " \u2591\u2591 ";
-  const tailArt = slotArt["tail"] ?? "~";
-  return [
-    `      ${GREY}${eyesArt}${RESET}`,
-    `     ${GREY}(${mouthArt})${RESET}`,
-    `    ${GREY}\u2571${bodyArt}\u2572${RESET}`,
-    `      ${GREY}${tailArt}${RESET}`
-  ];
+  return species.art.map((line) => {
+    let result = line;
+    const replacements = [
+      ["EE", slotArt["eyes"] ?? ""],
+      ["MM", slotArt["mouth"] ?? ""],
+      ["BB", slotArt["body"] ?? ""],
+      ["TT", slotArt["tail"] ?? ""]
+    ];
+    for (const [placeholder, art] of replacements) {
+      result = result.replace(placeholder, art);
+    }
+    return GREY + result + RESET;
+  });
 }
 function energyBar(energy, maxEnergy) {
   const filled = Math.min(10, Math.round(energy / maxEnergy * 10));
@@ -32085,6 +32804,9 @@ var SimpleTextRenderer = class {
         lines.push(line);
       }
       lines.push("");
+      if (result.discovery?.isNew) {
+        lines.push(`  ${YELLOW}${BOLD}\u2726 NEW SPECIES: ${result.discovery.speciesId} \u2726${RESET}  ${GREEN}+${result.discovery.bonusXp} bonus XP${RESET}`);
+      }
       lines.push(`  ${DIM}+${result.xpEarned} XP   -${result.energySpent}${RESET}${ENERGY_ICON}`);
       lines.push("");
       lines.push(divider());
@@ -32181,7 +32903,12 @@ var SimpleTextRenderer = class {
     collection.forEach((creature, i) => {
       const creatureScore = calculateCreatureScore(creature.speciesId, creature.slots);
       const num = `${i + 1}.`;
-      lines.push(`  ${BOLD}${num}${RESET} ${BOLD}${creature.name}${RESET}  ${DIM}${creature.speciesId}${RESET}  Lv ${creature.generation}  \u2B50 ${creatureScore}`);
+      const totalRank = creature.slots.reduce((sum, s) => {
+        const m = s.variantId.match(/_r(\d+)$/);
+        return sum + (m ? parseInt(m[1], 10) : 0);
+      }, 0);
+      const rankLabel = totalRank > 0 ? `  ${YELLOW}\u2605${totalRank}${RESET}` : "";
+      lines.push(`  ${BOLD}${num}${RESET} ${BOLD}${creature.name}${RESET}  ${DIM}${creature.speciesId}${RESET}  Lv ${creature.generation}  \u2B50 ${creatureScore}${rankLabel}`);
       for (const line of renderCreatureSideBySide(creature.slots, creature.speciesId)) {
         lines.push(line);
       }
@@ -32220,14 +32947,23 @@ var SimpleTextRenderer = class {
     lines.push(`  Level: ${p.level}`);
     lines.push(`  XP:    ${xpBar(p.xp, nextXp)}`);
     lines.push(`  ${ENERGY_ICON} ${GREEN}${"\u2588".repeat(Math.min(10, Math.round(result.energy / MAX_ENERGY * 10)))}${"\u2591".repeat(10 - Math.min(10, Math.round(result.energy / MAX_ENERGY * 10)))}${RESET} ${result.energy}/${MAX_ENERGY}`);
+    lines.push(`  ${YELLOW}Gold:${RESET}  ${result.gold}`);
     lines.push("");
     lines.push(`  Catches:    ${p.totalCatches}`);
     lines.push(`  Merges:     ${p.totalMerges}`);
+    lines.push(`  Upgrades:   ${p.totalUpgrades}`);
+    lines.push(`  Quests:     ${p.totalQuests}`);
     lines.push(`  Collection: ${result.collectionCount} creatures`);
     lines.push(`  Archive:    ${result.archiveCount} creatures`);
+    lines.push(`  Discovered: ${result.discoveredCount} species`);
     lines.push(`  Streak:     ${p.currentStreak} days ${DIM}(best: ${p.longestStreak})${RESET}`);
     lines.push(`  Nearby:     ${result.nearbyCount} creatures`);
     lines.push(`  Ticks:      ${p.totalTicks.toLocaleString()}`);
+    if (result.activeQuest) {
+      const q = result.activeQuest;
+      lines.push("");
+      lines.push(`  ${BLUE}${BOLD}Active Quest${RESET}  ${DIM}${q.sessionsRemaining} session(s) remaining  power ${q.teamPower}${RESET}`);
+    }
     lines.push(divider());
     return lines.join("\n");
   }
@@ -32302,7 +33038,252 @@ var SimpleTextRenderer = class {
     }
     return `  ${num}  ${BOLD}${nameCell}${RESET}  ${lv}   ` + cells.join("   ");
   }
+  renderUpgradeResult(result) {
+    const lines = [];
+    const slotLabel = result.slotId.padEnd(5);
+    const rankColors = [
+      COLOR_ANSI.grey,
+      // rank 0→1
+      COLOR_ANSI.white,
+      // rank 1→2
+      COLOR_ANSI.green,
+      // rank 2→3
+      COLOR_ANSI.cyan,
+      // rank 3→4
+      COLOR_ANSI.blue,
+      // rank 4→5
+      COLOR_ANSI.magenta,
+      // rank 5→6
+      COLOR_ANSI.yellow,
+      // rank 6→7
+      COLOR_ANSI.red
+      // rank 7→8
+    ];
+    const fromColor = rankColors[result.fromRank] ?? COLOR_ANSI.grey;
+    const toColor = rankColors[result.toRank] ?? COLOR_ANSI.red;
+    lines.push(`  ${GREEN}${BOLD}\u2726 UPGRADE \u2726${RESET}`);
+    lines.push("");
+    lines.push(`  ${DIM}Slot:${RESET}  ${WHITE}${slotLabel}${RESET}`);
+    lines.push(`  ${DIM}Rank:${RESET}  ${fromColor}\u2605${result.fromRank}${RESET} \u2192 ${toColor}\u2605${result.toRank}${RESET}`);
+    lines.push(`  ${DIM}Cost:${RESET}  ${YELLOW}${result.goldCost} gold${RESET}`);
+    lines.push("");
+    lines.push(divider());
+    return lines.join("\n");
+  }
+  renderQuestStart(result) {
+    const lines = [];
+    const q = result.quest;
+    lines.push(`  ${BLUE}${BOLD}\u2726 QUEST STARTED \u2726${RESET}`);
+    lines.push("");
+    lines.push(`  ${DIM}Team:${RESET}      ${result.creaturesLocked.length} creature(s)`);
+    lines.push(`  ${DIM}Power:${RESET}     ${q.teamPower}`);
+    lines.push(`  ${DIM}Duration:${RESET}  ${q.sessionsRemaining} session(s)`);
+    lines.push("");
+    lines.push(`  ${DIM}Creatures are away on the quest.${RESET}`);
+    lines.push(`  ${DIM}Use /quest check once complete to collect rewards.${RESET}`);
+    lines.push("");
+    lines.push(divider());
+    return lines.join("\n");
+  }
+  renderQuestComplete(result) {
+    const lines = [];
+    lines.push(`  ${YELLOW}${BOLD}\u2726 QUEST COMPLETE \u2726${RESET}`);
+    lines.push("");
+    lines.push(`  ${YELLOW}+${result.goldEarned} gold${RESET}  ${GREEN}+${result.xpEarned} XP${RESET}`);
+    lines.push("");
+    lines.push(`  ${DIM}${result.creaturesReturned.length} creature(s) returned safely.${RESET}`);
+    lines.push("");
+    lines.push(divider());
+    return lines.join("\n");
+  }
+  renderLevelUp(result) {
+    const lines = [];
+    lines.push(`  ${YELLOW}${BOLD}\u2726 LEVEL UP \u2726${RESET}`);
+    lines.push("");
+    lines.push(`  ${DIM}Level:${RESET} ${result.oldLevel} \u2192 ${BOLD}${result.newLevel}${RESET}`);
+    lines.push("");
+    lines.push(divider());
+    return lines.join("\n");
+  }
+  renderDiscovery(result) {
+    const lines = [];
+    if (result.isNew) {
+      lines.push(`  ${YELLOW}${BOLD}\u2726 NEW SPECIES DISCOVERED \u2726${RESET}`);
+      lines.push("");
+      lines.push(`  ${BOLD}${result.speciesId}${RESET} added to your Compidex!`);
+      lines.push(`  ${GREEN}+${result.bonusXp} bonus XP${RESET}`);
+      lines.push(`  ${DIM}Total discovered: ${result.totalDiscovered}${RESET}`);
+      lines.push("");
+      lines.push(divider());
+    }
+    return lines.join("\n");
+  }
+  /**
+   * Compact one-line status bar: gold, energy, collection size, XP%, level, team power.
+   */
+  renderStatusBar(progress) {
+    const goldPart = `${YELLOW}\u{1FA99} ${progress.gold}g${RESET}`;
+    const energyPart = `${ENERGY_ICON} ${GREEN}${progress.energy}/${progress.energyMax}${RESET}`;
+    const collectionPart = `\u{1F4E6} ${DIM}${progress.collectionSize}/${progress.collectionMax}${RESET}`;
+    const xpPart = `\u2B50 ${GREEN}${progress.xpPercent}% XP${RESET}`;
+    const levelPart = `${BOLD}Lv.${progress.level}${RESET}`;
+    const powerPart = `\u2694 ${DIM}${progress.teamPower} power${RESET}`;
+    return `  ${levelPart}  ${goldPart}  ${energyPart}  ${collectionPart}  ${xpPart}  ${powerPart}`;
+  }
+  /**
+   * Numbered action menu with costs and recommended marker.
+   */
+  renderActionMenu(entries) {
+    if (entries.length === 0) return "";
+    const lines = [];
+    lines.push(`  ${DIM}What next?${RESET}`);
+    for (const entry of entries) {
+      const num = `${BOLD}${entry.number}.${RESET}`;
+      const cost = entry.cost ? `  ${DIM}(${entry.cost})${RESET}` : "";
+      const rec = entry.number === 1 ? `  ${GREEN}\u2605${RESET}` : "";
+      lines.push(`  ${num} ${entry.label}${cost}${rec}`);
+    }
+    return lines.join("\n");
+  }
+  /**
+   * Detailed progress panel: XP bar, tier progress, milestones.
+   */
+  renderProgressPanel(progress) {
+    const lines = [];
+    lines.push(divider());
+    lines.push(`  ${BOLD}Progress${RESET}`);
+    const filled = Math.min(10, Math.round(progress.xpPercent / 100 * 10));
+    const bar = `${GREEN}${"\u2588".repeat(filled)}${"\u2591".repeat(10 - filled)}${RESET}`;
+    lines.push(`  ${DIM}XP:${RESET}    ${bar}  ${progress.xp}/${progress.xpToNextLevel}  ${DIM}Lv ${progress.level}${RESET}`);
+    lines.push(`  ${DIM}Gold:${RESET}  ${YELLOW}${progress.gold}${RESET}`);
+    lines.push(`  ${DIM}Power:${RESET} ${progress.teamPower}  ${DIM}\u2192 ${progress.nextPowerMilestone}${RESET}`);
+    lines.push(`  ${DIM}Crew:${RESET}  ${progress.collectionSize}/${progress.collectionMax}`);
+    if (progress.bestTrait) {
+      const bt = progress.bestTrait;
+      lines.push(`  ${DIM}Best:${RESET}  ${bt.creatureName} ${bt.slot} rank ${bt.rank} ${DIM}(${bt.tierName})${RESET}`);
+    }
+    if (progress.nearestTierThreshold) {
+      const ntt = progress.nearestTierThreshold;
+      lines.push(`  ${DIM}Close:${RESET} ${ntt.creatureName} ${ntt.slot} rank ${ntt.currentRank}\u2192${ntt.targetRank} via ${ntt.method}`);
+    }
+    if (progress.nextSpeciesUnlock) {
+      lines.push(`  ${DIM}Unlock:${RESET} ${progress.nextSpeciesUnlock.species} at Lv ${progress.nextSpeciesUnlock.level}`);
+    }
+    lines.push(`  ${DIM}Found:${RESET} ${progress.discoveredCount}/${progress.totalSpecies} species`);
+    lines.push(divider());
+    return lines.join("\n");
+  }
+  renderCompanionOverview(_overview) {
+    return "";
+  }
 };
+
+// src/engine/companion.ts
+function extractRank2(variantId) {
+  const m = variantId.match(/_r(\d+)$/);
+  return m ? parseInt(m[1], 10) : 0;
+}
+var TIER_BOUNDARIES2 = [0, 5, 9, 12, 15, 17];
+var TIER_NAMES2 = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
+function getTierName2(rank) {
+  for (let i = TIER_BOUNDARIES2.length - 1; i >= 0; i--) {
+    if (rank >= TIER_BOUNDARIES2[i]) return TIER_NAMES2[i];
+  }
+  return "common";
+}
+function getNextTierBoundary2(rank) {
+  for (const boundary of TIER_BOUNDARIES2) {
+    if (boundary > rank) return boundary;
+  }
+  return null;
+}
+function getCompanionOverview(state) {
+  const config4 = loadConfig();
+  const progress = getProgressInfo(state);
+  const suggestedActions = getSuggestedActions("companion", null, state);
+  const nearbyHighlights = state.nearby.map((creature, i) => {
+    const totalRarity = creature.slots.reduce((sum, slot) => {
+      return sum + calculateSlotScore(creature.speciesId, slot);
+    }, 0);
+    return {
+      index: i + 1,
+      name: creature.name,
+      speciesId: creature.speciesId,
+      isNewSpecies: !state.discoveredSpecies.includes(creature.speciesId),
+      catchRate: calculateCatchRate(creature.speciesId, creature.slots, state.batch?.failPenalty ?? 0),
+      energyCost: calculateEnergyCost(creature.speciesId, creature.slots),
+      totalRarity
+    };
+  });
+  const breedablePairs = [];
+  const questCreatureIds = state.activeQuest?.creatureIds ?? [];
+  const speciesGroups = {};
+  for (let i = 0; i < state.collection.length; i++) {
+    const c = state.collection[i];
+    if (c.archived || questCreatureIds.includes(c.id)) continue;
+    if (!speciesGroups[c.speciesId]) speciesGroups[c.speciesId] = [];
+    speciesGroups[c.speciesId].push(i);
+  }
+  for (const [speciesId, indexes] of Object.entries(speciesGroups)) {
+    if (indexes.length < 2) continue;
+    const a = indexes[0];
+    const b = indexes[1];
+    breedablePairs.push({
+      indexA: a + 1,
+      nameA: state.collection[a].name,
+      indexB: b + 1,
+      nameB: state.collection[b].name,
+      speciesId
+    });
+  }
+  const upgradeOpportunities = [];
+  if (state.sessionUpgradeCount < config4.upgrade.sessionCap) {
+    for (const creature of state.collection) {
+      if (creature.archived || questCreatureIds.includes(creature.id)) continue;
+      for (const slot of creature.slots) {
+        const rank = extractRank2(slot.variantId);
+        if (rank >= config4.upgrade.maxRank) continue;
+        const cost = config4.upgrade.costs[rank];
+        if (cost === void 0 || state.gold < cost) continue;
+        const nextBoundary = getNextTierBoundary2(rank);
+        const nearTier = nextBoundary !== null && nextBoundary - rank === 1;
+        upgradeOpportunities.push({
+          creatureId: creature.id,
+          creatureName: creature.name,
+          slotId: slot.slotId,
+          currentRank: rank,
+          goldCost: cost,
+          nearTier,
+          tierName: getTierName2(rank)
+        });
+      }
+    }
+  }
+  upgradeOpportunities.sort((a, b) => {
+    if (a.nearTier !== b.nearTier) return a.nearTier ? -1 : 1;
+    return a.goldCost - b.goldCost;
+  });
+  const availableCreatures = state.collection.filter(
+    (c) => !c.archived && !questCreatureIds.includes(c.id)
+  );
+  let questStatus;
+  if (state.activeQuest) {
+    questStatus = state.activeQuest.sessionsRemaining <= 0 ? "complete" : "in_progress";
+  } else if (availableCreatures.length > 0) {
+    questStatus = "available";
+  } else {
+    questStatus = "no_creatures";
+  }
+  return {
+    progress,
+    nearbyHighlights,
+    breedablePairs,
+    upgradeOpportunities: upgradeOpportunities.slice(0, 5),
+    questStatus,
+    questSessionsRemaining: state.activeQuest?.sessionsRemaining ?? null,
+    suggestedActions
+  };
+}
 
 // src/mcp-tools.ts
 var statePath = process.env.COMPI_STATE_PATH || path3.join(os2.homedir(), ".compi", "state.json");
@@ -32313,6 +33294,18 @@ function loadEngine() {
   return { stateManager, engine };
 }
 var displayPath = path3.join(os2.tmpdir(), "compi_display.txt");
+function appendAdvisorContext(displayContent, advisorCtx) {
+  const json2 = JSON.stringify(advisorCtx, null, 2);
+  return `${displayContent}
+
+<advisor_context>
+${json2}
+</advisor_context>`;
+}
+function prependStatusBar(engine, renderer, content) {
+  const progress = getProgressInfo(engine.getState());
+  return renderer.renderStatusBar(progress) + "\n\n" + content;
+}
 function makeText(content, options) {
   if (options.writeDisplayFile) {
     fs3.writeFileSync(displayPath, content);
@@ -32390,7 +33383,7 @@ function registerTools(server2, options = {}) {
     const renderer = new SimpleTextRenderer();
     const result = engine.scan();
     stateManager.save(engine.getState());
-    return text(renderer.renderScan(result));
+    return text(prependStatusBar(engine, renderer, renderer.renderScan(result)));
   }, meta3);
   addTool(server2, "catch", "Attempt to catch a nearby creature", external_exports3.object({
     index: external_exports3.number().describe("1-indexed creature number from scan list")
@@ -32399,12 +33392,13 @@ function registerTools(server2, options = {}) {
     const renderer = new SimpleTextRenderer();
     const result = engine.catch(index - 1);
     stateManager.save(engine.getState());
-    return text(renderer.renderCatch(result));
+    const advisorCtx = engine.getAdvisorContext("catch", result);
+    return text(prependStatusBar(engine, renderer, appendAdvisorContext(renderer.renderCatch(result), advisorCtx)));
   }, meta3);
   addTool(server2, "collection", "Browse caught creatures", external_exports3.object({}), async () => {
     const { engine } = loadEngine();
     const renderer = new SimpleTextRenderer();
-    return text(renderer.renderCollection(engine.getState().collection));
+    return text(prependStatusBar(engine, renderer, renderer.renderCollection(engine.getState().collection)));
   }, meta3);
   addTool(server2, "breed", "Breed two creatures from your collection (uses /collection indexes)", external_exports3.object({
     indexA: external_exports3.number().optional().describe("1-indexed position of first parent in /collection"),
@@ -32414,8 +33408,12 @@ function registerTools(server2, options = {}) {
     const { stateManager, engine } = loadEngine();
     const renderer = new SimpleTextRenderer();
     const result = runBreedCommand(engine, renderer, { indexA, indexB, confirm });
-    if (result.mutated) stateManager.save(engine.getState());
-    return text(result.output);
+    if (result.mutated) {
+      stateManager.save(engine.getState());
+      const advisorCtx = engine.getAdvisorContext("breed", result);
+      return text(prependStatusBar(engine, renderer, appendAdvisorContext(result.output, advisorCtx)));
+    }
+    return text(prependStatusBar(engine, renderer, result.output));
   }, meta3);
   addTool(server2, "archive", "View archive or archive a creature", external_exports3.object({
     id: external_exports3.string().optional().describe("Creature ID to archive (omit to view archive)")
@@ -32425,30 +33423,31 @@ function registerTools(server2, options = {}) {
     if (id) {
       const result = engine.archive(id);
       stateManager.save(engine.getState());
-      return text(`Archived ${result.creature.name}.`);
+      return text(prependStatusBar(engine, renderer, `Archived ${result.creature.name}.`));
     } else {
-      return text(renderer.renderArchive(engine.getState().archive));
+      return text(prependStatusBar(engine, renderer, renderer.renderArchive(engine.getState().archive)));
     }
   }, meta3);
   addTool(server2, "release", "Permanently release a creature", external_exports3.object({
     id: external_exports3.string().describe("Creature ID to release")
   }), async ({ id }) => {
     const { stateManager, engine } = loadEngine();
+    const renderer = new SimpleTextRenderer();
     engine.release(id);
     stateManager.save(engine.getState());
-    return text(`Released creature ${id}.`);
+    return text(prependStatusBar(engine, renderer, `Released creature ${id}.`));
   }, meta3);
   addTool(server2, "energy", "Show current energy level", external_exports3.object({}), async () => {
     const { engine } = loadEngine();
     const renderer = new SimpleTextRenderer();
     const state = engine.getState();
-    return text(renderer.renderEnergy(state.energy, MAX_ENERGY));
+    return text(prependStatusBar(engine, renderer, renderer.renderEnergy(state.energy, MAX_ENERGY)));
   }, meta3);
   addTool(server2, "status", "View player profile and game stats", external_exports3.object({}), async () => {
     const { engine } = loadEngine();
     const renderer = new SimpleTextRenderer();
     const result = engine.status();
-    return text(renderer.renderStatus(result));
+    return text(prependStatusBar(engine, renderer, renderer.renderStatus(result)));
   }, meta3);
   addTool(server2, "settings", "View or change game settings", external_exports3.object({
     key: external_exports3.string().optional().describe("Setting key: 'notifications'"),
@@ -32467,6 +33466,70 @@ function registerTools(server2, options = {}) {
     return text(`SETTINGS
 
 Notifications: ${settings.notificationLevel}`);
+  }, meta3);
+  addTool(server2, "upgrade", "Upgrade a creature's trait slot", external_exports3.object({
+    creatureId: external_exports3.string().describe("ID of the creature to upgrade"),
+    slotId: external_exports3.enum(["eyes", "mouth", "body", "tail"]).describe("Trait slot to upgrade")
+  }), async ({ creatureId, slotId }) => {
+    const { stateManager, engine } = loadEngine();
+    const renderer = new SimpleTextRenderer();
+    const result = engine.upgrade(creatureId, slotId);
+    stateManager.save(engine.getState());
+    const advisorCtx = engine.getAdvisorContext("upgrade", result);
+    return text(prependStatusBar(engine, renderer, appendAdvisorContext(renderer.renderUpgradeResult(result), advisorCtx)));
+  }, meta3);
+  addTool(server2, "quest_start", "Send creatures on a quest", external_exports3.object({
+    creatureIds: external_exports3.array(external_exports3.string()).min(1).max(3).describe("IDs of creatures to send (1-3)")
+  }), async ({ creatureIds }) => {
+    const { stateManager, engine } = loadEngine();
+    const renderer = new SimpleTextRenderer();
+    const result = engine.questStart(creatureIds);
+    stateManager.save(engine.getState());
+    const advisorCtx = engine.getAdvisorContext("quest", result);
+    return text(prependStatusBar(engine, renderer, appendAdvisorContext(renderer.renderQuestStart(result), advisorCtx)));
+  }, meta3);
+  addTool(server2, "quest_check", "Check if active quest is complete and collect rewards", external_exports3.object({}), async () => {
+    const { stateManager, engine } = loadEngine();
+    const renderer = new SimpleTextRenderer();
+    const result = engine.questCheck();
+    stateManager.save(engine.getState());
+    if (result) {
+      const advisorCtx = engine.getAdvisorContext("quest_complete", result);
+      return text(prependStatusBar(engine, renderer, appendAdvisorContext(renderer.renderQuestComplete(result), advisorCtx)));
+    }
+    const activeQuest = engine.getState().activeQuest;
+    if (activeQuest) {
+      return text(prependStatusBar(engine, renderer, `Quest in progress. ${activeQuest.sessionsRemaining} session(s) remaining.`));
+    }
+    return text(prependStatusBar(engine, renderer, "No active quest. Use quest_start to begin one."));
+  }, meta3);
+  addTool(server2, "companion", "Get a full game overview with strategic insights for the companion AI", external_exports3.object({}), async () => {
+    const { stateManager, engine } = loadEngine();
+    const renderer = new SimpleTextRenderer();
+    const state = engine.getState();
+    const overview = getCompanionOverview(state);
+    stateManager.save(state);
+    const rendered = prependStatusBar(engine, renderer, renderer.renderCompanionOverview(overview));
+    if (options.writeDisplayFile) {
+      fs3.writeFileSync(displayPath, rendered);
+    }
+    if (options.onOutput) {
+      options.onOutput(rendered);
+    }
+    const json2 = JSON.stringify(overview, null, 2);
+    const fullContent = `${rendered}
+
+<companion_overview>
+${json2}
+</companion_overview>`;
+    if (options.renderHtml) {
+      const html = options.renderHtml(rendered);
+      return { content: [
+        { type: "text", text: fullContent },
+        { type: "resource", resource: { uri: `ui://compi/result-${Date.now()}.html`, mimeType: "text/html;profile=mcp-app", text: html } }
+      ] };
+    }
+    return { content: [{ type: "text", text: fullContent }] };
   }, meta3);
 }
 

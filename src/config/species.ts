@@ -4,6 +4,7 @@ import glichData from "../../config/species/glich.json";
 import jinxData from "../../config/species/jinx.json";
 import monuData from "../../config/species/monu.json";
 import whiskiData from "../../config/species/whiski.json";
+import pyraxData from "../../config/species/pyrax.json";
 import { SpeciesDefinition, TraitDefinition, SlotId } from "../types";
 
 // Species files are imported statically so the bundled MCP server doesn't
@@ -16,6 +17,7 @@ const SPECIES_DATA: SpeciesDefinition[] = [
   jinxData,
   monuData,
   whiskiData,
+  pyraxData,
 ] as unknown as SpeciesDefinition[];
 
 let _speciesCache: SpeciesDefinition[] | null = null;

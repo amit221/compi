@@ -11,7 +11,7 @@ Works with **Claude Code** | **Cursor** | and more coming soon
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org)
-[![Tests](https://img.shields.io/badge/Tests-71_passing-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-381_passing-brightgreen.svg)]()
 
 </div>
 
@@ -30,7 +30,7 @@ Works with **Claude Code** | **Cursor** | and more coming soon
 4. Breed next-gen       Pair two compis to produce a child that inherits their best traits
 ```
 
-Each compi belongs to one of **6 species** and is built from a handful of trait slots (typically eyes, mouth, body, tail) — each with its own rarity and unique ASCII art. Rarer traits glow in different colors, from gray commons to red mythics.
+Each compi belongs to one of **7 species** and is built from a handful of trait slots (typically eyes, mouth, body, tail) — each with its own rarity and unique ASCII art. Rarer traits glow in different colors, from gray commons to red mythics.
 
 <div align="center">
 <img src="assets/banner.svg" alt="compis across rarity tiers" width="700" />
@@ -40,7 +40,7 @@ Each compi belongs to one of **6 species** and is built from a handful of trait 
 
 - **Zero context-switching** — the game lives inside your coding agent, not a separate app
 - **Your work fuels the game** — compis spawn from your actual coding activity
-- **Real depth** — 6 species, 6 rarity tiers, weighted catch rates, breeding & inheritance, streaks, leveling
+- **Real depth** — 7 species, 6 rarity tiers, weighted catch rates, breeding & inheritance, streaks, leveling
 - **Every compi is unique** — species × trait variants × 6 colors = hundreds of millions of combos
 - **Lightweight** — hooks only, no background processes, no performance impact
 - **Open source** — MIT licensed, community-driven
@@ -94,19 +94,44 @@ On Cursor, Compi runs as a stdio MCP server that Cursor spawns on demand and ren
 
 ## Playing
 
-**Option 1: Dedicated Compi session** (recommended for best experience)
+### `/play` — the AI companion (recommended)
 
-- **Claude Code** — run the `compi` alias you set up above to open a lightweight Haiku-powered session focused on the game.
-- **Cursor** — open a new chat dedicated to Compi and use the slash commands directly. Keeping it separate from your coding chats prevents the HTML panel output from cluttering your working context.
+Just type **`/play`** and let the AI guide you. No commands to memorize — it reads your game state, shows what's happening, adds strategic insights, and asks what you'd like to do. You respond in plain English:
 
-**Option 2: Play alongside your work**
+```
+/play
 
-Compi runs in the background of any Claude Code or Cursor session. Compis spawn as you work — you'll see notifications and can interact with `/scan`, `/catch`, `/breed` at any time without interrupting your workflow.
+  ⚡ 28/30  |  🏆 Lv.4  |  💰 12g  |  📦 8/20
+
+  🔍 3 creatures nearby
+  🥚 Ivory + Blaze can breed
+  ⬆️ Drift's mouth → rank 2 for 3g
+
+  A Pyrax just showed up — you've never caught one before!
+  Discovery XP bonus if you grab it. What would you like to do?
+
+> catch the pyrax
+
+  [real catch output with ASCII art...]
+
+  Nice! First Pyrax in your collection — +20 discovery XP.
+  You now have a breeding pair (Ivory + Blaze).
+  Want to breed them, or keep scanning?
+```
+
+The companion shows real game output, adds strategic context to every option, and keeps going until you're done.
+
+### Other ways to play
+
+**Dedicated Compi session** — run the `compi` alias (see Installation) to open a lightweight Haiku-powered session focused on the game.
+
+**Play alongside your work** — Compi runs in the background of any Claude Code or Cursor session. Compis spawn as you work — interact with `/scan`, `/catch`, `/breed` at any time without interrupting your workflow.
 
 ## Commands
 
 | Command | CLI | What it does |
 |---------|-----|-------------|
+| **`/play`** | — | **AI companion mode** — guided gameplay with strategic insights |
 | `/scan` | `compi scan` | Show nearby compis with traits, catch rates, and energy costs |
 | `/catch [n]` | `compi catch [n]` | Catch compi #N from the current batch |
 | `/collection` | `compi collection` | Browse your caught compis and their traits |
@@ -117,7 +142,7 @@ Compi runs in the background of any Claude Code or Cursor session. Compis spawn 
 | `/settings` | `compi settings` | Configure notifications and preferences |
 | `/list` | `compi list` | Show all available Compi commands |
 
-> **Tip — let your agent do the work.** Slash commands are great for one-off actions, but for anything repetitive or finicky you can just ask your agent in plain English. For example: *"catch compi 1 and 2, and don't stop until you succeed"* — your agent will keep retrying on its own, handle failures, and report back when it's done. Chain commands, automate grinds, or script whole play sessions without leaving chat.
+> **Tip — just use `/play`.** It's the easiest way to experience Compi. The AI reads your game state, suggests moves, and executes them when you say yes. Individual commands are still available for power users who prefer direct control.
 
 ## Contributing
 

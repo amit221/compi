@@ -306,9 +306,26 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     const state = engine.getState();
     const overview = getCompanionOverview(state);
     stateManager.save(state);
-    const rendered = renderer.renderCompanionOverview(overview);
+    // Display file gets only the rendered ANSI (status bar + overview with numbered picks)
+    const rendered = prependStatusBar(engine, renderer, renderer.renderCompanionOverview(overview));
+    if (options.writeDisplayFile) {
+      fs.writeFileSync(displayPath, rendered);
+    }
+    if (options.onOutput) {
+      options.onOutput(rendered);
+    }
+    // MCP response includes the rendered display AND JSON for Claude to parse
     const json = JSON.stringify(overview, null, 2);
-    const content = `${rendered}\n\n<companion_overview>\n${json}\n</companion_overview>`;
-    return text(prependStatusBar(engine, renderer, content));
+    const fullContent = `${rendered}\n\n<companion_overview>\n${json}\n</companion_overview>`;
+    if (options.renderHtml) {
+      const html = options.renderHtml(rendered);
+      return { content: [
+        { type: "text" as const, text: fullContent },
+        { type: "resource" as any, resource: { uri: `ui://compi/result-${Date.now()}.html`, mimeType: "text/html;profile=mcp-app", text: html } },
+      ] };
+    }
+    return { content: [{ type: "text" as const, text: fullContent }] };
   }, meta);
+
+  // companion_pick removed — agent presents choices directly in conversation text
 }
