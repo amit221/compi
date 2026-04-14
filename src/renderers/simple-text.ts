@@ -17,6 +17,8 @@ import {
   QuestCompleteResult,
   LevelUpResult,
   DiscoveryResult,
+  ProgressInfo,
+  ActionMenuEntry,
 } from "../types";
 import { MAX_ENERGY } from "../engine/energy";
 import { getVariantById } from "../config/traits";
@@ -612,6 +614,81 @@ export class SimpleTextRenderer implements Renderer {
       lines.push("");
       lines.push(divider());
     }
+    return lines.join("\n");
+  }
+
+  /**
+   * Compact one-line status bar: gold, energy, collection size, XP%, level, team power.
+   */
+  renderStatusBar(progress: ProgressInfo): string {
+    const goldPart = `${YELLOW}${progress.gold}g${RESET}`;
+    const energyPart = `${ENERGY_ICON}${GREEN}${progress.collectionSize > 0 ? "" : ""}${RESET}`;
+    const collectionPart = `${DIM}${progress.collectionSize}/${progress.collectionMax}${RESET}`;
+    const xpPart = `${GREEN}${progress.xpPercent}%xp${RESET}`;
+    const levelPart = `${BOLD}Lv${progress.level}${RESET}`;
+    const powerPart = `${DIM}⚔${progress.teamPower}${RESET}`;
+    return `  ${levelPart}  ${goldPart}  ${energyPart}  ${collectionPart}  ${xpPart}  ${powerPart}`;
+  }
+
+  /**
+   * Numbered action menu with costs and recommended marker.
+   */
+  renderActionMenu(entries: ActionMenuEntry[]): string {
+    if (entries.length === 0) return "";
+    const lines: string[] = [];
+    lines.push(`  ${DIM}What next?${RESET}`);
+    for (const entry of entries) {
+      const num = `${BOLD}${entry.number}.${RESET}`;
+      const cost = entry.cost ? `  ${DIM}(${entry.cost})${RESET}` : "";
+      const rec = entry.number === 1 ? `  ${GREEN}★${RESET}` : "";
+      lines.push(`  ${num} ${entry.label}${cost}${rec}`);
+    }
+    return lines.join("\n");
+  }
+
+  /**
+   * Detailed progress panel: XP bar, tier progress, milestones.
+   */
+  renderProgressPanel(progress: ProgressInfo): string {
+    const lines: string[] = [];
+    lines.push(divider());
+    lines.push(`  ${BOLD}Progress${RESET}`);
+
+    // XP bar
+    const filled = Math.min(10, Math.round((progress.xpPercent / 100) * 10));
+    const bar = `${GREEN}${"█".repeat(filled)}${"░".repeat(10 - filled)}${RESET}`;
+    lines.push(`  ${DIM}XP:${RESET}    ${bar}  ${progress.xp}/${progress.xpToNextLevel}  ${DIM}Lv ${progress.level}${RESET}`);
+
+    // Gold
+    lines.push(`  ${DIM}Gold:${RESET}  ${YELLOW}${progress.gold}${RESET}`);
+
+    // Team power
+    lines.push(`  ${DIM}Power:${RESET} ${progress.teamPower}  ${DIM}→ ${progress.nextPowerMilestone}${RESET}`);
+
+    // Collection
+    lines.push(`  ${DIM}Crew:${RESET}  ${progress.collectionSize}/${progress.collectionMax}`);
+
+    // Best trait
+    if (progress.bestTrait) {
+      const bt = progress.bestTrait;
+      lines.push(`  ${DIM}Best:${RESET}  ${bt.creatureName} ${bt.slot} rank ${bt.rank} ${DIM}(${bt.tierName})${RESET}`);
+    }
+
+    // Nearest tier threshold
+    if (progress.nearestTierThreshold) {
+      const ntt = progress.nearestTierThreshold;
+      lines.push(`  ${DIM}Close:${RESET} ${ntt.creatureName} ${ntt.slot} rank ${ntt.currentRank}→${ntt.targetRank} via ${ntt.method}`);
+    }
+
+    // Next species unlock
+    if (progress.nextSpeciesUnlock) {
+      lines.push(`  ${DIM}Unlock:${RESET} ${progress.nextSpeciesUnlock.species} at Lv ${progress.nextSpeciesUnlock.level}`);
+    }
+
+    // Discovered
+    lines.push(`  ${DIM}Found:${RESET} ${progress.discoveredCount}/${progress.totalSpecies} species`);
+
+    lines.push(divider());
     return lines.join("\n");
   }
 }

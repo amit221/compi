@@ -459,4 +459,7 @@ export interface Renderer {
   renderQuestComplete(result: QuestCompleteResult): string;
   renderLevelUp(result: LevelUpResult): string;
   renderDiscovery(result: DiscoveryResult): string;
+  renderStatusBar(progress: ProgressInfo): string;
+  renderActionMenu(entries: ActionMenuEntry[]): string;
+  renderProgressPanel(progress: ProgressInfo): string;
 }
