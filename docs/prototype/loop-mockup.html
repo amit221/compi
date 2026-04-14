@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compi Loop Simulation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'JetBrains Mono',monospace;background:#0d1117;color:#e6edf3;min-height:100vh;display:flex;flex-direction:column}
+  .hud{position:sticky;top:0;z-index:10;background:#161b22;border-bottom:1px solid #30363d;padding:6px 16px;font-size:12px;display:flex;gap:18px;flex-wrap:wrap}
+  .hv{font-weight:700}
+  .terminal{flex:1;padding:12px 16px;max-width:820px;margin:0 auto;width:100%;overflow-y:auto;padding-bottom:80px}
+  .block{margin-bottom:4px;white-space:pre-wrap;font-size:13px;line-height:1.5}
+  .input-area{position:fixed;bottom:0;left:0;right:0;background:#161b22;border-top:1px solid #30363d;padding:10px 16px;display:flex;align-items:center;gap:8px}
+  .prompt{color:#3fb950;font-weight:700;font-size:13px}
+  .input-area input{flex:1;background:none;border:none;color:#e6edf3;font-family:inherit;font-size:13px;outline:none}
+  .c0{color:#6e7681}.c1{color:#e6edf3}.c2{color:#3fb950}.c3{color:#56d4d4}
+  .c4{color:#58a6ff}.c5{color:#bc8cff}.c6{color:#f0c040}.c7{color:#f85149}
+  .dim{color:#484f58}.bold{font-weight:700}.grn{color:#3fb950}.red{color:#f85149}
+  .gld{color:#f0c040}.org{color:#f0883e}.pur{color:#bc8cff}
+  .creature-row{display:flex;align-items:center;gap:14px;margin:6px 0 10px 16px}
+  .creature-svg{flex-shrink:0}
+  .creature-info{flex:1;font-size:12px;line-height:1.6}
+  .trait-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+  .trait-tag{padding:1px 6px;border-radius:3px;font-size:11px;background:#21262d;border:1px solid #30363d}
+</style>
+</head>
+<body>
+<div class="hud" id="hud"></div>
+<div class="terminal" id="term"></div>
+<div class="input-area"><span class="prompt">compi &gt;</span><input id="inp" autofocus/></div>
+
+<script>
+// ===== SPECIES =====
+const SPECIES = {
+  compi: {name:"Compi",color:"#3fb950",shape:"axolotl"},
+  flikk: {name:"Flikk",color:"#f0c040",shape:"buzz"},
+  glich: {name:"Glich",color:"#58a6ff",shape:"glitch"},
+  whiski:{name:"Whiski",color:"#bc8cff",shape:"cat"},
+  jinx:  {name:"Jinx",color:"#f0883e",shape:"trickster"},
+  monu:  {name:"Monu",color:"#6e7681",shape:"stone"},
+};
+
+const SLOTS = ["eyes","mouth","body","tail"];
+const UNLOCK = {compi:1,flikk:1,glich:3,whiski:5,jinx:7,monu:10};
+
+// Trait pools per species per slot: array of {n:name, tier:0-7}
+// tier 0=most common, 7=rarest. Maps to color tiers.
+function makePool(names) { return names.map((n,i)=>({n, tier:i})); }
+
+const TRAITS = {
+  compi: {
+    eyes: makePool(["Pebble Gaze","Dash Sight","Pip Vision","Round Look","Bead Eyes","Half Moon","Crescent","Owl Sight","Slit Gaze","Ring Gaze","Dot Sight","Core Eyes","Gem Gaze","Star Dust","Spark Eyes","Star Sight","Moon Eyes","Void Gaze","Prism Eyes"]),
+    mouth: makePool(["Flat Line","Wave","Smile","Dot","Underline","Circle","Ripple","Curve","Whisker","Omega","Swirl","Triangle","Prism","Void","Gem","Diamond","Spark","Core","Nova"]),
+    body: makePool(["Dots","Light","Plain","Thin","Faint","Shade","Mesh","Grain","Cross","Crystal","Wave","Pulse","Shell","Core","Facet","Hex","Star","Prism","Void"]),
+    tail: makePool(["Curl","Swish","Stub","Droop","Flick","Zigzag","Drift","Whirl","Wag","Ripple","Bolt","Fork","Lightning","Infinity","Shimmer","Comet","Glitter","Supernova","Eternal"]),
+  },
+  flikk: {
+    eyes: makePool(["Blink","Twitch","Peek","Dart","Flick","Rattle","Wobble","Skip","Zap","Snap","Buzz","Jolt","Spark","Surge","Bolt","Overload"]),
+    mouth: makePool(["Chatter","Buzz","Pip","Click","Rattle","Crackle","Hum","Whirr","Snap","Jolt","Screech","Shriek","Shatter"]),
+    body: makePool(["Shiver","Fuzz","Haze","Flicker","Jitter","Quiver","Pulse","Crackle","Charge","Rattle","Spark","Bolt","Storm","Surge","Overcharge","Meltdown","Supercell"]),
+    tail: makePool(["Whip","Snap","Flick","Twitch","Wiggle","Lash","Crack","Spark","Arc","Bolt","Fork","Lightning","Tempest","Cataclysm"]),
+  },
+  glich: {
+    eyes: makePool(["Static","Flicker","Scan","Pixel","Skip","Tear","Glitch","Corrupt","Fragment","Distort","Scramble","Breach","Damage","Fracture","Rift","Void","Null","Fatal"]),
+    mouth: makePool(["Noise","Static","Buzz","Skip","Stutter","Crackle","Tear","Corrupt","Distort","Break","Crash","Fault","Kernel","Panic"]),
+    body: makePool(["Snow","Noise","Fuzz","Scan","Line","Tear","Grain","Static","Corrupt","Artifact","Glitch","Damage","Crash","Fragment","Breach","Fracture","Rift","Void","Fatal"]),
+    tail: makePool(["Flicker","Skip","Stutter","Tear","Jitter","Noise","Static","Corrupt","Glitch","Artifact","Crash","Damage","Fragment","Breach","Fracture","Rift","Fatal"]),
+  },
+  whiski: {
+    eyes: makePool(["Peer","Watch","Gaze","Glance","Stare","Lurk","Prowl","Slit","Shadow","Night","Dusk","Glint","Flash","Moon","Eclipse","Phantom","Ghost"]),
+    mouth: makePool(["Purr","Mew","Hush","Nuzzle","Chirp","Trill","Murmur","Whisper","Hiss","Croon","Yowl","Keen","Wail","Screech","Shriek","Banshee","Phantom"]),
+    body: makePool(["Faint","Haze","Smoke","Wisp","Mist","Fog","Cloud","Shadow","Dusk","Night","Void","Phantom","Ghost"]),
+    tail: makePool(["Swish","Curl","Flick","Sway","Drift","Sweep","Coil","Whisk","Twist","Lash","Snap","Phantom","Shadow","Wisp","Ghost","Vanish"]),
+  },
+  jinx: {
+    eyes: makePool(["Peek","Squint","Wink","Smirk","Shifty","Cross","Sly","Sneak","Trick","Scheme","Prank","Hustle","Con","Heist","Chaos"]),
+    mouth: makePool(["Grin","Giggle","Snicker","Tease","Smirk","Hehe","Cackle","Taunt","Chortle","Jeer","Mock","Howl","Crazed","Mayhem","Havoc","Bedlam","Anarchy"]),
+    body: makePool(["Scruffy","Messy","Tangle","Rumple","Jumble","Wobble","Tumble","Scramble","Muddle","Ruckus","Havoc","Pandemonium","Riot"]),
+    tail: makePool(["Swish","Flap","Wag","Trip","Stumble","Tangle","Knot","Whirl","Snarl","Twist","Chaos","Mayhem","Havoc","Bedlam","Anarchy"]),
+  },
+  monu: {
+    eyes: makePool(["Pebble","Settled","Worn","Still","Lichen","Moss","Deep","Root","Fossil","Bedrock","Monolith","Eternal"]),
+    mouth: makePool(["Flat","Hum","Settle","Rumble","Drone","Erode","Groan","Quake","Tremor","Chasm","Epoch"]),
+    body: makePool(["Dust","Silt","Clay","Grit","Sand","Shale","Stone","Slate","Basalt","Granite","Ore","Iron","Marble","Obsidian","Amber","Fossil","Relic","Core"]),
+    tail: makePool(["Drag","Scrape","Slide","Trail","Grind","Root","Crack","Tremor","Quake","Fossil","Ancient","Tectonic"]),
+  },
+};
+
+const TIER_COLORS = ["c0","c1","c2","c3","c4","c5","c6","c7"];
+const TIER_CSS = ["#6e7681","#e6edf3","#3fb950","#56d4d4","#58a6ff","#bc8cff","#f0c040","#f85149"];
+const UP_COST = [8,12,18,28,45,70,100];
+const UP_CEIL = 7; // can upgrade up to tier 7 via gold
+const MERGE_COST = 30;
+
+function tierColor(tier, poolLen) {
+  const score = poolLen<=1?50:((tier/(poolLen-1))*99+1);
+  if(score<=12.5)return 0;if(score<=25)return 1;if(score<=37.5)return 2;if(score<=50)return 3;
+  if(score<=62.5)return 4;if(score<=75)return 5;if(score<=87.5)return 6;return 7;
+}
+
+function tierColorClass(tier,poolLen){return TIER_COLORS[tierColor(tier,poolLen)];}
+function tierColorCSS(tier,poolLen){return TIER_CSS[tierColor(tier,poolLen)];}
+function traitScore(tier,poolLen){return poolLen<=1?50:Math.round((tier/(poolLen-1))*99+1);}
+
+// SVG creature icons
+function creatureSVG(species, traits, size=56) {
+  const sp = SPECIES[species];
+  const pools = TRAITS[species];
+  // Determine dominant color from highest-tier trait
+  let bestTier=-1,bestSlot="eyes";
+  SLOTS.forEach(s=>{const t=traits[s];if(t&&t.tier>bestTier){bestTier=t.tier;bestSlot=s;}});
+  const col = tierColorCSS(bestTier, pools[bestSlot].length);
+  const bg = sp.color+"22";
+
+  let shape = "";
+  const cx=size/2, cy=size/2, r=size*0.35;
+  if(sp.shape==="axolotl"){
+    shape=`<ellipse cx="${cx}" cy="${cy+2}" rx="${r}" ry="${r*0.8}" fill="${bg}" stroke="${col}" stroke-width="2"/>
+    <circle cx="${cx-8}" cy="${cy-4}" r="3" fill="${col}"/><circle cx="${cx+8}" cy="${cy-4}" r="3" fill="${col}"/>
+    <path d="M${cx-4} ${cy+4} Q${cx} ${cy+8} ${cx+4} ${cy+4}" stroke="${col}" fill="none" stroke-width="1.5"/>
+    <line x1="${cx-14}" y1="${cy-12}" x2="${cx-20}" y2="${cy-20}" stroke="${col}" stroke-width="2"/>
+    <line x1="${cx+14}" y1="${cy-12}" x2="${cx+20}" y2="${cy-20}" stroke="${col}" stroke-width="2"/>
+    <path d="M${cx} ${cy+r*0.8+2} Q${cx+10} ${cy+r+8} ${cx+5} ${cy+r+12}" stroke="${col}" fill="none" stroke-width="2"/>`;
+  } else if(sp.shape==="buzz"){
+    shape=`<ellipse cx="${cx}" cy="${cy}" rx="${r*0.7}" ry="${r}" fill="${bg}" stroke="${col}" stroke-width="2"/>
+    <circle cx="${cx-6}" cy="${cy-6}" r="2.5" fill="${col}"/><circle cx="${cx+6}" cy="${cy-6}" r="2.5" fill="${col}"/>
+    <line x1="${cx-10}" y1="${cy-r-2}" x2="${cx-14}" y2="${cy-r-10}" stroke="${col}" stroke-width="2"/>
+    <line x1="${cx+10}" y1="${cy-r-2}" x2="${cx+14}" y2="${cy-r-10}" stroke="${col}" stroke-width="2"/>
+    <path d="M${cx-3} ${cy+2} L${cx} ${cy+5} L${cx+3} ${cy+2}" stroke="${col}" fill="none" stroke-width="1.5"/>`;
+  } else if(sp.shape==="glitch"){
+    shape=`<rect x="${cx-r*0.7}" y="${cy-r}" width="${r*1.4}" height="${r*2}" rx="3" fill="${bg}" stroke="${col}" stroke-width="2" stroke-dasharray="4 2"/>
+    <rect x="${cx-6}" y="${cy-6}" width="4" height="4" fill="${col}"/><rect x="${cx+2}" y="${cy-6}" width="4" height="4" fill="${col}"/>
+    <line x1="${cx-5}" y1="${cy+4}" x2="${cx+5}" y2="${cy+4}" stroke="${col}" stroke-width="2"/>`;
+  } else if(sp.shape==="cat"){
+    shape=`<ellipse cx="${cx}" cy="${cy+2}" rx="${r*0.8}" ry="${r*0.7}" fill="${bg}" stroke="${col}" stroke-width="2"/>
+    <polygon points="${cx-12},${cy-8} ${cx-16},${cy-22} ${cx-4},${cy-12}" fill="${bg}" stroke="${col}" stroke-width="2"/>
+    <polygon points="${cx+12},${cy-8} ${cx+16},${cy-22} ${cx+4},${cy-12}" fill="${bg}" stroke="${col}" stroke-width="2"/>
+    <circle cx="${cx-6}" cy="${cy-2}" r="2.5" fill="${col}"/><circle cx="${cx+6}" cy="${cy-2}" r="2.5" fill="${col}"/>
+    <path d="M${cx-2} ${cy+4} L${cx} ${cy+6} L${cx+2} ${cy+4}" stroke="${col}" fill="none" stroke-width="1.5"/>
+    <path d="M${cx} ${cy+r*0.7+2} Q${cx+12} ${cy+r+4} ${cx+8} ${cy+r+10}" stroke="${col}" fill="none" stroke-width="2"/>`;
+  } else if(sp.shape==="trickster"){
+    shape=`<ellipse cx="${cx+2}" cy="${cy}" rx="${r*0.75}" ry="${r*0.85}" fill="${bg}" stroke="${col}" stroke-width="2" transform="rotate(-5 ${cx} ${cy})"/>
+    <circle cx="${cx-5}" cy="${cy-6}" r="3" fill="${col}"/><circle cx="${cx+7}" cy="${cy-4}" r="2" fill="${col}"/>
+    <path d="M${cx-2} ${cy+3} Q${cx+2} ${cy+7} ${cx+5} ${cy+3}" stroke="${col}" fill="none" stroke-width="1.5"/>
+    <path d="M${cx-2} ${cy-r-2} Q${cx} ${cy-r-8} ${cx+4} ${cy-r-2}" stroke="${col}" fill="none" stroke-width="2"/>`;
+  } else {
+    shape=`<rect x="${cx-r}" y="${cy-r*0.8}" width="${r*2}" height="${r*1.8}" rx="4" fill="${bg}" stroke="${col}" stroke-width="2.5"/>
+    <circle cx="${cx-7}" cy="${cy-4}" r="2.5" fill="${col}"/><circle cx="${cx+7}" cy="${cy-4}" r="2.5" fill="${col}"/>
+    <line x1="${cx-4}" y1="${cy+5}" x2="${cx+4}" y2="${cy+5}" stroke="${col}" stroke-width="2"/>`;
+  }
+
+  return `<svg class="creature-svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${shape}</svg>`;
+}
+
+// ===== GAME STATE =====
+const G={gold:50,energy:20,maxE:30,xp:0,level:1,collection:[],nearby:[],attempts:0,quests:[],nid:1,qid:1};
+let handler=null;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function pickW(w){const t=w.reduce((a,b)=>a+b,0);let r=Math.random()*t;for(let i=0;i<w.length;i++){r-=w[i];if(r<=0)return i;}return w.length-1;}
+const NAMES=["Blinky","Muddle","Drift","Sparks","Nibble","Flicker","Wobble","Shimmer","Puff","Ripple","Dusk","Frost","Ember","Rumble","Glint","Shade","Zap","Mochi","Doodle","Pip"];
+
+function maxRank(){if(G.level<=2)return 2;if(G.level<=4)return 4;return 6;}
+
+function spawnBatch(){
+  const avail=Object.entries(UNLOCK).filter(([s,l])=>G.level>=l).map(([s])=>s);
+  const count=3+Math.floor(Math.random()*2);
+  G.nearby=[];G.attempts=3;const mr=maxRank();
+  for(let i=0;i<count;i++){
+    const sid=pick(avail);const pools=TRAITS[sid];
+    const traits={};
+    for(const slot of SLOTS){
+      const pool=pools[slot];if(!pool)continue;
+      const cap=Math.min(mr,pool.length-1);
+      const ws=pool.map((_,idx)=>idx>cap?0:cap-idx+1);
+      const ti=pickW(ws);
+      traits[slot]={n:pool[ti].n,tier:pool[ti].tier};
+    }
+    G.nearby.push({id:G.nid++,name:pick(NAMES),species:sid,traits,caught:false});
+  }
+}
+
+function cPower(c){return SLOTS.reduce((s,sl)=>{const t=c.traits[sl];if(!t)return s;const pool=TRAITS[c.species][sl];return s+traitScore(t.tier,pool.length);},0);}
+function teamPower(){return G.collection.reduce((s,c)=>s+cPower(c),0);}
+function isOnQuest(id){return G.quests.some(q=>q.creatures.includes(id));}
+function checkLevel(){const nl=Math.floor(G.xp/80)+1;if(nl>G.level){const ol=G.level;G.level=nl;G.energy=Math.min(G.maxE,G.energy+5);let b="Better starting traits!";if(nl>=3&&ol<3)b="Catches now reach higher ranks!";if(nl>=5&&ol<5)b="Whiski unlocked!";if(nl>=7&&ol<7)b="Jinx unlocked!";if(nl>=10&&ol<10)b="Monu unlocked!";out(`<span class="org bold">  &#11014; LEVEL UP! Lv.${ol} &rarr; Lv.${nl}</span> <span class="dim">(+5&#9889;) ${b}</span>`);}}
+
+// ===== DISPLAY =====
+const term=document.getElementById("term");
+function out(h){const d=document.createElement("div");d.className="block";d.innerHTML=h;term.appendChild(d);term.scrollTop=term.scrollHeight;}
+function div(){out(`<span class="dim">  ${"─".repeat(50)}</span>`);}
+function updateHUD(){document.getElementById("hud").innerHTML=`
+  <span><span class="gld">&#x1FA99;</span> <span class="hv gld">${G.gold}g</span></span>
+  <span><span class="c3">&#9889;</span> <span class="hv c3">${G.energy}/${G.maxE}</span></span>
+  <span><span class="grn">&#128230;</span> <span class="hv grn">${G.collection.length}/15</span></span>
+  <span><span class="pur">&#11088;</span> <span class="hv pur">${G.xp} XP</span></span>
+  <span><span class="org">Lv.${G.level}</span></span>
+  <span class="dim">&#9876; ${teamPower()}</span>`;}
+
+function renderCreatureCard(c, prefix) {
+  const sp=SPECIES[c.species];const pools=TRAITS[c.species];const pw=cPower(c);
+  const svg=creatureSVG(c.species,c.traits);
+  const traitTags=SLOTS.map(sl=>{
+    const t=c.traits[sl];if(!t)return"";const pool=pools[sl];
+    const cc=tierColorClass(t.tier,pool.length);const sc=traitScore(t.tier,pool.length);
+    return `<span class="trait-tag" style="color:${tierColorCSS(t.tier,pool.length)};border-color:${tierColorCSS(t.tier,pool.length)}44">${sl.substring(0,3)} <b>${t.n}</b> [${sc}]</span>`;
+  }).join(" ");
+  return `<div class="creature-row">${svg}<div class="creature-info">${prefix}<b>${c.name}</b> <span class="dim">(${sp.name})</span> <span class="dim">&#9876;${pw}</span><div class="trait-row">${traitTags}</div></div></div>`;
+}
+
+// ===== MAIN MENU =====
+function showMenu(ctx){
+  div();if(ctx)out(ctx);
+  const opts=[];let n=1;
+  const unc=G.nearby.filter(c=>!c.caught);
+  if(unc.length>0&&G.attempts>0){
+    out(`<span class="bold">  &#128269; Nearby</span> <span class="dim">${G.attempts} attempts left</span>`);
+    unc.forEach(c=>{
+      out(renderCreatureCard(c,`<span class="dim">[${n}] </span>`));
+      opts.push({t:"catch",c});n++;
+    });
+  } else if(unc.length===0||G.attempts<=0){
+    spawnBatch();
+    out(`<span class="grn">  &#10022; ${G.nearby.length} new creatures appeared!</span>`);
+    showMenu();return;
+  }
+  // Upgrades
+  const ups=[];
+  G.collection.forEach(c=>{if(isOnQuest(c.id))return;SLOTS.forEach(slot=>{
+    const t=c.traits[slot];if(!t)return;const pool=TRAITS[c.species][slot];
+    if(t.tier<Math.min(UP_CEIL,pool.length-1)){const cost=UP_COST[Math.min(t.tier,UP_COST.length-1)]||100;const next=pool[t.tier+1];
+    const cc=tierColorClass(next.tier,pool.length);
+    ups.push({c,slot,cost,from:t,to:next,pool});}});});
+  if(ups.length>0){
+    out(`<span class="bold">  &#11014; Upgrades</span>`);
+    ups.forEach(u=>{
+      const ok=G.gold>=u.cost;const fromCC=tierColorClass(u.from.tier,u.pool.length);const toCC=tierColorClass(u.to.tier,u.pool.length);
+      out(`  <span class="dim">[${n}]</span> ${u.c.name} ${u.slot}: <span class="${fromCC}">${u.from.n}</span> &rarr; <span class="${toCC}">${u.to.n}</span> <span class="gld">(${u.cost}g)</span>${ok?'':' <span class="red">&#10007;</span>'}`);
+      opts.push({t:"upgrade",...u,ok});n++;});
+  }
+  // Merge
+  const sc={};G.collection.filter(c=>!isOnQuest(c.id)).forEach(c=>{sc[c.species]=(sc[c.species]||[]);sc[c.species].push(c);});
+  const merges=Object.entries(sc).filter(([s,a])=>a.length>=2);
+  if(merges.length>0){
+    out(`<span class="bold">  &#9879; Merge</span>`);
+    merges.forEach(([sp,arr])=>{const a=arr[0],b=arr[1];const ok=G.gold>=MERGE_COST;
+    out(`  <span class="dim">[${n}]</span> ${a.name} + ${b.name} <span class="dim">(${SPECIES[sp].name})</span> <span class="gld">(${MERGE_COST}g)</span> <span class="dim">1 trait &#11014; 1 might &#11015;</span>${ok?'':' <span class="red">&#10007;</span>'}`);
+    opts.push({t:"merge",a,b,ok});n++;});
+  }
+  // Quest
+  const avail=G.collection.filter(c=>!isOnQuest(c.id));
+  if(avail.length>0){
+    const rw=Math.max(5,Math.floor(avail.reduce((s,c)=>s+cPower(c),0)*0.3));
+    out(`<span class="bold">  &#128506; Quest</span>`);
+    out(`  <span class="dim">[${n}]</span> Send team <span class="gld">(~${rw}g)</span> <span class="dim">${avail.length} creatures, 15s</span>`);
+    opts.push({t:"quest"});n++;
+  }
+  if(G.collection.length>0){out(`  <span class="dim">[c] View collection</span>`);opts.push({t:"coll",key:"c"});}
+  if(G.quests.length>0)out(`  <span class="dim">&#9203; ${G.quests.length} quest(s) active...</span>`);
+  updateHUD();
+  handler=inp=>{
+    const v=inp.trim().toLowerCase();
+    if(v==="c"){showColl();return;}
+    const num=parseInt(v);if(isNaN(num)||num<1||num>opts.length){out(`<span class="red">  Pick 1-${opts.length}</span>`);return;}
+    const o=opts[num-1];
+    if(o.t==="catch")doCatch(o.c);
+    else if(o.t==="upgrade")doUpgrade(o);
+    else if(o.t==="merge")doMerge(o);
+    else if(o.t==="quest")doQuest();
+  };
+}
+
+function doCatch(c){
+  if(G.energy<=0){out(`<span class="red">  No energy!</span>`);showMenu();return;}
+  G.energy--;G.attempts--;
+  if(Math.random()>0.80){
+    out(`<span class="c6 bold">  &#10022; ESCAPED</span>`);
+    out(renderCreatureCard(c,""));
+    out(`  <span class="dim">-1&#9889; ${G.attempts} attempts left</span>`);
+    showMenu();return;
+  }
+  c.caught=true;
+  const cr={id:c.id,name:c.name,species:c.species,traits:JSON.parse(JSON.stringify(c.traits))};
+  G.collection.push(cr);
+  const pw=cPower(cr);const xp=15+Math.floor(pw/2);G.xp+=xp;
+  out(`<span class="grn bold">  &#10022; CAUGHT! &#10022;</span>`);
+  out(renderCreatureCard(cr,""));
+  out(`  <span class="dim">+${xp} XP  -1&#9889;</span>`);
+  checkLevel();showMenu();
+}
+
+function doUpgrade(o){
+  if(G.gold<o.cost){out(`<span class="red">  Need ${o.cost}g!</span>`);showMenu();return;}
+  G.gold-=o.cost;const c=o.c;const pool=o.pool;
+  c.traits[o.slot]={n:o.to.n,tier:o.to.tier};
+  G.xp+=10;
+  const fromCC=tierColorClass(o.from.tier,pool.length);const toCC=tierColorClass(o.to.tier,pool.length);
+  out(`<span class="grn bold">  &#11014; Upgraded!</span> ${c.name} ${o.slot}: <span class="${fromCC}">${o.from.n}</span> &rarr; <span class="${toCC}">${o.to.n}</span> <span class="gld">(-${o.cost}g)</span>`);
+  out(renderCreatureCard(c,""));
+  checkLevel();showMenu();
+}
+
+function doMerge(o){
+  if(G.gold<MERGE_COST){out(`<span class="red">  Need ${MERGE_COST}g!</span>`);showMenu();return;}
+  div();
+  out(`<span class="pur bold">  &#9879; Merge Preview: ${o.a.name} + ${o.b.name}</span>`);
+  const pools=TRAITS[o.a.species];
+  SLOTS.forEach(slot=>{
+    const pool=pools[slot];if(!pool)return;
+    const ai=o.a.traits[slot]?.tier||0,bi=o.b.traits[slot]?.tier||0;
+    const best=Math.max(ai,bi);const bestT=pool[best];
+    const up=best<pool.length-1?25:0;const dn=best>0?15:0;const same=100-up-dn;
+    const cc=tierColorClass(best,pool.length);
+    let line=`    ${slot.padEnd(6)} <span class="${cc}">${bestT.n}</span>`;
+    if(up>0){const ncc=tierColorClass(best+1,pool.length);line+=` <span class="${ncc}">&#11014;${pool[best+1].n} ${up}%</span>`;}
+    line+=` <span class="dim">=${same}%</span>`;
+    if(dn>0){const dcc=tierColorClass(best-1,pool.length);line+=` <span class="red">&#11015;${pool[best-1].n} ${dn}%</span>`;}
+    out(line);
+  });
+  out(`  <span class="gld">Cost: ${MERGE_COST}g</span> <span class="dim">Parents consumed.</span>`);
+  out(`  <span class="dim">[1]</span> <span class="pur">Merge!</span>    <span class="dim">[2]</span> Cancel`);
+  handler=inp=>{
+    if(inp.trim()==="1"){executeMerge(o.a,o.b);}
+    else{out(`<span class="dim">  Cancelled.</span>`);showMenu();}
+  };
+}
+
+function executeMerge(a,b){
+  G.gold-=MERGE_COST;const pools=TRAITS[a.species];
+  const upSlot=pick(SLOTS.filter(s=>pools[s]));
+  let dnSlot=null;if(Math.random()<0.6){const oth=SLOTS.filter(s=>s!==upSlot&&pools[s]);if(oth.length)dnSlot=pick(oth);}
+  const child={id:G.nid++,name:a.name,species:a.species,traits:{}};
+  SLOTS.forEach(slot=>{
+    const pool=pools[slot];if(!pool)return;
+    const ai=a.traits[slot]?.tier||0,bi=b.traits[slot]?.tier||0;
+    const best=Math.max(ai,bi);
+    child.traits[slot]={n:pool[best].n,tier:best};
+  });
+  const uPool=pools[upSlot];const uTier=child.traits[upSlot].tier;
+  let upMsg="";
+  if(uTier<uPool.length-1){const nt=uPool[uTier+1];upMsg=`  <span class="grn">&#11014; ${upSlot}: ${child.traits[upSlot].n} &rarr; ${nt.n}</span>`;child.traits[upSlot]={n:nt.n,tier:uTier+1};}
+  let dnMsg="";
+  if(dnSlot){const dPool=pools[dnSlot];const dTier=child.traits[dnSlot].tier;
+  if(dTier>0){const pt=dPool[dTier-1];dnMsg=`<br>  <span class="red">&#11015; ${dnSlot}: ${child.traits[dnSlot].n} &rarr; ${pt.n}</span>`;child.traits[dnSlot]={n:pt.n,tier:dTier-1};}}
+  G.collection=G.collection.filter(x=>x.id!==a.id&&x.id!==b.id);
+  G.collection.push(child);
+  const pw=cPower(child);G.xp+=30+Math.floor(pw/2);
+  out(`<span class="pur bold">  &#9879; Merged!</span> &rarr; ${child.name} <span class="dim">&#9876;${pw}</span>`);
+  out(upMsg+dnMsg+(dnMsg?'':'<br>  <span class="grn">No downgrade! Lucky!</span>'));
+  out(renderCreatureCard(child,""));
+  checkLevel();showMenu();
+}
+
+function doQuest(){
+  const avail=G.collection.filter(c=>!isOnQuest(c.id));
+  if(!avail.length){out(`<span class="red">  No creatures!</span>`);showMenu();return;}
+  const rw=Math.max(5,Math.floor(avail.reduce((s,c)=>s+cPower(c),0)*0.3));
+  const names=avail.map(c=>c.name).join(", ");
+  out(`<span class="bold">  &#128506; Quest</span> ${names} <span class="gld">(~${rw}g, 15s)</span>`);
+  out(`  <span class="dim">[1]</span> Send    <span class="dim">[2]</span> Cancel`);
+  handler=inp=>{
+    if(inp.trim()==="1"){
+      const ids=avail.map(c=>c.id);const q={id:G.qid++,creatures:ids,rw};G.quests.push(q);
+      out(`<span class="grn">  &#10003; Team departed!</span>`);
+      setTimeout(()=>{G.quests=G.quests.filter(x=>x.id!==q.id);G.gold+=q.rw;G.xp+=20;checkLevel();
+      out(`<br><span class="gld bold">  &#128506; Quest complete! +${q.rw}g</span>`);showMenu();},15000);
+      showMenu();
+    }else{out(`<span class="dim">  Cancelled.</span>`);showMenu();}
+  };
+}
+
+function showColl(){
+  div();out(`<span class="bold">  &#128230; Collection (${G.collection.length}/15)</span>`);
+  if(!G.collection.length)out(`  <span class="dim">Empty!</span>`);
+  else G.collection.forEach((c,i)=>{
+    const oq=isOnQuest(c.id);
+    out(renderCreatureCard(c,`<span class="dim">${i+1}. </span>`+(oq?`<span class="dim">&#128506; quest </span>`:"")));
+  });
+  out(`  <span class="dim">Press Enter to go back</span>`);
+  handler=()=>showMenu();
+}
+
+// Input
+document.getElementById("inp").addEventListener("keydown",e=>{if(e.key==="Enter"){const v=e.target.value;e.target.value="";if(handler)handler(v);}});
+// Energy regen
+setInterval(()=>{if(G.energy<G.maxE){G.energy++;updateHUD();}},8000);
+
+// INIT
+spawnBatch();
+out(`<span class="org bold">  ═════════════════════════════════</span>
+<span class="org bold">   COMPI — Loop Simulation</span>
+<span class="org bold">  ═════════════════════════════════</span>
+  <span class="dim">Catch &rarr; Upgrade &rarr; Merge &rarr; Quest &rarr; Repeat</span>
+  <span class="dim">Type a number to pick. Let's go!</span>`);
+showMenu(`<span class="grn">  &#10022; ${G.nearby.length} creatures appeared!</span>`);
+</script>
+</body>
+</html>

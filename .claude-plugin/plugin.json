@@ -14,14 +14,16 @@
     "collection",
     "pokemon"
   ],
-  "hooks": "./hooks/hooks.json",
   "skills": "./skills/",
   "mcpServers": {
     "compi": {
       "command": "node",
       "args": [
-        "./scripts/mcp-server.js"
-      ]
+        "${CLAUDE_PLUGIN_ROOT}/scripts/mcp-server.js"
+      ],
+      "env": {
+        "COMPI_DISPLAY_FILE": "1"
+      }
     }
   }
 }

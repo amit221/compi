@@ -5,7 +5,8 @@ export type ScenarioId =
   | "full-collection"
   | "quest-flow"
   | "returning-player"
-  | "gold-decision";
+  | "gold-decision"
+  | "companion-mode";
 
 export interface Scenario {
   id: ScenarioId;
@@ -149,6 +150,25 @@ Work through the decision-making process:
 7. Reflect: did the game give you what you needed to make a rational decision, or did you have to rely on intuition and incomplete information?
 
 Focus on: information availability at the point of decision, comparative cost visibility, and whether the game provides enough economic context for players to make meaningful strategic choices.${REPORT_FORMAT}`,
+  },
+  {
+    id: "companion-mode",
+    name: "Companion Mode (/play)",
+    description:
+      "Player discovers and uses the /play companion mode instead of individual commands.",
+    prompt: `You are a Compi player who has just started playing. Instead of using individual slash commands, you've heard there's a /play command that gives you an interactive companion to guide you through the game.
+
+Walk through the companion experience:
+1. Start by running /play to launch the companion mode. Note your first impression — does the companion greet you well? Does it orient you immediately?
+2. Try interacting conversationally — ask the companion what you should do, what's nearby, or how the game works. Does it respond naturally and use the actual game tools (scan, catch, etc.) on your behalf?
+3. Ask the companion to show you nearby creatures. Does it call /scan and display the real ASCII art and catch rates, or does it just describe things in text?
+4. Ask the companion to help you catch something. Does it guide you through the process step by step? Does it celebrate or react to the outcome?
+5. Try asking a strategic question like "which creature should I upgrade?" or "what should I do next?" — does the companion give useful, personalized advice based on your actual game state?
+6. Try a vague or casual request like "yeah do it" or "the rare one" — does the companion parse your intent correctly?
+7. Test whether the companion keeps the session going with follow-up suggestions, or if it feels like a dead end after each action.
+8. Evaluate the overall experience: Is /play a better entry point for new players than using individual commands? Does it reduce friction and make the game more engaging?
+
+Focus on: onboarding quality, conversational fluency, whether the companion actually calls game tools vs. just narrating, advice quality, session flow and momentum, and whether /play makes the game feel more alive than raw slash commands.${REPORT_FORMAT}`,
   },
 ];
 

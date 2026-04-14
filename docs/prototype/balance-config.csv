@@ -1,0 +1,78 @@
+Category,Parameter,Value,Notes
+Catching,Batch Size,3,Creatures per /scan
+Catching,Catch Rate (rank 0),100%,
+Catching,Catch Rate (max rank),50%,
+Catching,Energy Cost,1,Per attempt
+Catching,Trait Cap Lv1,1,Max rank on spawns
+Catching,Trait Cap Lv2,2,Max rank on spawns
+Catching,Trait Cap Lv3,2,Max rank on spawns
+Catching,Trait Cap Lv4,3,Max rank on spawns
+Catching,Trait Cap Lv5,3,Max rank on spawns
+Catching,Trait Cap Lv6,4,Max rank on spawns
+Catching,Trait Cap Lv7,4,Max rank on spawns
+Catching,Trait Cap Lv8,5,Max rank on spawns
+Catching,Trait Cap Lv9,5,Max rank on spawns
+Catching,Trait Cap Lv10,6,Max rank on spawns
+Catching,Trait Cap Lv11,6,Max rank on spawns
+Catching,Trait Cap Lv12,7,Max rank on spawns
+Catching,Trait Cap Lv13,7,Max rank on spawns
+Catching,Trait Cap Lv14,8,Max rank on spawns
+
+Upgrade,Rank 0->1,3g,
+Upgrade,Rank 1->2,5g,
+Upgrade,Rank 2->3,9g,
+Upgrade,Rank 3->4,15g,
+Upgrade,Rank 4->5,24g,
+Upgrade,Rank 5->6,38g,
+Upgrade,Rank 6->7,55g,
+Upgrade,Ceiling,Rank 7,Merge needed beyond
+
+Merge,Gold Cost Base,10g,Base cost before scaling
+Merge,Gold Cost Scaling,5g per avg rank,Total = 10 + floor(childAvgRank * 5)
+Merge,Energy Cost,1,
+Merge,Trait Upgrade,100%,One random trait +1
+Merge,Trait Downgrade,30%,One other random trait -1 (was 38%)
+
+Quest,Gold/Power,0.6x,
+Quest,Min Reward,10g,
+Quest,Lock Duration,2 sessions,
+Quest,Max Team Size,3,
+
+XP,Per Catch,10,
+XP,Per Upgrade,8,
+XP,Per Merge,25,
+XP,Per Quest,15,
+XP,Lv1->Lv2,30,
+XP,Lv2->Lv3,50,
+XP,Lv3->Lv4,80,
+XP,Lv4->Lv5,120,
+XP,Lv5->Lv6,170,
+XP,Lv6->Lv7,240,
+XP,Lv7->Lv8,340,
+XP,Lv8->Lv9,480,
+XP,Lv9->Lv10,680,
+XP,Lv10->Lv11,960,
+XP,Lv11->Lv12,1350,
+XP,Lv12->Lv13,1900,
+XP,Lv13->Lv14,2700,
+
+Energy,Maximum,20,
+Energy,Starting,20,New game
+Energy,Regen/Session,3,
+
+Collection,Max Slots,12,
+Economy,Starting Gold,10g,
+
+Species,compi,Lv1,Weight 10
+Species,flikk,Lv1,Weight 11
+Species,glich,Lv3,Weight 8
+Species,whiski,Lv5,Weight 5
+Species,jinx,Lv7,Weight 11
+Species,monu,Lv10,Weight 9
+
+Tiers,Common,Rank 0-4,
+Tiers,Uncommon,Rank 5-8,
+Tiers,Rare,Rank 9-11,
+Tiers,Epic,Rank 12-14,
+Tiers,Legendary,Rank 15-16,
+Tiers,Mythic,Rank 17+,

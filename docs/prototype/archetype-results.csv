@@ -1,0 +1,151 @@
+Archetype,Model,Pass,Key Metric,Value
+Optimal,M1_SinkFaucet,PASS,LateLTSpendRate,100.0%
+Optimal,M1_SinkFaucet,PASS,FailedCheckpoints,0
+Optimal,M2_TimeToPayoff,PASS,AvgGap,1.01
+Optimal,M2_TimeToPayoff,PASS,LongGapPct,0.00%
+Optimal,M3_Inflation,PASS,FailedCheckpoints,1
+Optimal,M3_Inflation_S10,PASS,Ratio,0.820
+Optimal,M3_Inflation_S25,PASS,Ratio,0.966
+Optimal,M3_Inflation_S50,PASS,Ratio,0.824
+Optimal,M3_Inflation_S100,PASS,Ratio,0.772
+Optimal,M3_Inflation_S200,PASS,Ratio,0.512
+Optimal,M3_Inflation_S300,FAIL,Ratio,0.429
+Optimal,M3_Inflation_S500,PASS,Ratio,0.767
+Optimal,M3_Inflation_S750,PASS,Ratio,1.412
+Optimal,M3_Inflation_S1000,PASS,Ratio,2.493
+Optimal,M4_LossAversion,PASS,NetNegPct,29.8%
+Optimal,M4_LossAversion,PASS,TotalMerges,42822
+Optimal,M5_Engagement,PASS,DeclineRate,52.0%
+Optimal,M5_Engagement,PASS,EarlyAvg,3.77
+Optimal,M5_Engagement,PASS,LateAvg,5.72
+Optimal,M1_LT_S10,,SpendRate,120.1%
+Optimal,M1_LT_S50,,SpendRate,102.1%
+Optimal,M1_LT_S100,,SpendRate,100.4%
+Optimal,M1_LT_S300,,SpendRate,99.8%
+Optimal,M1_LT_S500,,SpendRate,100.0%
+Optimal,M1_LT_S1000,,SpendRate,100.0%
+Casual,M1_SinkFaucet,PASS,LateLTSpendRate,100.0%
+Casual,M1_SinkFaucet,PASS,FailedCheckpoints,0
+Casual,M2_TimeToPayoff,PASS,AvgGap,1.00
+Casual,M2_TimeToPayoff,PASS,LongGapPct,0.00%
+Casual,M3_Inflation,PASS,FailedCheckpoints,0
+Casual,M3_Inflation_S10,PASS,Ratio,0.702
+Casual,M3_Inflation_S25,PASS,Ratio,0.798
+Casual,M3_Inflation_S50,PASS,Ratio,0.775
+Casual,M3_Inflation_S100,PASS,Ratio,0.686
+Casual,M3_Inflation_S200,PASS,Ratio,0.571
+Casual,M3_Inflation_S300,PASS,Ratio,0.539
+Casual,M3_Inflation_S500,PASS,Ratio,0.614
+Casual,M3_Inflation_S750,PASS,Ratio,0.852
+Casual,M3_Inflation_S1000,PASS,Ratio,1.025
+Casual,M4_LossAversion,PASS,NetNegPct,29.6%
+Casual,M4_LossAversion,PASS,TotalMerges,21814
+Casual,M5_Engagement,PASS,DeclineRate,11.8%
+Casual,M5_Engagement,PASS,EarlyAvg,3.05
+Casual,M5_Engagement,PASS,LateAvg,3.41
+Casual,M1_LT_S10,,SpendRate,119.1%
+Casual,M1_LT_S50,,SpendRate,102.3%
+Casual,M1_LT_S100,,SpendRate,100.8%
+Casual,M1_LT_S300,,SpendRate,100.1%
+Casual,M1_LT_S500,,SpendRate,100.0%
+Casual,M1_LT_S1000,,SpendRate,100.0%
+Hoarder,M1_SinkFaucet,PASS,LateLTSpendRate,99.9%
+Hoarder,M1_SinkFaucet,PASS,FailedCheckpoints,0
+Hoarder,M2_TimeToPayoff,PASS,AvgGap,1.01
+Hoarder,M2_TimeToPayoff,PASS,LongGapPct,0.00%
+Hoarder,M3_Inflation,PASS,FailedCheckpoints,0
+Hoarder,M3_Inflation_S10,PASS,Ratio,0.848
+Hoarder,M3_Inflation_S25,PASS,Ratio,0.894
+Hoarder,M3_Inflation_S50,PASS,Ratio,0.848
+Hoarder,M3_Inflation_S100,PASS,Ratio,0.742
+Hoarder,M3_Inflation_S200,PASS,Ratio,0.580
+Hoarder,M3_Inflation_S300,PASS,Ratio,0.547
+Hoarder,M3_Inflation_S500,PASS,Ratio,1.356
+Hoarder,M3_Inflation_S750,PASS,Ratio,1.976
+Hoarder,M3_Inflation_S1000,PASS,Ratio,2.339
+Hoarder,M4_LossAversion,PASS,NetNegPct,29.9%
+Hoarder,M4_LossAversion,PASS,TotalMerges,65963
+Hoarder,M5_Engagement,PASS,DeclineRate,34.1%
+Hoarder,M5_Engagement,PASS,EarlyAvg,3.41
+Hoarder,M5_Engagement,PASS,LateAvg,4.57
+Hoarder,M1_LT_S10,,SpendRate,116.4%
+Hoarder,M1_LT_S50,,SpendRate,102.0%
+Hoarder,M1_LT_S100,,SpendRate,100.6%
+Hoarder,M1_LT_S300,,SpendRate,100.0%
+Hoarder,M1_LT_S500,,SpendRate,99.9%
+Hoarder,M1_LT_S1000,,SpendRate,99.9%
+Merge Addict,M1_SinkFaucet,PASS,LateLTSpendRate,99.9%
+Merge Addict,M1_SinkFaucet,PASS,FailedCheckpoints,0
+Merge Addict,M2_TimeToPayoff,PASS,AvgGap,1.02
+Merge Addict,M2_TimeToPayoff,PASS,LongGapPct,0.00%
+Merge Addict,M3_Inflation,FAIL,FailedCheckpoints,3
+Merge Addict,M3_Inflation_S10,PASS,Ratio,0.859
+Merge Addict,M3_Inflation_S25,PASS,Ratio,0.942
+Merge Addict,M3_Inflation_S50,PASS,Ratio,0.979
+Merge Addict,M3_Inflation_S100,PASS,Ratio,1.003
+Merge Addict,M3_Inflation_S200,PASS,Ratio,1.268
+Merge Addict,M3_Inflation_S300,PASS,Ratio,1.926
+Merge Addict,M3_Inflation_S500,FAIL,Ratio,3.024
+Merge Addict,M3_Inflation_S750,FAIL,Ratio,4.219
+Merge Addict,M3_Inflation_S1000,FAIL,Ratio,5.234
+Merge Addict,M4_LossAversion,PASS,NetNegPct,29.2%
+Merge Addict,M4_LossAversion,PASS,TotalMerges,143442
+Merge Addict,M5_Engagement,PASS,DeclineRate,36.9%
+Merge Addict,M5_Engagement,PASS,EarlyAvg,3.11
+Merge Addict,M5_Engagement,PASS,LateAvg,4.26
+Merge Addict,M1_LT_S10,,SpendRate,105.5%
+Merge Addict,M1_LT_S50,,SpendRate,99.8%
+Merge Addict,M1_LT_S100,,SpendRate,99.8%
+Merge Addict,M1_LT_S300,,SpendRate,99.8%
+Merge Addict,M1_LT_S500,,SpendRate,99.9%
+Merge Addict,M1_LT_S1000,,SpendRate,99.9%
+Gold Miser,M1_SinkFaucet,FAIL,LateLTSpendRate,31.0%
+Gold Miser,M1_SinkFaucet,FAIL,FailedCheckpoints,6
+Gold Miser,M2_TimeToPayoff,PASS,AvgGap,0.88
+Gold Miser,M2_TimeToPayoff,PASS,LongGapPct,0.00%
+Gold Miser,M3_Inflation,FAIL,FailedCheckpoints,9
+Gold Miser,M3_Inflation_S10,FAIL,Ratio,0.081
+Gold Miser,M3_Inflation_S25,FAIL,Ratio,0.000
+Gold Miser,M3_Inflation_S50,FAIL,Ratio,0.000
+Gold Miser,M3_Inflation_S100,FAIL,Ratio,0.000
+Gold Miser,M3_Inflation_S200,FAIL,Ratio,0.000
+Gold Miser,M3_Inflation_S300,FAIL,Ratio,0.000
+Gold Miser,M3_Inflation_S500,FAIL,Ratio,0.000
+Gold Miser,M3_Inflation_S750,FAIL,Ratio,0.000
+Gold Miser,M3_Inflation_S1000,FAIL,Ratio,0.000
+Gold Miser,M4_LossAversion,PASS,NetNegPct,0.0%
+Gold Miser,M4_LossAversion,PASS,TotalMerges,72
+Gold Miser,M5_Engagement,FAIL,DeclineRate,-100.0%
+Gold Miser,M5_Engagement,FAIL,EarlyAvg,0.29
+Gold Miser,M5_Engagement,FAIL,LateAvg,0.00
+Gold Miser,M1_LT_S10,,SpendRate,31.0%
+Gold Miser,M1_LT_S50,,SpendRate,31.0%
+Gold Miser,M1_LT_S100,,SpendRate,31.0%
+Gold Miser,M1_LT_S300,,SpendRate,31.0%
+Gold Miser,M1_LT_S500,,SpendRate,31.0%
+Gold Miser,M1_LT_S1000,,SpendRate,31.0%
+Impatient,M1_SinkFaucet,PASS,LateLTSpendRate,100.0%
+Impatient,M1_SinkFaucet,PASS,FailedCheckpoints,0
+Impatient,M2_TimeToPayoff,PASS,AvgGap,1.01
+Impatient,M2_TimeToPayoff,PASS,LongGapPct,0.00%
+Impatient,M3_Inflation,PASS,FailedCheckpoints,2
+Impatient,M3_Inflation_S10,PASS,Ratio,0.830
+Impatient,M3_Inflation_S25,PASS,Ratio,0.978
+Impatient,M3_Inflation_S50,PASS,Ratio,0.825
+Impatient,M3_Inflation_S100,PASS,Ratio,0.771
+Impatient,M3_Inflation_S200,PASS,Ratio,0.512
+Impatient,M3_Inflation_S300,FAIL,Ratio,0.431
+Impatient,M3_Inflation_S500,PASS,Ratio,0.864
+Impatient,M3_Inflation_S750,PASS,Ratio,2.095
+Impatient,M3_Inflation_S1000,FAIL,Ratio,3.127
+Impatient,M4_LossAversion,PASS,NetNegPct,29.7%
+Impatient,M4_LossAversion,PASS,TotalMerges,59090
+Impatient,M5_Engagement,PASS,DeclineRate,75.3%
+Impatient,M5_Engagement,PASS,EarlyAvg,3.77
+Impatient,M5_Engagement,PASS,LateAvg,6.61
+Impatient,M1_LT_S10,,SpendRate,120.1%
+Impatient,M1_LT_S50,,SpendRate,102.2%
+Impatient,M1_LT_S100,,SpendRate,100.3%
+Impatient,M1_LT_S300,,SpendRate,99.9%
+Impatient,M1_LT_S500,,SpendRate,100.0%
+Impatient,M1_LT_S1000,,SpendRate,100.0%
