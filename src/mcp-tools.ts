@@ -305,7 +305,6 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     const renderer = new SimpleTextRenderer();
     const state = engine.getState();
     const overview = getCompanionOverview(state);
-    stateManager.save(state);
     // Display file gets only the rendered ANSI (status bar + overview with numbered picks)
     const rendered = prependStatusBar(engine, renderer, renderer.renderCompanionOverview(overview));
     if (options.writeDisplayFile) {

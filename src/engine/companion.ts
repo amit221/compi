@@ -10,28 +10,7 @@ import { getProgressInfo, getSuggestedActions } from "./advisor";
 import { calculateCatchRate, calculateEnergyCost } from "./catch";
 import { calculateSlotScore } from "./rarity";
 import { loadConfig } from "../config/loader";
-
-function extractRank(variantId: string): number {
-  const m = variantId.match(/_r(\d+)$/);
-  return m ? parseInt(m[1], 10) : 0;
-}
-
-const TIER_BOUNDARIES = [0, 5, 9, 12, 15, 17];
-const TIER_NAMES = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
-
-function getTierName(rank: number): string {
-  for (let i = TIER_BOUNDARIES.length - 1; i >= 0; i--) {
-    if (rank >= TIER_BOUNDARIES[i]) return TIER_NAMES[i];
-  }
-  return "common";
-}
-
-function getNextTierBoundary(rank: number): number | null {
-  for (const boundary of TIER_BOUNDARIES) {
-    if (boundary > rank) return boundary;
-  }
-  return null;
-}
+import { extractRank, getTierName, getNextTierBoundary } from "./tiers";
 
 export function getCompanionOverview(state: GameState): CompanionOverview {
   const config = loadConfig();

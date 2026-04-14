@@ -3,84 +3,434 @@
   "name": "Pyrax",
   "description": "A smoldering ember-bird, half-formed from living flame, always trailing sparks.",
   "spawnWeight": 6,
-  "art": ["  /EE\\,", " ( MM  >", "  \\BB /~", "   TT"],
-  "zones": ["eyes", "mouth", "body", "tail"],
+  "art": [
+    "  /EE\\,",
+    " ( MM  >",
+    "  \\BB /~",
+    "   TT"
+  ],
+  "zones": [
+    "eyes",
+    "mouth",
+    "body",
+    "tail"
+  ],
   "traitPools": {
     "eyes": [
-      { "id": "pyr_eye_01", "name": "Flicker", "art": "··", "spawnRate": 0.14 },
-      { "id": "pyr_eye_02", "name": "Glow", "art": "°°", "spawnRate": 0.12 },
-      { "id": "pyr_eye_03", "name": "Ember", "art": "••", "spawnRate": 0.10 },
-      { "id": "pyr_eye_04", "name": "Sear", "art": "·°", "spawnRate": 0.09 },
-      { "id": "pyr_eye_05", "name": "Kindle", "art": "°·", "spawnRate": 0.08 },
-      { "id": "pyr_eye_06", "name": "Smolder", "art": "◦◦", "spawnRate": 0.07 },
-      { "id": "pyr_eye_07", "name": "Scorch", "art": ">·", "spawnRate": 0.065 },
-      { "id": "pyr_eye_08", "name": "Flare", "art": "◐◐", "spawnRate": 0.06 },
-      { "id": "pyr_eye_09", "name": "Ignite", "art": "◑◑", "spawnRate": 0.05 },
-      { "id": "pyr_eye_10", "name": "Blaze", "art": "◎◎", "spawnRate": 0.04 },
-      { "id": "pyr_eye_11", "name": "Burn", "art": "●●", "spawnRate": 0.03 },
-      { "id": "pyr_eye_12", "name": "Pyre", "art": "◇◇", "spawnRate": 0.025 },
-      { "id": "pyr_eye_13", "name": "Forge", "art": "◈◈", "spawnRate": 0.02 },
-      { "id": "pyr_eye_14", "name": "Furnace", "art": "◉◉", "spawnRate": 0.015 },
-      { "id": "pyr_eye_15", "name": "Inferno", "art": "⊙⊙", "spawnRate": 0.01 },
-      { "id": "pyr_eye_16", "name": "Nova", "art": "★★", "spawnRate": 0.005 },
-      { "id": "pyr_eye_17", "name": "Supernova", "art": "✧✧", "spawnRate": 0.003 }
+      {
+        "id": "pyr_eye_01",
+        "name": "Flicker",
+        "art": "··",
+        "spawnRate": 0.152
+      },
+      {
+        "id": "pyr_eye_02",
+        "name": "Glow",
+        "art": "°°",
+        "spawnRate": 0.129
+      },
+      {
+        "id": "pyr_eye_03",
+        "name": "Ember",
+        "art": "••",
+        "spawnRate": 0.108
+      },
+      {
+        "id": "pyr_eye_04",
+        "name": "Sear",
+        "art": "·°",
+        "spawnRate": 0.097
+      },
+      {
+        "id": "pyr_eye_05",
+        "name": "Kindle",
+        "art": "°·",
+        "spawnRate": 0.086
+      },
+      {
+        "id": "pyr_eye_06",
+        "name": "Smolder",
+        "art": "◦◦",
+        "spawnRate": 0.075
+      },
+      {
+        "id": "pyr_eye_07",
+        "name": "Scorch",
+        "art": ">·",
+        "spawnRate": 0.07
+      },
+      {
+        "id": "pyr_eye_08",
+        "name": "Flare",
+        "art": "◐◐",
+        "spawnRate": 0.065
+      },
+      {
+        "id": "pyr_eye_09",
+        "name": "Ignite",
+        "art": "◑◑",
+        "spawnRate": 0.054
+      },
+      {
+        "id": "pyr_eye_10",
+        "name": "Blaze",
+        "art": "◎◎",
+        "spawnRate": 0.043
+      },
+      {
+        "id": "pyr_eye_11",
+        "name": "Burn",
+        "art": "●●",
+        "spawnRate": 0.032
+      },
+      {
+        "id": "pyr_eye_12",
+        "name": "Pyre",
+        "art": "◇◇",
+        "spawnRate": 0.027
+      },
+      {
+        "id": "pyr_eye_13",
+        "name": "Forge",
+        "art": "◈◈",
+        "spawnRate": 0.022
+      },
+      {
+        "id": "pyr_eye_14",
+        "name": "Furnace",
+        "art": "◉◉",
+        "spawnRate": 0.016
+      },
+      {
+        "id": "pyr_eye_15",
+        "name": "Inferno",
+        "art": "⊙⊙",
+        "spawnRate": 0.011
+      },
+      {
+        "id": "pyr_eye_16",
+        "name": "Nova",
+        "art": "★★",
+        "spawnRate": 0.005
+      },
+      {
+        "id": "pyr_eye_17",
+        "name": "Supernova",
+        "art": "✧✧",
+        "spawnRate": 0.003
+      }
     ],
     "mouth": [
-      { "id": "pyr_mth_01", "name": "Crackle", "art": "~~", "spawnRate": 0.14 },
-      { "id": "pyr_mth_02", "name": "Hiss", "art": "^^", "spawnRate": 0.12 },
-      { "id": "pyr_mth_03", "name": "Pop", "art": ".^", "spawnRate": 0.10 },
-      { "id": "pyr_mth_04", "name": "Snap", "art": "_^", "spawnRate": 0.09 },
-      { "id": "pyr_mth_05", "name": "Sizzle", "art": "^~", "spawnRate": 0.08 },
-      { "id": "pyr_mth_06", "name": "Sputter", "art": "~^", "spawnRate": 0.07 },
-      { "id": "pyr_mth_07", "name": "Whoosh", "art": "⌇^", "spawnRate": 0.06 },
-      { "id": "pyr_mth_08", "name": "Roar", "art": "∿~", "spawnRate": 0.05 },
-      { "id": "pyr_mth_09", "name": "Rage", "art": "⌇~", "spawnRate": 0.04 },
-      { "id": "pyr_mth_10", "name": "Snarl", "art": "≈^", "spawnRate": 0.03 },
-      { "id": "pyr_mth_11", "name": "Scream", "art": "↯^", "spawnRate": 0.025 },
-      { "id": "pyr_mth_12", "name": "Bellow", "art": "∿^", "spawnRate": 0.02 },
-      { "id": "pyr_mth_13", "name": "Blast", "art": "⚡·", "spawnRate": 0.015 },
-      { "id": "pyr_mth_14", "name": "Eruption", "art": "⚡^", "spawnRate": 0.01 },
-      { "id": "pyr_mth_15", "name": "Hellfire", "art": "✧^", "spawnRate": 0.007 },
-      { "id": "pyr_mth_16", "name": "Inferno", "art": "✦·", "spawnRate": 0.005 },
-      { "id": "pyr_mth_17", "name": "Cataclysm", "art": "★^", "spawnRate": 0.003 }
+      {
+        "id": "pyr_mth_01",
+        "name": "Crackle",
+        "art": "~~",
+        "spawnRate": 0.159
+      },
+      {
+        "id": "pyr_mth_02",
+        "name": "Hiss",
+        "art": "^^",
+        "spawnRate": 0.138
+      },
+      {
+        "id": "pyr_mth_03",
+        "name": "Pop",
+        "art": ".^",
+        "spawnRate": 0.115
+      },
+      {
+        "id": "pyr_mth_04",
+        "name": "Snap",
+        "art": "_^",
+        "spawnRate": 0.104
+      },
+      {
+        "id": "pyr_mth_05",
+        "name": "Sizzle",
+        "art": "^~",
+        "spawnRate": 0.092
+      },
+      {
+        "id": "pyr_mth_06",
+        "name": "Sputter",
+        "art": "~^",
+        "spawnRate": 0.081
+      },
+      {
+        "id": "pyr_mth_07",
+        "name": "Whoosh",
+        "art": "⌇^",
+        "spawnRate": 0.069
+      },
+      {
+        "id": "pyr_mth_08",
+        "name": "Roar",
+        "art": "∿~",
+        "spawnRate": 0.058
+      },
+      {
+        "id": "pyr_mth_09",
+        "name": "Rage",
+        "art": "⌇~",
+        "spawnRate": 0.046
+      },
+      {
+        "id": "pyr_mth_10",
+        "name": "Snarl",
+        "art": "≈^",
+        "spawnRate": 0.035
+      },
+      {
+        "id": "pyr_mth_11",
+        "name": "Scream",
+        "art": "↯^",
+        "spawnRate": 0.029
+      },
+      {
+        "id": "pyr_mth_12",
+        "name": "Bellow",
+        "art": "∿^",
+        "spawnRate": 0.023
+      },
+      {
+        "id": "pyr_mth_13",
+        "name": "Blast",
+        "art": "⚡·",
+        "spawnRate": 0.017
+      },
+      {
+        "id": "pyr_mth_14",
+        "name": "Eruption",
+        "art": "⚡^",
+        "spawnRate": 0.012
+      },
+      {
+        "id": "pyr_mth_15",
+        "name": "Hellfire",
+        "art": "✧^",
+        "spawnRate": 0.008
+      },
+      {
+        "id": "pyr_mth_16",
+        "name": "Inferno",
+        "art": "✦·",
+        "spawnRate": 0.006
+      },
+      {
+        "id": "pyr_mth_17",
+        "name": "Cataclysm",
+        "art": "★^",
+        "spawnRate": 0.003
+      }
     ],
     "body": [
-      { "id": "pyr_bod_01", "name": "Ash", "art": "░░", "spawnRate": 0.14 },
-      { "id": "pyr_bod_02", "name": "Soot", "art": "··", "spawnRate": 0.12 },
-      { "id": "pyr_bod_03", "name": "Char", "art": "∙∙", "spawnRate": 0.10 },
-      { "id": "pyr_bod_04", "name": "Smoke", "art": "::", "spawnRate": 0.09 },
-      { "id": "pyr_bod_05", "name": "Cinder", "art": "--", "spawnRate": 0.08 },
-      { "id": "pyr_bod_06", "name": "Coal", "art": "⌇⌇", "spawnRate": 0.07 },
-      { "id": "pyr_bod_07", "name": "Ember", "art": "▒▒", "spawnRate": 0.06 },
-      { "id": "pyr_bod_08", "name": "Scald", "art": "~~", "spawnRate": 0.05 },
-      { "id": "pyr_bod_09", "name": "Blister", "art": "≈≈", "spawnRate": 0.04 },
-      { "id": "pyr_bod_10", "name": "Magma", "art": "∿∿", "spawnRate": 0.035 },
-      { "id": "pyr_bod_11", "name": "Lava", "art": "▓▓", "spawnRate": 0.03 },
-      { "id": "pyr_bod_12", "name": "Molten", "art": "++", "spawnRate": 0.025 },
-      { "id": "pyr_bod_13", "name": "Forge", "art": "##", "spawnRate": 0.02 },
-      { "id": "pyr_bod_14", "name": "Crucible", "art": "◆◆", "spawnRate": 0.015 },
-      { "id": "pyr_bod_15", "name": "Core", "art": "◈◈", "spawnRate": 0.01 },
-      { "id": "pyr_bod_16", "name": "Plasma", "art": "⬡⬡", "spawnRate": 0.005 },
-      { "id": "pyr_bod_17", "name": "Solar", "art": "★★", "spawnRate": 0.003 }
+      {
+        "id": "pyr_bod_01",
+        "name": "Ash",
+        "art": "░░",
+        "spawnRate": 0.156
+      },
+      {
+        "id": "pyr_bod_02",
+        "name": "Soot",
+        "art": "··",
+        "spawnRate": 0.134
+      },
+      {
+        "id": "pyr_bod_03",
+        "name": "Char",
+        "art": "∙∙",
+        "spawnRate": 0.111
+      },
+      {
+        "id": "pyr_bod_04",
+        "name": "Smoke",
+        "art": "::",
+        "spawnRate": 0.1
+      },
+      {
+        "id": "pyr_bod_05",
+        "name": "Cinder",
+        "art": "--",
+        "spawnRate": 0.089
+      },
+      {
+        "id": "pyr_bod_06",
+        "name": "Coal",
+        "art": "⌇⌇",
+        "spawnRate": 0.078
+      },
+      {
+        "id": "pyr_bod_07",
+        "name": "Ember",
+        "art": "▒▒",
+        "spawnRate": 0.067
+      },
+      {
+        "id": "pyr_bod_08",
+        "name": "Scald",
+        "art": "~~",
+        "spawnRate": 0.056
+      },
+      {
+        "id": "pyr_bod_09",
+        "name": "Blister",
+        "art": "≈≈",
+        "spawnRate": 0.045
+      },
+      {
+        "id": "pyr_bod_10",
+        "name": "Magma",
+        "art": "∿∿",
+        "spawnRate": 0.039
+      },
+      {
+        "id": "pyr_bod_11",
+        "name": "Lava",
+        "art": "▓▓",
+        "spawnRate": 0.033
+      },
+      {
+        "id": "pyr_bod_12",
+        "name": "Molten",
+        "art": "++",
+        "spawnRate": 0.028
+      },
+      {
+        "id": "pyr_bod_13",
+        "name": "Forge",
+        "art": "##",
+        "spawnRate": 0.022
+      },
+      {
+        "id": "pyr_bod_14",
+        "name": "Crucible",
+        "art": "◆◆",
+        "spawnRate": 0.017
+      },
+      {
+        "id": "pyr_bod_15",
+        "name": "Core",
+        "art": "◈◈",
+        "spawnRate": 0.011
+      },
+      {
+        "id": "pyr_bod_16",
+        "name": "Plasma",
+        "art": "⬡⬡",
+        "spawnRate": 0.006
+      },
+      {
+        "id": "pyr_bod_17",
+        "name": "Solar",
+        "art": "★★",
+        "spawnRate": 0.003
+      }
     ],
     "tail": [
-      { "id": "pyr_tal_01", "name": "Wisp", "art": "~/", "spawnRate": 0.14 },
-      { "id": "pyr_tal_02", "name": "Trail", "art": "~~", "spawnRate": 0.12 },
-      { "id": "pyr_tal_03", "name": "Drift", "art": "/~", "spawnRate": 0.10 },
-      { "id": "pyr_tal_04", "name": "Smoke", "art": "⌇/", "spawnRate": 0.09 },
-      { "id": "pyr_tal_05", "name": "Spark", "art": "~⌇", "spawnRate": 0.08 },
-      { "id": "pyr_tal_06", "name": "Cinder", "art": "/⌇", "spawnRate": 0.07 },
-      { "id": "pyr_tal_07", "name": "Ember", "art": "⌇~", "spawnRate": 0.06 },
-      { "id": "pyr_tal_08", "name": "Scorch", "art": "~∿", "spawnRate": 0.05 },
-      { "id": "pyr_tal_09", "name": "Blaze", "art": "⌇⌇", "spawnRate": 0.04 },
-      { "id": "pyr_tal_10", "name": "Flare", "art": "∿∿", "spawnRate": 0.03 },
-      { "id": "pyr_tal_11", "name": "Torch", "art": "↯~", "spawnRate": 0.025 },
-      { "id": "pyr_tal_12", "name": "Burn", "art": "↯↯", "spawnRate": 0.02 },
-      { "id": "pyr_tal_13", "name": "Pyre", "art": "≋≋", "spawnRate": 0.015 },
-      { "id": "pyr_tal_14", "name": "Inferno", "art": "⚡⌇", "spawnRate": 0.01 },
-      { "id": "pyr_tal_15", "name": "Eruption", "art": "✧⌇", "spawnRate": 0.007 },
-      { "id": "pyr_tal_16", "name": "Phoenix", "art": "✧✧", "spawnRate": 0.005 },
-      { "id": "pyr_tal_17", "name": "Eternal", "art": "☄☄", "spawnRate": 0.003 }
+      {
+        "id": "pyr_tal_01",
+        "name": "Wisp",
+        "art": "~/",
+        "spawnRate": 0.159
+      },
+      {
+        "id": "pyr_tal_02",
+        "name": "Trail",
+        "art": "~~",
+        "spawnRate": 0.138
+      },
+      {
+        "id": "pyr_tal_03",
+        "name": "Drift",
+        "art": "/~",
+        "spawnRate": 0.115
+      },
+      {
+        "id": "pyr_tal_04",
+        "name": "Smoke",
+        "art": "⌇/",
+        "spawnRate": 0.104
+      },
+      {
+        "id": "pyr_tal_05",
+        "name": "Spark",
+        "art": "~⌇",
+        "spawnRate": 0.092
+      },
+      {
+        "id": "pyr_tal_06",
+        "name": "Cinder",
+        "art": "/⌇",
+        "spawnRate": 0.081
+      },
+      {
+        "id": "pyr_tal_07",
+        "name": "Ember",
+        "art": "⌇~",
+        "spawnRate": 0.069
+      },
+      {
+        "id": "pyr_tal_08",
+        "name": "Scorch",
+        "art": "~∿",
+        "spawnRate": 0.058
+      },
+      {
+        "id": "pyr_tal_09",
+        "name": "Blaze",
+        "art": "⌇⌇",
+        "spawnRate": 0.046
+      },
+      {
+        "id": "pyr_tal_10",
+        "name": "Flare",
+        "art": "∿∿",
+        "spawnRate": 0.035
+      },
+      {
+        "id": "pyr_tal_11",
+        "name": "Torch",
+        "art": "↯~",
+        "spawnRate": 0.029
+      },
+      {
+        "id": "pyr_tal_12",
+        "name": "Burn",
+        "art": "↯↯",
+        "spawnRate": 0.023
+      },
+      {
+        "id": "pyr_tal_13",
+        "name": "Pyre",
+        "art": "≋≋",
+        "spawnRate": 0.017
+      },
+      {
+        "id": "pyr_tal_14",
+        "name": "Inferno",
+        "art": "⚡⌇",
+        "spawnRate": 0.012
+      },
+      {
+        "id": "pyr_tal_15",
+        "name": "Eruption",
+        "art": "✧⌇",
+        "spawnRate": 0.008
+      },
+      {
+        "id": "pyr_tal_16",
+        "name": "Phoenix",
+        "art": "✧✧",
+        "spawnRate": 0.006
+      },
+      {
+        "id": "pyr_tal_17",
+        "name": "Eternal",
+        "art": "☄☄",
+        "spawnRate": 0.003
+      }
     ]
   }
 }

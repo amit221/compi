@@ -6,4 +6,7 @@ coverage/
 .superpowers/
 .playwright-mcp/
 .worktrees/
+.claude/worktrees/
 reports/
+gitlog_tmp.txt
+plan-*.png

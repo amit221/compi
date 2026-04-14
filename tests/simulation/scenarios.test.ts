@@ -1,9 +1,9 @@
 import { getScenario, getAllScenarios, ScenarioId } from "../../src/simulation/scenarios";
 
 describe("scenarios", () => {
-  test("getAllScenarios returns all 7 scenarios", () => {
+  test("getAllScenarios returns all 8 scenarios", () => {
     const all = getAllScenarios();
-    expect(all).toHaveLength(7);
+    expect(all).toHaveLength(8);
   });
 
   test("each scenario has required fields", () => {

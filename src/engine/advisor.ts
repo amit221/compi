@@ -13,51 +13,10 @@ import {
 import { loadConfig } from "../config/loader";
 import { getXpForNextLevel } from "./progression";
 import { MAX_ENERGY } from "./energy";
-
-/**
- * Rarity tier boundaries by rank. Matches the spec:
- *   0-4:   Common
- *   5-8:   Uncommon
- *   9-11:  Rare
- *   12-14: Epic
- *   15-16: Legendary
- *   17-18: Mythic
- */
-const TIER_BOUNDARIES = [0, 5, 9, 12, 15, 17];
-const TIER_NAMES = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
+import { extractRank, getTierName, getNextTierBoundary } from "./tiers";
 
 /** Power milestones the advisor tracks. */
 const POWER_MILESTONES = [25, 50, 100, 150, 200, 300, 500];
-
-/**
- * Extract trait rank from a variantId with the `_rN` suffix convention.
- * Returns 0 if no rank suffix is found (species-based trait names).
- */
-function extractRank(variantId: string): number {
-  const m = variantId.match(/_r(\d+)$/);
-  return m ? parseInt(m[1], 10) : 0;
-}
-
-/**
- * Get the tier name for a given rank.
- */
-function getTierName(rank: number): string {
-  for (let i = TIER_BOUNDARIES.length - 1; i >= 0; i--) {
-    if (rank >= TIER_BOUNDARIES[i]) return TIER_NAMES[i];
-  }
-  return "common";
-}
-
-/**
- * Get the next tier boundary above the given rank.
- * Returns null if already at the highest tier.
- */
-function getNextTierBoundary(rank: number): number | null {
-  for (const boundary of TIER_BOUNDARIES) {
-    if (boundary > rank) return boundary;
-  }
-  return null;
-}
 
 /**
  * Calculate total team power: sum of all trait ranks across non-archived,
