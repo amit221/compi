@@ -149,48 +149,30 @@ describe("calculateCatchRate", () => {
 });
 
 describe("calculateXpEarned", () => {
-  test("all common traits (>= 0.05) = base XP only (20)", () => {
+  test("returns base XP regardless of trait rarity", () => {
     setupTraitRates({ c1: 0.12, c2: 0.10, c3: 0.08, c4: 0.06 });
     const slots = makeSlots(["c1", "c2", "c3", "c4"]);
     expect(calculateXpEarned("compi", slots)).toBe(20);
   });
 
-  test("two rare traits = base + 2*5 = 30", () => {
-    setupTraitRates({ c1: 0.12, c2: 0.12, r1: 0.04, r2: 0.02 });
-    const slots = makeSlots(["c1", "c2", "r1", "r2"]);
-    expect(calculateXpEarned("compi", slots)).toBe(30);
-  });
-
-  test("four rare traits = base + 4*5 = 40", () => {
+  test("returns same base XP for rare traits", () => {
     setupTraitRates({ r1: 0.01, r2: 0.003, r3: 0.02, r4: 0.04 });
     const slots = makeSlots(["r1", "r2", "r3", "r4"]);
-    expect(calculateXpEarned("compi", slots)).toBe(40);
+    expect(calculateXpEarned("compi", slots)).toBe(20);
   });
 });
 
 describe("calculateEnergyCost", () => {
-  test("all common traits = 1 energy", () => {
+  test("always returns 1 regardless of traits", () => {
     setupTraitRates({ c1: 0.12, c2: 0.10, c3: 0.08, c4: 0.06 });
     const slots = makeSlots(["c1", "c2", "c3", "c4"]);
     expect(calculateEnergyCost("compi", slots)).toBe(1);
   });
 
-  test("one rare trait = 2 energy", () => {
-    setupTraitRates({ c1: 0.12, c2: 0.12, c3: 0.12, r1: 0.04 });
-    const slots = makeSlots(["c1", "c2", "c3", "r1"]);
-    expect(calculateEnergyCost("compi", slots)).toBe(2);
-  });
-
-  test("four rare traits = 5 (capped)", () => {
+  test("returns 1 even for rare traits", () => {
     setupTraitRates({ r1: 0.01, r2: 0.003, r3: 0.02, r4: 0.04 });
     const slots = makeSlots(["r1", "r2", "r3", "r4"]);
-    expect(calculateEnergyCost("compi", slots)).toBe(5);
-  });
-
-  test("three rare traits = 4 energy", () => {
-    setupTraitRates({ c1: 0.12, r1: 0.04, r2: 0.02, r3: 0.01 });
-    const slots = makeSlots(["c1", "r1", "r2", "r3"]);
-    expect(calculateEnergyCost("compi", slots)).toBe(4);
+    expect(calculateEnergyCost("compi", slots)).toBe(1);
   });
 });
 
@@ -270,14 +252,14 @@ describe("attemptCatch", () => {
     expect(state.profile.totalCatches).toBe(1);
   });
 
-  test("rare creature costs more energy and gives more XP", () => {
+  test("rare creature has same flat energy cost and XP", () => {
     setupTraitRates({ common1: 0.12, common2: 0.12, rare1: 0.03, rare2: 0.01 });
     const state = makeState({
       nearby: [makeNearby("c1", ["common1", "common2", "rare1", "rare2"])],
     });
     const result = attemptCatch(state, 0, () => 0.1);
     expect(result.success).toBe(true);
-    expect(result.energySpent).toBe(3); // 1 + 2 rare traits
-    expect(result.xpEarned).toBe(30); // 20 + 2*5
+    expect(result.energySpent).toBe(1); // flat energy cost
+    expect(result.xpEarned).toBe(20); // flat base XP
   });
 });

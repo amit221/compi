@@ -30,30 +30,18 @@ export function calculateCatchRate(speciesId: string, slots: CreatureSlot[], fai
 }
 
 /**
- * Calculate XP earned from catching a creature.
- * Base XP + bonus per rare trait (spawn rate < 0.05).
+ * XP earned from catching: flat base from config.
  */
-export function calculateXpEarned(speciesId: string, slots: CreatureSlot[]): number {
+export function calculateXpEarned(_speciesId: string, _slots: CreatureSlot[]): number {
   const config = loadConfig();
-  let rareCount = 0;
-  for (const slot of slots) {
-    const trait = getTraitDefinition(speciesId, slot.variantId);
-    if (trait && trait.spawnRate < 0.05) rareCount++;
-  }
-  return config.catching.xpBase + rareCount * config.catching.xpRarityMultiplier;
+  return config.catching.xpBase;
 }
 
 /**
- * Calculate energy cost to attempt catching a creature.
- * 1 + count of rare traits (spawn rate < 0.05), capped at 5.
+ * Energy cost per catch attempt: flat 1.
  */
-export function calculateEnergyCost(speciesId: string, slots: CreatureSlot[]): number {
-  let rareCount = 0;
-  for (const slot of slots) {
-    const trait = getTraitDefinition(speciesId, slot.variantId);
-    if (trait && trait.spawnRate < 0.05) rareCount++;
-  }
-  return Math.min(1 + rareCount, 5);
+export function calculateEnergyCost(_speciesId: string, _slots: CreatureSlot[]): number {
+  return 1;
 }
 
 /**
