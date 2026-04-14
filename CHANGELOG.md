@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file. This file is maintained automatically by [release-please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [0.5.0](https://github.com/amit221/compi/compare/v0.4.0...v0.5.0) (2026-04-14)
+
+
+### Features
+
+* switch skills from MCP to CLI for native color rendering ([1b28a64](https://github.com/amit221/compi/commit/1b28a649d047ef14e1b7b969329d26f180c45a11))
+
 ## [0.4.0](https://github.com/amit221/compi/compare/v0.3.0...v0.4.0) (2026-04-14)
 
 
