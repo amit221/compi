@@ -12,7 +12,12 @@
     "bundle": "esbuild src/mcp-server.ts src/mcp-server-cursor.ts src/cli.ts --bundle --platform=node --format=cjs --target=node20 --outdir=scripts --allow-overwrite",
     "test": "jest",
     "test:watch": "jest --watch",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "sim": "ts-node src/simulation/cli.ts all",
+    "sim:bugs": "ts-node src/simulation/cli.ts bugs",
+    "sim:balance": "ts-node src/simulation/cli.ts balance",
+    "sim:smoke": "ts-node src/simulation/cli.ts smoke",
+    "sim:ux": "ts-node src/simulation/cli.ts ux"
   },
   "keywords": [
     "cli",
