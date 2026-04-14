@@ -1,30 +1,31 @@
 import { GameState, NearbyCreature, CatchResult, CreatureSlot, CollectionCreature } from "../types";
-import { getTraitDefinition } from "../config/species";
+import { getTraitDefinition, getTraitRank, getSpeciesById } from "../config/species";
 import { loadConfig } from "../config/loader";
 import { spendEnergy } from "./energy";
 
 /**
- * Calculate the catch rate based on the rarest trait's spawn rate across all slots.
+ * Calculate catch rate using rank-based formula.
  *
- * Formula:
- *   rarest_trait = min(spawn_rate) across all slots
- *   catch_rate = baseCatchRate - (difficultyScale * (1 - rarest_trait / maxTraitSpawnRate)) - failPenalty
- *   clamped to [minCatchRate, maxCatchRate]
+ * Per-trait: traitCatchChance = 1.0 - (traitRank / maxRankInPool) * 0.50
+ * Final: average of all per-trait chances - failPenalty, clamped to [min, max]
  */
 export function calculateCatchRate(speciesId: string, slots: CreatureSlot[], failPenalty: number): number {
   const config = loadConfig();
-  const { baseCatchRate, minCatchRate, maxCatchRate, maxTraitSpawnRate, difficultyScale } = config.catching;
+  const { minCatchRate, maxCatchRate } = config.catching;
+  const species = getSpeciesById(speciesId);
 
-  // Find rarest trait spawn rate
-  let rarestRate = maxTraitSpawnRate;
+  let totalChance = 0;
   for (const slot of slots) {
-    const trait = getTraitDefinition(speciesId, slot.variantId);
-    if (trait && trait.spawnRate < rarestRate) {
-      rarestRate = trait.spawnRate;
-    }
+    const rank = getTraitRank(speciesId, slot.slotId, slot.variantId);
+    const poolSize = species?.traitPools[slot.slotId]?.length ?? 1;
+    const maxRankInPool = Math.max(poolSize - 1, 1);
+    const traitChance = 1.0 - (Math.max(rank, 0) / maxRankInPool) * 0.50;
+    totalChance += traitChance;
   }
 
-  const rate = baseCatchRate - (difficultyScale * (1 - rarestRate / maxTraitSpawnRate)) - failPenalty;
+  const avgChance = slots.length > 0 ? totalChance / slots.length : 1.0;
+  const cappedAvg = Math.min(avgChance, maxCatchRate);
+  const rate = cappedAvg - failPenalty;
   return Math.max(minCatchRate, Math.min(maxCatchRate, rate));
 }
 

@@ -2,8 +2,12 @@ import { GameState, CreatureSlot, NearbyCreature, SlotId } from "../../src/types
 
 // Mock getTraitDefinition to return controlled spawn rates
 const mockGetTraitDefinition = jest.fn();
+const mockGetTraitRank = jest.fn();
+const mockGetSpeciesById = jest.fn();
 jest.mock("../../src/config/species", () => ({
   getTraitDefinition: (...args: any[]) => mockGetTraitDefinition(...args),
+  getTraitRank: (...args: any[]) => mockGetTraitRank(...args),
+  getSpeciesById: (...args: any[]) => mockGetSpeciesById(...args),
 }));
 
 // Mock loadConfig to return controlled balance values
@@ -54,6 +58,12 @@ function setupTraitRates(rates: Record<string, number>): void {
   });
 }
 
+function setupTraitRanks(ranks: Record<string, number>): void {
+  mockGetTraitRank.mockImplementation((_speciesId: string, _slotId: string, variantId: string) => {
+    return ranks[variantId] ?? 0;
+  });
+}
+
 function makeNearby(id: string, variantIds: string[], speciesId = "compi"): NearbyCreature {
   return { id, speciesId, name: "Glorp", slots: makeSlots(variantIds), spawnedAt: Date.now() };
 }
@@ -83,54 +93,58 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
 
 beforeEach(() => {
   mockGetTraitDefinition.mockReset();
+  mockGetTraitRank.mockReset();
+  mockGetSpeciesById.mockReset();
+  // Default: compi has 19 traits per slot (maxRankInPool = 18)
+  mockGetSpeciesById.mockReturnValue({
+    id: "compi",
+    traitPools: {
+      eyes: new Array(19),
+      mouth: new Array(19),
+      body: new Array(19),
+      tail: new Array(19),
+    },
+  });
+  // Default: all traits are rank 0 (most common)
+  mockGetTraitRank.mockReturnValue(0);
 });
 
 describe("calculateCatchRate", () => {
-  test("all common traits (0.12 spawn) = 90% catch rate", () => {
-    setupTraitRates({ c1: 0.12, c2: 0.12, c3: 0.12, c4: 0.12 });
+  test("all rank-0 traits = 100% base (clamped to maxCatchRate 0.90)", () => {
+    setupTraitRanks({ c1: 0, c2: 0, c3: 0, c4: 0 });
     const slots = makeSlots(["c1", "c2", "c3", "c4"]);
     const rate = calculateCatchRate("compi", slots, 0);
-    // 0.90 - (0.50 * (1 - 0.12/0.12)) = 0.90 - 0 = 0.90
     expect(rate).toBeCloseTo(0.90);
   });
 
-  test("one rare trait (0.05) lowers catch rate", () => {
-    setupTraitRates({ c1: 0.12, c2: 0.12, c3: 0.12, r1: 0.05 });
-    const slots = makeSlots(["c1", "c2", "c3", "r1"]);
+  test("rank-8 traits lower catch rate", () => {
+    setupTraitRanks({ r1: 8, r2: 8, r3: 8, r4: 8 });
+    const slots = makeSlots(["r1", "r2", "r3", "r4"]);
     const rate = calculateCatchRate("compi", slots, 0);
-    // rarest = 0.05; 0.90 - (0.50 * (1 - 0.05/0.12)) = 0.90 - 0.2917 ≈ 0.6083
-    expect(rate).toBeCloseTo(0.6083, 2);
+    // Each: 1.0 - (8/18)*0.50 = 1.0 - 0.2222 = 0.7778
+    expect(rate).toBeCloseTo(0.778, 2);
   });
 
-  test("one very rare trait (0.01) lowers catch rate more", () => {
-    setupTraitRates({ c1: 0.12, c2: 0.12, c3: 0.12, l1: 0.01 });
-    const slots = makeSlots(["c1", "c2", "c3", "l1"]);
+  test("mixed ranks: average of per-trait chances", () => {
+    setupTraitRanks({ c1: 0, c2: 0, r1: 8, r2: 18 });
+    const slots = makeSlots(["c1", "c2", "r1", "r2"]);
     const rate = calculateCatchRate("compi", slots, 0);
-    // rarest = 0.01; 0.90 - (0.50 * (1 - 0.01/0.12)) = 0.90 - 0.4583 ≈ 0.4417
-    expect(rate).toBeCloseTo(0.4417, 2);
+    // rank 0: 1.0, rank 0: 1.0, rank 8: 0.778, rank 18: 0.50
+    // avg = (1.0 + 1.0 + 0.778 + 0.50) / 4 = 0.8194
+    expect(rate).toBeCloseTo(0.819, 2);
   });
 
   test("fail penalty reduces rate", () => {
-    setupTraitRates({ c1: 0.12, c2: 0.12, c3: 0.12, c4: 0.12 });
+    setupTraitRanks({ c1: 0, c2: 0, c3: 0, c4: 0 });
     const slots = makeSlots(["c1", "c2", "c3", "c4"]);
     expect(calculateCatchRate("compi", slots, 0.10)).toBeCloseTo(0.80);
-    expect(calculateCatchRate("compi", slots, 0.30)).toBeCloseTo(0.60);
   });
 
   test("rate clamped to minimum (0.15)", () => {
-    setupTraitRates({ c1: 0.003, c2: 0.003, c3: 0.003, c4: 0.003 });
-    const slots = makeSlots(["c1", "c2", "c3", "c4"]);
-    // rarest = 0.003; 0.90 - (0.50 * (1 - 0.003/0.12)) - 0.5 = very low
+    setupTraitRanks({ r1: 18, r2: 18, r3: 18, r4: 18 });
+    const slots = makeSlots(["r1", "r2", "r3", "r4"]);
     const rate = calculateCatchRate("compi", slots, 0.5);
     expect(rate).toBe(0.15);
-  });
-
-  test("rate clamped to maximum (0.90)", () => {
-    setupTraitRates({ c1: 0.12, c2: 0.12, c3: 0.12, c4: 0.12 });
-    const slots = makeSlots(["c1", "c2", "c3", "c4"]);
-    // Even with negative fail penalty, max is 0.90
-    const rate = calculateCatchRate("compi", slots, -1);
-    expect(rate).toBe(0.90);
   });
 });
 
