@@ -9,4 +9,11 @@ export { archiveCreature, releaseCreature, isCollectionFull } from "./engine/arc
 export { calculateTraitRarityScore, calculateColorRarityScore, calculateSlotScore, calculateCreatureScore } from "./engine/rarity";
 export { recordDiscovery, isSpeciesDiscovered, getDiscoveryCount } from "./engine/discovery";
 export { logger } from "./logger";
+export {
+  buildAdvisorContext,
+  getProgressInfo,
+  getViableActions,
+  getAdvisorMode,
+  getSuggestedActions,
+} from "./engine/advisor";
 export * from "./types";

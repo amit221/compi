@@ -1,4 +1,4 @@
-import { GameState, Tick, TickResult, ScanResult, ScanEntry, CatchResult, BreedPreview, BreedResult, ArchiveResult, StatusResult, Notification, BreedTable, UpgradeResult, QuestStartResult, QuestCompleteResult, SlotId } from "../types";
+import { GameState, Tick, TickResult, ScanResult, ScanEntry, CatchResult, BreedPreview, BreedResult, ArchiveResult, StatusResult, Notification, BreedTable, UpgradeResult, QuestStartResult, QuestCompleteResult, SlotId, AdvisorContext } from "../types";
 import { processNewTick } from "./ticks";
 import { spawnBatch, cleanupBatch } from "./batch";
 import { attemptCatch, calculateCatchRate, calculateEnergyCost } from "./catch";
@@ -11,6 +11,7 @@ import { startQuest, checkQuest } from "./quest";
 import { recordDiscovery } from "./discovery";
 import { grantXp } from "./progression";
 import { loadConfig } from "../config/loader";
+import { buildAdvisorContext } from "./advisor";
 
 export class GameEngine {
   private state: GameState;
@@ -139,6 +140,10 @@ export class GameEngine {
 
   getDiscoveredSpecies(): string[] {
     return [...this.state.discoveredSpecies];
+  }
+
+  getAdvisorContext(action: string, result: unknown): AdvisorContext {
+    return buildAdvisorContext(action, result, this.state);
   }
 
   getState(): GameState {
