@@ -713,7 +713,64 @@ export class SimpleTextRenderer implements Renderer {
     return lines.join("\n");
   }
 
-  renderCompanionOverview(_overview: CompanionOverview): string {
-    return "";
+  renderCompanionOverview(overview: CompanionOverview): string {
+    const lines: string[] = [];
+
+    // Status bar at top
+    lines.push(this.renderStatusBar(overview.progress));
+    lines.push("");
+
+    // --- Nearby section ---
+    if (overview.nearbyHighlights.length > 0) {
+      lines.push(`  ${BOLD}🔍 Nearby Creatures${RESET}`);
+      for (const h of overview.nearbyHighlights) {
+        const newBadge = h.isNewSpecies ? `  ${YELLOW}NEW${RESET}` : "";
+        const rate = `${DIM}${Math.round(h.catchRate * 100)}%${RESET}`;
+        const cost = `${h.energyCost}${YELLOW}⚡${RESET}`;
+        lines.push(`  ${DIM}[${h.index}]${RESET} ${BOLD}${h.name}${RESET} ${DIM}(${h.speciesId})${RESET}  ${rate}  ${cost}${newBadge}`);
+      }
+      lines.push("");
+    } else {
+      lines.push(`  ${DIM}🔍 No creatures nearby — scan to find some${RESET}`);
+      lines.push("");
+    }
+
+    // --- Breed section ---
+    if (overview.breedablePairs.length > 0) {
+      lines.push(`  ${BOLD}🥚 Breedable Pairs${RESET}`);
+      for (const pair of overview.breedablePairs) {
+        lines.push(`  ${pair.nameA} + ${pair.nameB} ${DIM}(${pair.speciesId})${RESET}`);
+      }
+      lines.push("");
+    }
+
+    // --- Upgrade section ---
+    if (overview.upgradeOpportunities.length > 0) {
+      const top = overview.upgradeOpportunities.slice(0, 3);
+      lines.push(`  ${BOLD}⬆️  Upgrade Opportunities${RESET}`);
+      for (const u of top) {
+        const tierBadge = u.nearTier ? `  ${GREEN}→ tier up!${RESET}` : "";
+        lines.push(`  ${u.creatureName}'s ${u.slotId} ${DIM}(rank ${u.currentRank}, ${u.goldCost}g)${RESET}${tierBadge}`);
+      }
+      lines.push("");
+    }
+
+    // --- Quest section ---
+    if (overview.questStatus === "in_progress") {
+      lines.push(`  ${BOLD}⚔️  Quest${RESET}  ${DIM}${overview.questSessionsRemaining} session(s) remaining${RESET}`);
+      lines.push("");
+    } else if (overview.questStatus === "complete") {
+      lines.push(`  ${BOLD}⚔️  Quest Complete!${RESET}  ${GREEN}Check in to collect rewards${RESET}`);
+      lines.push("");
+    } else if (overview.questStatus === "available") {
+      lines.push(`  ${DIM}⚔️  Quest available — send creatures for gold${RESET}`);
+      lines.push("");
+    }
+
+    // --- Discovery ---
+    lines.push(`  ${DIM}📖 Species: ${overview.progress.discoveredCount}/${overview.progress.totalSpecies} discovered${RESET}`);
+    lines.push("");
+
+    return lines.join("\n");
   }
 }
