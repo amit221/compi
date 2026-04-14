@@ -100,7 +100,7 @@ describe("pickTraitForSlot", () => {
 
   it("returns a trait for each slot", () => {
     for (const slotId of SLOT_IDS) {
-      const trait = pickTraitForSlot(compi, slotId, () => 0.5);
+      const trait = pickTraitForSlot(compi, slotId, 5, () => 0.5);
       expect(trait).toBeDefined();
       expect(trait.id).toBeTruthy();
       expect(trait.name).toBeTruthy();
@@ -109,28 +109,52 @@ describe("pickTraitForSlot", () => {
     }
   });
 
-  it("returns first trait (highest spawnRate) when rng is 0", () => {
-    const trait = pickTraitForSlot(compi, "eyes", () => 0);
-    expect(trait.id).toBe("eye_c01");
-    expect(trait.spawnRate).toBe(0.12);
-  });
-
-  it("returns last trait (lowest spawnRate) when rng approaches 1", () => {
-    const trait = pickTraitForSlot(compi, "eyes", () => 0.9999);
-    expect(trait.id).toBe("eye_m02");
-    expect(trait.spawnRate).toBe(0.003);
-  });
-
-  it("weighted distribution favors common traits", () => {
-    const counts: Record<string, number> = {};
-    const iterations = 10000;
-    let i = 0;
-    for (let n = 0; n < iterations; n++) {
-      const trait = pickTraitForSlot(compi, "eyes", () => (i++ * 0.0001) % 1);
-      counts[trait.id] = (counts[trait.id] || 0) + 1;
+  it("at level 1 (rankCap=1), only returns rank 0 or rank 1 traits", () => {
+    const validIds = new Set(["eye_c01", "eye_c02"]);
+    for (let i = 0; i < 100; i++) {
+      const trait = pickTraitForSlot(compi, "eyes", 1, () => i / 100);
+      expect(validIds.has(trait.id)).toBe(true);
     }
-    // Most common trait should appear more than rarest
-    expect(counts["eye_c01"]).toBeGreaterThan(counts["eye_m02"] || 0);
+  });
+
+  it("at level 1, rank 0 (most common) is more likely than rank 1", () => {
+    let rank0Count = 0;
+    const iterations = 1000;
+    for (let i = 0; i < iterations; i++) {
+      const trait = pickTraitForSlot(compi, "eyes", 1, () => i / iterations);
+      if (trait.id === "eye_c01") rank0Count++;
+    }
+    // Triangular distribution: P(rank0) = 2/3 ≈ 67%
+    expect(rank0Count / iterations).toBeGreaterThan(0.5);
+  });
+
+  it("at level 14 (rankCap=8), can return up to rank 8 traits", () => {
+    const trait = pickTraitForSlot(compi, "eyes", 14, () => 0.9999);
+    const pool = compi.traitPools["eyes"]!;
+    const idx = pool.findIndex((t) => t.id === trait.id);
+    expect(idx).toBeLessThanOrEqual(8);
+    expect(idx).toBeGreaterThanOrEqual(0);
+  });
+
+  it("never returns traits above the rank cap", () => {
+    const allowed = new Set(["eye_c01", "eye_c02", "eye_c03"]);
+    for (let i = 0; i < 200; i++) {
+      const trait = pickTraitForSlot(compi, "eyes", 3, () => i / 200);
+      expect(allowed.has(trait.id)).toBe(true);
+    }
+  });
+
+  it("triangular distribution skews toward lower ranks", () => {
+    const counts: Record<number, number> = {};
+    const iterations = 10000;
+    for (let i = 0; i < iterations; i++) {
+      const trait = pickTraitForSlot(compi, "eyes", 14, () => i / iterations);
+      const pool = compi.traitPools["eyes"]!;
+      const idx = pool.findIndex((t) => t.id === trait.id);
+      counts[idx] = (counts[idx] || 0) + 1;
+    }
+    expect(counts[0]).toBeGreaterThan(counts[8] || 0);
+    expect(counts[0]).toBeGreaterThan(counts[4] || 0);
   });
 });
 

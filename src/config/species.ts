@@ -77,19 +77,29 @@ export function pickSpecies(rng: () => number): SpeciesDefinition {
 export function pickTraitForSlot(
   species: SpeciesDefinition,
   slotId: SlotId,
+  playerLevel: number,
   rng: () => number
 ): TraitDefinition {
   const traits = species.traitPools[slotId];
   if (!traits || traits.length === 0) {
     throw new Error(`No traits for slot ${slotId} in species ${species.id}`);
   }
-  const totalWeight = traits.reduce((sum, t) => sum + t.spawnRate, 0);
+  // Lazy require to avoid circular dependency: species.ts → progression.ts → loader.ts
+  const { getTraitRankCap } = require("../engine/progression");
+  const rankCap: number = getTraitRankCap(playerLevel);
+  const poolSize = traits.length;
+  const maxRank = Math.min(rankCap, poolSize - 1);
+
+  // Discrete triangular distribution skewed toward rank 0
+  // Weight for rank k = maxRank - k + 1
+  // Total weight = (maxRank + 1) * (maxRank + 2) / 2
+  const totalWeight = ((maxRank + 1) * (maxRank + 2)) / 2;
   let roll = rng() * totalWeight;
-  for (const t of traits) {
-    roll -= t.spawnRate;
-    if (roll <= 0) return t;
+  for (let k = 0; k <= maxRank; k++) {
+    roll -= maxRank - k + 1;
+    if (roll <= 0) return traits[k];
   }
-  return traits[traits.length - 1];
+  return traits[maxRank];
 }
 
 export function getTraitDefinition(
