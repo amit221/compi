@@ -19,6 +19,7 @@ import {
   DiscoveryResult,
   ProgressInfo,
   ActionMenuEntry,
+  CompanionOverview,
 } from "../types";
 import { MAX_ENERGY } from "../engine/energy";
 import { getVariantById } from "../config/traits";
@@ -710,5 +711,9 @@ export class SimpleTextRenderer implements Renderer {
 
     lines.push(divider());
     return lines.join("\n");
+  }
+
+  renderCompanionOverview(_overview: CompanionOverview): string {
+    return "";
   }
 }

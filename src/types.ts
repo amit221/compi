@@ -216,6 +216,48 @@ export interface AdvisorContext {
   progress: ProgressInfo;
 }
 
+// --- Companion Overview ---
+
+export interface NearbyHighlight {
+  index: number;
+  name: string;
+  speciesId: string;
+  isNewSpecies: boolean;
+  catchRate: number;
+  energyCost: number;
+  /** Total rarity score across all 4 slots (0-400 scale) */
+  totalRarity: number;
+}
+
+export interface UpgradeOpportunity {
+  creatureId: string;
+  creatureName: string;
+  slotId: SlotId;
+  currentRank: number;
+  goldCost: number;
+  /** True if this upgrade pushes the trait into a new rarity tier */
+  nearTier: boolean;
+  tierName: string;
+}
+
+export interface BreedablePair {
+  indexA: number;
+  nameA: string;
+  indexB: number;
+  nameB: string;
+  speciesId: string;
+}
+
+export interface CompanionOverview {
+  progress: ProgressInfo;
+  nearbyHighlights: NearbyHighlight[];
+  breedablePairs: BreedablePair[];
+  upgradeOpportunities: UpgradeOpportunity[];
+  questStatus: "available" | "in_progress" | "complete" | "no_creatures";
+  questSessionsRemaining: number | null;
+  suggestedActions: SuggestedAction[];
+}
+
 export interface ActionMenuEntry {
   number: number;
   label: string;
@@ -466,4 +508,5 @@ export interface Renderer {
   renderStatusBar(progress: ProgressInfo): string;
   renderActionMenu(entries: ActionMenuEntry[]): string;
   renderProgressPanel(progress: ProgressInfo): string;
+  renderCompanionOverview(overview: CompanionOverview): string;
 }
