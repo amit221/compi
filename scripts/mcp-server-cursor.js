@@ -6,6 +6,9 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
@@ -29,6 +32,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // node_modules/ajv/dist/compile/codegen/code.js
 var require_code = __commonJS({
@@ -6799,6 +6803,263 @@ var require_dist = __commonJS({
   }
 });
 
+// config/balance.json
+var balance_default;
+var init_balance = __esm({
+  "config/balance.json"() {
+    balance_default = {
+      colors: {
+        grey: 0.3,
+        white: 0.25,
+        cyan: 0.2,
+        magenta: 0.13,
+        yellow: 0.08,
+        red: 0.04
+      },
+      batch: {
+        spawnIntervalMs: 18e5,
+        batchLingerMs: 18e5,
+        sharedAttempts: 3,
+        timeOfDay: {
+          morning: [6, 12],
+          afternoon: [12, 17],
+          evening: [17, 21],
+          night: [21, 6]
+        }
+      },
+      catching: {
+        baseCatchRate: 0.9,
+        minCatchRate: 0.15,
+        maxCatchRate: 0.9,
+        failPenaltyPerMiss: 0.1,
+        maxTraitSpawnRate: 0.12,
+        difficultyScale: 0.5,
+        xpBase: 20,
+        xpRarityMultiplier: 5
+      },
+      energy: {
+        gainIntervalMs: 18e5,
+        maxEnergy: 30,
+        startingEnergy: 5,
+        sessionBonus: 3,
+        costPerRarity: {
+          common: 1,
+          uncommon: 1,
+          rare: 2,
+          epic: 3,
+          legendary: 4,
+          mythic: 5
+        },
+        baseMergeCost: 3,
+        maxMergeCost: 8,
+        rareThreashold: 0.05
+      },
+      breed: {
+        inheritanceBase: 0.5,
+        inheritanceRarityScale: 0.8,
+        inheritanceMin: 0.45,
+        inheritanceMax: 0.58,
+        referenceSpawnRate: 0.12
+      },
+      merge: {
+        slotWeightBase: 1,
+        slotWeightPerTier: 2.5
+      },
+      progression: {
+        xpPerLevel: 100,
+        sessionGapMs: 9e5,
+        tickPruneCount: 500
+      },
+      rewards: {
+        milestones: [
+          {
+            id: "first_catch",
+            description: "First catch!",
+            condition: { type: "totalCatches", threshold: 1 },
+            reward: [{ energy: 3 }],
+            oneTime: true
+          },
+          {
+            id: "catch_10",
+            description: "10 catches!",
+            condition: { type: "totalCatches", threshold: 10 },
+            reward: [{ energy: 5 }],
+            oneTime: true
+          },
+          {
+            id: "catch_50",
+            description: "50 catches!",
+            condition: { type: "totalCatches", threshold: 50 },
+            reward: [{ energy: 10 }],
+            oneTime: true
+          },
+          {
+            id: "streak_3",
+            description: "3-day streak!",
+            condition: { type: "currentStreak", threshold: 3 },
+            reward: [{ energy: 3 }],
+            oneTime: true
+          },
+          {
+            id: "streak_7",
+            description: "7-day streak!",
+            condition: { type: "currentStreak", threshold: 7 },
+            reward: [{ energy: 7 }],
+            oneTime: true
+          },
+          {
+            id: "streak_30",
+            description: "30-day streak!",
+            condition: { type: "currentStreak", threshold: 30 },
+            reward: [{ energy: 15 }],
+            oneTime: true
+          }
+        ]
+      },
+      messages: {
+        scan: {
+          empty: "No signals detected \u2014 nothing nearby right now.",
+          header: "NEARBY SIGNALS \u2014 {count} detected",
+          energy: "Energy: {energy}/{maxEnergy}",
+          footer: "Use /catch [number] to attempt capture"
+        },
+        catch: {
+          successHeader: "\u2726 CAUGHT! \u2726",
+          captured: "{name} joined your collection!",
+          xpGained: "+{xp} XP",
+          energySpent: "-{energy} Energy",
+          fledHeader: "\u2726 FLED \u2726",
+          fledMessage: "{name} fled into the void!",
+          escapedHeader: "\u2726 ESCAPED \u2726",
+          escapedMessage: "{name} slipped away!",
+          escapedHint: "{attempts} attempts remaining"
+        },
+        collection: {
+          empty: "Your collection is empty. Use /scan to find creatures nearby.",
+          header: "Your creatures ({count})"
+        },
+        merge: {
+          previewHeader: "Merge Preview",
+          confirmHint: "/merge confirm to proceed",
+          successHeader: "\u2726 MERGE SUCCESS \u2726",
+          upgraded: "{name} \u2014 {slot} upgraded!",
+          consumed: "{name} was consumed."
+        },
+        status: {
+          header: "Player Status",
+          level: "Level {level}",
+          xp: "XP: {bar} {xp}/{nextXp}",
+          catches: "Catches: {count}",
+          merges: "Merges: {count}",
+          collection: "Collection: {count} creatures",
+          streak: "Streak: {streak} days (best: {best})",
+          nearby: "Nearby: {count} creatures",
+          ticks: "Ticks: {count}",
+          energy: "Energy: {energy}/{maxEnergy}"
+        },
+        notifications: {
+          despawn: "Creatures slipped away...",
+          rareSpawn: "Rare signal detected!",
+          normalSpawn: "Something flickering nearby...",
+          milestone: "Milestone reached! +{energy} energy"
+        }
+      },
+      upgrade: {
+        costs: [3, 5, 9, 15, 24, 38, 55],
+        maxRank: 7,
+        sessionCap: 2
+      },
+      quest: {
+        maxTeamSize: 3,
+        lockDurationSessions: 2,
+        rewardMultiplier: 0.6,
+        rewardFloor: 10,
+        xpReward: 15
+      },
+      mergeGold: {
+        baseCost: 10,
+        rankMultiplier: 5,
+        downgradeChance: 0.3
+      },
+      leveling: {
+        thresholds: [30, 50, 80, 120, 170, 240, 340, 480, 680, 960, 1350, 1900, 2700],
+        traitRankCaps: [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8],
+        xpPerCatch: 10,
+        xpPerUpgrade: 8,
+        xpPerMerge: 25,
+        xpPerQuest: 15,
+        xpDiscoveryBonus: 20
+      },
+      discovery: {
+        speciesUnlockLevels: {}
+      },
+      economy: {
+        startingGold: 10
+      }
+    };
+  }
+});
+
+// src/config/loader.ts
+function loadConfig() {
+  return balance_default;
+}
+var init_loader = __esm({
+  "src/config/loader.ts"() {
+    "use strict";
+    init_balance();
+  }
+});
+
+// src/engine/progression.ts
+var progression_exports = {};
+__export(progression_exports, {
+  getTraitRankCap: () => getTraitRankCap,
+  getXpForNextLevel: () => getXpForNextLevel,
+  grantXp: () => grantXp
+});
+function getXpForNextLevel(level) {
+  const config3 = loadConfig();
+  const thresholds = config3.leveling.thresholds;
+  const index = Math.min(level - 1, thresholds.length - 1);
+  return thresholds[index];
+}
+function getTraitRankCap(level) {
+  const config3 = loadConfig();
+  const caps = config3.leveling.traitRankCaps;
+  const index = Math.min(level - 1, caps.length - 1);
+  return caps[index];
+}
+function grantXp(state, amount) {
+  state.profile.xp += amount;
+  const oldLevel = state.profile.level;
+  let currentLevel = oldLevel;
+  while (true) {
+    const needed = getXpForNextLevel(currentLevel);
+    if (state.profile.xp >= needed) {
+      state.profile.xp -= needed;
+      currentLevel++;
+    } else {
+      break;
+    }
+  }
+  if (currentLevel > oldLevel) {
+    state.profile.level = currentLevel;
+    return {
+      oldLevel,
+      newLevel: currentLevel,
+      xpOverflow: state.profile.xp
+    };
+  }
+  return null;
+}
+var init_progression = __esm({
+  "src/engine/progression.ts"() {
+    "use strict";
+    init_loader();
+  }
+});
+
 // node_modules/ansi-regex/index.js
 var require_ansi_regex = __commonJS({
   "node_modules/ansi-regex/index.js"(exports2, module2) {
@@ -11702,10 +11963,10 @@ function prefixIssues(path4, issues) {
 function unwrapMessage(message) {
   return typeof message === "string" ? message : message?.message;
 }
-function finalizeIssue(iss, ctx, config4) {
+function finalizeIssue(iss, ctx, config3) {
   const full = { ...iss, path: iss.path ?? [] };
   if (!iss.message) {
-    const message = unwrapMessage(iss.inst?._zod.def?.error?.(iss)) ?? unwrapMessage(ctx?.error?.(iss)) ?? unwrapMessage(config4.customError?.(iss)) ?? unwrapMessage(config4.localeError?.(iss)) ?? "Invalid input";
+    const message = unwrapMessage(iss.inst?._zod.def?.error?.(iss)) ?? unwrapMessage(ctx?.error?.(iss)) ?? unwrapMessage(config3.customError?.(iss)) ?? unwrapMessage(config3.localeError?.(iss)) ?? "Invalid input";
     full.message = message;
   }
   delete full.inst;
@@ -29322,13 +29583,13 @@ var ExperimentalMcpServerTasks = class {
   constructor(_mcpServer) {
     this._mcpServer = _mcpServer;
   }
-  registerToolTask(name, config4, handler) {
-    const execution = { taskSupport: "required", ...config4.execution };
+  registerToolTask(name, config3, handler) {
+    const execution = { taskSupport: "required", ...config3.execution };
     if (execution.taskSupport === "forbidden") {
       throw new Error(`Cannot register task-based tool '${name}' with taskSupport 'forbidden'. Use registerTool() instead.`);
     }
     const mcpServerInternal = this._mcpServer;
-    return mcpServerInternal._createRegisteredTool(name, config4.title, config4.description, config4.inputSchema, config4.outputSchema, config4.annotations, execution, config4._meta, handler);
+    return mcpServerInternal._createRegisteredTool(name, config3.title, config3.description, config3.inputSchema, config3.outputSchema, config3.annotations, execution, config3._meta, handler);
   }
 };
 
@@ -29757,12 +30018,12 @@ var McpServer = class {
       return registeredResourceTemplate;
     }
   }
-  registerResource(name, uriOrTemplate, config4, readCallback) {
+  registerResource(name, uriOrTemplate, config3, readCallback) {
     if (typeof uriOrTemplate === "string") {
       if (this._registeredResources[uriOrTemplate]) {
         throw new Error(`Resource ${uriOrTemplate} is already registered`);
       }
-      const registeredResource = this._createRegisteredResource(name, config4.title, uriOrTemplate, config4, readCallback);
+      const registeredResource = this._createRegisteredResource(name, config3.title, uriOrTemplate, config3, readCallback);
       this.setResourceRequestHandlers();
       this.sendResourceListChanged();
       return registeredResource;
@@ -29770,7 +30031,7 @@ var McpServer = class {
       if (this._registeredResourceTemplates[name]) {
         throw new Error(`Resource template ${name} is already registered`);
       }
-      const registeredResourceTemplate = this._createRegisteredResourceTemplate(name, config4.title, uriOrTemplate, config4, readCallback);
+      const registeredResourceTemplate = this._createRegisteredResourceTemplate(name, config3.title, uriOrTemplate, config3, readCallback);
       this.setResourceRequestHandlers();
       this.sendResourceListChanged();
       return registeredResourceTemplate;
@@ -29968,11 +30229,11 @@ var McpServer = class {
   /**
    * Registers a tool with a config object and callback.
    */
-  registerTool(name, config4, cb) {
+  registerTool(name, config3, cb) {
     if (this._registeredTools[name]) {
       throw new Error(`Tool ${name} is already registered`);
     }
-    const { title, description, inputSchema, outputSchema, annotations, _meta } = config4;
+    const { title, description, inputSchema, outputSchema, annotations, _meta } = config3;
     return this._createRegisteredTool(name, title, description, inputSchema, outputSchema, annotations, { taskSupport: "forbidden" }, _meta, cb);
   }
   prompt(name, ...rest) {
@@ -29996,11 +30257,11 @@ var McpServer = class {
   /**
    * Registers a prompt with a config object and callback.
    */
-  registerPrompt(name, config4, cb) {
+  registerPrompt(name, config3, cb) {
     if (this._registeredPrompts[name]) {
       throw new Error(`Prompt ${name} is already registered`);
     }
-    const { title, description, argsSchema } = config4;
+    const { title, description, argsSchema } = config3;
     const registeredPrompt = this._createRegisteredPrompt(name, title, description, argsSchema, cb);
     this.setPromptRequestHandlers();
     this.sendPromptListChanged();
@@ -30224,203 +30485,7 @@ var fs3 = __toESM(require("fs"));
 // src/state/state-manager.ts
 var fs2 = __toESM(require("fs"));
 var path2 = __toESM(require("path"));
-
-// config/balance.json
-var balance_default = {
-  colors: {
-    grey: 0.3,
-    white: 0.25,
-    cyan: 0.2,
-    magenta: 0.13,
-    yellow: 0.08,
-    red: 0.04
-  },
-  batch: {
-    spawnIntervalMs: 18e5,
-    batchLingerMs: 18e5,
-    sharedAttempts: 3,
-    timeOfDay: {
-      morning: [6, 12],
-      afternoon: [12, 17],
-      evening: [17, 21],
-      night: [21, 6]
-    }
-  },
-  catching: {
-    baseCatchRate: 0.9,
-    minCatchRate: 0.15,
-    maxCatchRate: 0.9,
-    failPenaltyPerMiss: 0.1,
-    maxTraitSpawnRate: 0.12,
-    difficultyScale: 0.5,
-    xpBase: 20,
-    xpRarityMultiplier: 5
-  },
-  energy: {
-    gainIntervalMs: 18e5,
-    maxEnergy: 30,
-    startingEnergy: 5,
-    sessionBonus: 3,
-    costPerRarity: {
-      common: 1,
-      uncommon: 1,
-      rare: 2,
-      epic: 3,
-      legendary: 4,
-      mythic: 5
-    },
-    baseMergeCost: 3,
-    maxMergeCost: 8,
-    rareThreashold: 0.05
-  },
-  breed: {
-    inheritanceBase: 0.5,
-    inheritanceRarityScale: 0.8,
-    inheritanceMin: 0.45,
-    inheritanceMax: 0.58,
-    referenceSpawnRate: 0.12
-  },
-  merge: {
-    slotWeightBase: 1,
-    slotWeightPerTier: 2.5
-  },
-  progression: {
-    xpPerLevel: 100,
-    sessionGapMs: 9e5,
-    tickPruneCount: 500
-  },
-  rewards: {
-    milestones: [
-      {
-        id: "first_catch",
-        description: "First catch!",
-        condition: { type: "totalCatches", threshold: 1 },
-        reward: [{ energy: 3 }],
-        oneTime: true
-      },
-      {
-        id: "catch_10",
-        description: "10 catches!",
-        condition: { type: "totalCatches", threshold: 10 },
-        reward: [{ energy: 5 }],
-        oneTime: true
-      },
-      {
-        id: "catch_50",
-        description: "50 catches!",
-        condition: { type: "totalCatches", threshold: 50 },
-        reward: [{ energy: 10 }],
-        oneTime: true
-      },
-      {
-        id: "streak_3",
-        description: "3-day streak!",
-        condition: { type: "currentStreak", threshold: 3 },
-        reward: [{ energy: 3 }],
-        oneTime: true
-      },
-      {
-        id: "streak_7",
-        description: "7-day streak!",
-        condition: { type: "currentStreak", threshold: 7 },
-        reward: [{ energy: 7 }],
-        oneTime: true
-      },
-      {
-        id: "streak_30",
-        description: "30-day streak!",
-        condition: { type: "currentStreak", threshold: 30 },
-        reward: [{ energy: 15 }],
-        oneTime: true
-      }
-    ]
-  },
-  messages: {
-    scan: {
-      empty: "No signals detected \u2014 nothing nearby right now.",
-      header: "NEARBY SIGNALS \u2014 {count} detected",
-      energy: "Energy: {energy}/{maxEnergy}",
-      footer: "Use /catch [number] to attempt capture"
-    },
-    catch: {
-      successHeader: "\u2726 CAUGHT! \u2726",
-      captured: "{name} joined your collection!",
-      xpGained: "+{xp} XP",
-      energySpent: "-{energy} Energy",
-      fledHeader: "\u2726 FLED \u2726",
-      fledMessage: "{name} fled into the void!",
-      escapedHeader: "\u2726 ESCAPED \u2726",
-      escapedMessage: "{name} slipped away!",
-      escapedHint: "{attempts} attempts remaining"
-    },
-    collection: {
-      empty: "Your collection is empty. Use /scan to find creatures nearby.",
-      header: "Your creatures ({count})"
-    },
-    merge: {
-      previewHeader: "Merge Preview",
-      confirmHint: "/merge confirm to proceed",
-      successHeader: "\u2726 MERGE SUCCESS \u2726",
-      upgraded: "{name} \u2014 {slot} upgraded!",
-      consumed: "{name} was consumed."
-    },
-    status: {
-      header: "Player Status",
-      level: "Level {level}",
-      xp: "XP: {bar} {xp}/{nextXp}",
-      catches: "Catches: {count}",
-      merges: "Merges: {count}",
-      collection: "Collection: {count} creatures",
-      streak: "Streak: {streak} days (best: {best})",
-      nearby: "Nearby: {count} creatures",
-      ticks: "Ticks: {count}",
-      energy: "Energy: {energy}/{maxEnergy}"
-    },
-    notifications: {
-      despawn: "Creatures slipped away...",
-      rareSpawn: "Rare signal detected!",
-      normalSpawn: "Something flickering nearby...",
-      milestone: "Milestone reached! +{energy} energy"
-    }
-  },
-  upgrade: {
-    costs: [3, 5, 9, 15, 24, 38, 55],
-    maxRank: 7,
-    sessionCap: 2
-  },
-  quest: {
-    maxTeamSize: 3,
-    lockDurationSessions: 2,
-    rewardMultiplier: 0.6,
-    rewardFloor: 10,
-    xpReward: 15
-  },
-  mergeGold: {
-    baseCost: 10,
-    rankMultiplier: 5,
-    downgradeChance: 0.3
-  },
-  leveling: {
-    thresholds: [30, 50, 80, 120, 170, 240, 340, 480, 680, 960, 1350, 1900, 2700],
-    traitRankCaps: [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8],
-    xpPerCatch: 10,
-    xpPerUpgrade: 8,
-    xpPerMerge: 25,
-    xpPerQuest: 15,
-    xpDiscoveryBonus: 20
-  },
-  discovery: {
-    speciesUnlockLevels: {}
-  },
-  economy: {
-    startingGold: 10
-  }
-};
-
-// src/config/loader.ts
-function loadConfig() {
-  return balance_default;
-}
+init_loader();
 
 // src/logger.ts
 var fs = __toESM(require("fs"));
@@ -30622,6 +30687,7 @@ var StateManager = class {
 };
 
 // src/config/constants.ts
+init_loader();
 var config2 = loadConfig();
 var SPAWN_INTERVAL_MS = config2.batch.spawnIntervalMs;
 var BATCH_LINGER_MS = config2.batch.batchLingerMs;
@@ -31155,84 +31221,434 @@ var pyrax_default = {
   name: "Pyrax",
   description: "A smoldering ember-bird, half-formed from living flame, always trailing sparks.",
   spawnWeight: 6,
-  art: ["  /EE\\,", " ( MM  >", "  \\BB /~", "   TT"],
-  zones: ["eyes", "mouth", "body", "tail"],
+  art: [
+    "  /EE\\,",
+    " ( MM  >",
+    "  \\BB /~",
+    "   TT"
+  ],
+  zones: [
+    "eyes",
+    "mouth",
+    "body",
+    "tail"
+  ],
   traitPools: {
     eyes: [
-      { id: "pyr_eye_01", name: "Flicker", art: "\xB7\xB7", spawnRate: 0.14 },
-      { id: "pyr_eye_02", name: "Glow", art: "\xB0\xB0", spawnRate: 0.12 },
-      { id: "pyr_eye_03", name: "Ember", art: "\u2022\u2022", spawnRate: 0.1 },
-      { id: "pyr_eye_04", name: "Sear", art: "\xB7\xB0", spawnRate: 0.09 },
-      { id: "pyr_eye_05", name: "Kindle", art: "\xB0\xB7", spawnRate: 0.08 },
-      { id: "pyr_eye_06", name: "Smolder", art: "\u25E6\u25E6", spawnRate: 0.07 },
-      { id: "pyr_eye_07", name: "Scorch", art: ">\xB7", spawnRate: 0.065 },
-      { id: "pyr_eye_08", name: "Flare", art: "\u25D0\u25D0", spawnRate: 0.06 },
-      { id: "pyr_eye_09", name: "Ignite", art: "\u25D1\u25D1", spawnRate: 0.05 },
-      { id: "pyr_eye_10", name: "Blaze", art: "\u25CE\u25CE", spawnRate: 0.04 },
-      { id: "pyr_eye_11", name: "Burn", art: "\u25CF\u25CF", spawnRate: 0.03 },
-      { id: "pyr_eye_12", name: "Pyre", art: "\u25C7\u25C7", spawnRate: 0.025 },
-      { id: "pyr_eye_13", name: "Forge", art: "\u25C8\u25C8", spawnRate: 0.02 },
-      { id: "pyr_eye_14", name: "Furnace", art: "\u25C9\u25C9", spawnRate: 0.015 },
-      { id: "pyr_eye_15", name: "Inferno", art: "\u2299\u2299", spawnRate: 0.01 },
-      { id: "pyr_eye_16", name: "Nova", art: "\u2605\u2605", spawnRate: 5e-3 },
-      { id: "pyr_eye_17", name: "Supernova", art: "\u2727\u2727", spawnRate: 3e-3 }
+      {
+        id: "pyr_eye_01",
+        name: "Flicker",
+        art: "\xB7\xB7",
+        spawnRate: 0.152
+      },
+      {
+        id: "pyr_eye_02",
+        name: "Glow",
+        art: "\xB0\xB0",
+        spawnRate: 0.129
+      },
+      {
+        id: "pyr_eye_03",
+        name: "Ember",
+        art: "\u2022\u2022",
+        spawnRate: 0.108
+      },
+      {
+        id: "pyr_eye_04",
+        name: "Sear",
+        art: "\xB7\xB0",
+        spawnRate: 0.097
+      },
+      {
+        id: "pyr_eye_05",
+        name: "Kindle",
+        art: "\xB0\xB7",
+        spawnRate: 0.086
+      },
+      {
+        id: "pyr_eye_06",
+        name: "Smolder",
+        art: "\u25E6\u25E6",
+        spawnRate: 0.075
+      },
+      {
+        id: "pyr_eye_07",
+        name: "Scorch",
+        art: ">\xB7",
+        spawnRate: 0.07
+      },
+      {
+        id: "pyr_eye_08",
+        name: "Flare",
+        art: "\u25D0\u25D0",
+        spawnRate: 0.065
+      },
+      {
+        id: "pyr_eye_09",
+        name: "Ignite",
+        art: "\u25D1\u25D1",
+        spawnRate: 0.054
+      },
+      {
+        id: "pyr_eye_10",
+        name: "Blaze",
+        art: "\u25CE\u25CE",
+        spawnRate: 0.043
+      },
+      {
+        id: "pyr_eye_11",
+        name: "Burn",
+        art: "\u25CF\u25CF",
+        spawnRate: 0.032
+      },
+      {
+        id: "pyr_eye_12",
+        name: "Pyre",
+        art: "\u25C7\u25C7",
+        spawnRate: 0.027
+      },
+      {
+        id: "pyr_eye_13",
+        name: "Forge",
+        art: "\u25C8\u25C8",
+        spawnRate: 0.022
+      },
+      {
+        id: "pyr_eye_14",
+        name: "Furnace",
+        art: "\u25C9\u25C9",
+        spawnRate: 0.016
+      },
+      {
+        id: "pyr_eye_15",
+        name: "Inferno",
+        art: "\u2299\u2299",
+        spawnRate: 0.011
+      },
+      {
+        id: "pyr_eye_16",
+        name: "Nova",
+        art: "\u2605\u2605",
+        spawnRate: 5e-3
+      },
+      {
+        id: "pyr_eye_17",
+        name: "Supernova",
+        art: "\u2727\u2727",
+        spawnRate: 3e-3
+      }
     ],
     mouth: [
-      { id: "pyr_mth_01", name: "Crackle", art: "~~", spawnRate: 0.14 },
-      { id: "pyr_mth_02", name: "Hiss", art: "^^", spawnRate: 0.12 },
-      { id: "pyr_mth_03", name: "Pop", art: ".^", spawnRate: 0.1 },
-      { id: "pyr_mth_04", name: "Snap", art: "_^", spawnRate: 0.09 },
-      { id: "pyr_mth_05", name: "Sizzle", art: "^~", spawnRate: 0.08 },
-      { id: "pyr_mth_06", name: "Sputter", art: "~^", spawnRate: 0.07 },
-      { id: "pyr_mth_07", name: "Whoosh", art: "\u2307^", spawnRate: 0.06 },
-      { id: "pyr_mth_08", name: "Roar", art: "\u223F~", spawnRate: 0.05 },
-      { id: "pyr_mth_09", name: "Rage", art: "\u2307~", spawnRate: 0.04 },
-      { id: "pyr_mth_10", name: "Snarl", art: "\u2248^", spawnRate: 0.03 },
-      { id: "pyr_mth_11", name: "Scream", art: "\u21AF^", spawnRate: 0.025 },
-      { id: "pyr_mth_12", name: "Bellow", art: "\u223F^", spawnRate: 0.02 },
-      { id: "pyr_mth_13", name: "Blast", art: "\u26A1\xB7", spawnRate: 0.015 },
-      { id: "pyr_mth_14", name: "Eruption", art: "\u26A1^", spawnRate: 0.01 },
-      { id: "pyr_mth_15", name: "Hellfire", art: "\u2727^", spawnRate: 7e-3 },
-      { id: "pyr_mth_16", name: "Inferno", art: "\u2726\xB7", spawnRate: 5e-3 },
-      { id: "pyr_mth_17", name: "Cataclysm", art: "\u2605^", spawnRate: 3e-3 }
+      {
+        id: "pyr_mth_01",
+        name: "Crackle",
+        art: "~~",
+        spawnRate: 0.159
+      },
+      {
+        id: "pyr_mth_02",
+        name: "Hiss",
+        art: "^^",
+        spawnRate: 0.138
+      },
+      {
+        id: "pyr_mth_03",
+        name: "Pop",
+        art: ".^",
+        spawnRate: 0.115
+      },
+      {
+        id: "pyr_mth_04",
+        name: "Snap",
+        art: "_^",
+        spawnRate: 0.104
+      },
+      {
+        id: "pyr_mth_05",
+        name: "Sizzle",
+        art: "^~",
+        spawnRate: 0.092
+      },
+      {
+        id: "pyr_mth_06",
+        name: "Sputter",
+        art: "~^",
+        spawnRate: 0.081
+      },
+      {
+        id: "pyr_mth_07",
+        name: "Whoosh",
+        art: "\u2307^",
+        spawnRate: 0.069
+      },
+      {
+        id: "pyr_mth_08",
+        name: "Roar",
+        art: "\u223F~",
+        spawnRate: 0.058
+      },
+      {
+        id: "pyr_mth_09",
+        name: "Rage",
+        art: "\u2307~",
+        spawnRate: 0.046
+      },
+      {
+        id: "pyr_mth_10",
+        name: "Snarl",
+        art: "\u2248^",
+        spawnRate: 0.035
+      },
+      {
+        id: "pyr_mth_11",
+        name: "Scream",
+        art: "\u21AF^",
+        spawnRate: 0.029
+      },
+      {
+        id: "pyr_mth_12",
+        name: "Bellow",
+        art: "\u223F^",
+        spawnRate: 0.023
+      },
+      {
+        id: "pyr_mth_13",
+        name: "Blast",
+        art: "\u26A1\xB7",
+        spawnRate: 0.017
+      },
+      {
+        id: "pyr_mth_14",
+        name: "Eruption",
+        art: "\u26A1^",
+        spawnRate: 0.012
+      },
+      {
+        id: "pyr_mth_15",
+        name: "Hellfire",
+        art: "\u2727^",
+        spawnRate: 8e-3
+      },
+      {
+        id: "pyr_mth_16",
+        name: "Inferno",
+        art: "\u2726\xB7",
+        spawnRate: 6e-3
+      },
+      {
+        id: "pyr_mth_17",
+        name: "Cataclysm",
+        art: "\u2605^",
+        spawnRate: 3e-3
+      }
     ],
     body: [
-      { id: "pyr_bod_01", name: "Ash", art: "\u2591\u2591", spawnRate: 0.14 },
-      { id: "pyr_bod_02", name: "Soot", art: "\xB7\xB7", spawnRate: 0.12 },
-      { id: "pyr_bod_03", name: "Char", art: "\u2219\u2219", spawnRate: 0.1 },
-      { id: "pyr_bod_04", name: "Smoke", art: "::", spawnRate: 0.09 },
-      { id: "pyr_bod_05", name: "Cinder", art: "--", spawnRate: 0.08 },
-      { id: "pyr_bod_06", name: "Coal", art: "\u2307\u2307", spawnRate: 0.07 },
-      { id: "pyr_bod_07", name: "Ember", art: "\u2592\u2592", spawnRate: 0.06 },
-      { id: "pyr_bod_08", name: "Scald", art: "~~", spawnRate: 0.05 },
-      { id: "pyr_bod_09", name: "Blister", art: "\u2248\u2248", spawnRate: 0.04 },
-      { id: "pyr_bod_10", name: "Magma", art: "\u223F\u223F", spawnRate: 0.035 },
-      { id: "pyr_bod_11", name: "Lava", art: "\u2593\u2593", spawnRate: 0.03 },
-      { id: "pyr_bod_12", name: "Molten", art: "++", spawnRate: 0.025 },
-      { id: "pyr_bod_13", name: "Forge", art: "##", spawnRate: 0.02 },
-      { id: "pyr_bod_14", name: "Crucible", art: "\u25C6\u25C6", spawnRate: 0.015 },
-      { id: "pyr_bod_15", name: "Core", art: "\u25C8\u25C8", spawnRate: 0.01 },
-      { id: "pyr_bod_16", name: "Plasma", art: "\u2B21\u2B21", spawnRate: 5e-3 },
-      { id: "pyr_bod_17", name: "Solar", art: "\u2605\u2605", spawnRate: 3e-3 }
+      {
+        id: "pyr_bod_01",
+        name: "Ash",
+        art: "\u2591\u2591",
+        spawnRate: 0.156
+      },
+      {
+        id: "pyr_bod_02",
+        name: "Soot",
+        art: "\xB7\xB7",
+        spawnRate: 0.134
+      },
+      {
+        id: "pyr_bod_03",
+        name: "Char",
+        art: "\u2219\u2219",
+        spawnRate: 0.111
+      },
+      {
+        id: "pyr_bod_04",
+        name: "Smoke",
+        art: "::",
+        spawnRate: 0.1
+      },
+      {
+        id: "pyr_bod_05",
+        name: "Cinder",
+        art: "--",
+        spawnRate: 0.089
+      },
+      {
+        id: "pyr_bod_06",
+        name: "Coal",
+        art: "\u2307\u2307",
+        spawnRate: 0.078
+      },
+      {
+        id: "pyr_bod_07",
+        name: "Ember",
+        art: "\u2592\u2592",
+        spawnRate: 0.067
+      },
+      {
+        id: "pyr_bod_08",
+        name: "Scald",
+        art: "~~",
+        spawnRate: 0.056
+      },
+      {
+        id: "pyr_bod_09",
+        name: "Blister",
+        art: "\u2248\u2248",
+        spawnRate: 0.045
+      },
+      {
+        id: "pyr_bod_10",
+        name: "Magma",
+        art: "\u223F\u223F",
+        spawnRate: 0.039
+      },
+      {
+        id: "pyr_bod_11",
+        name: "Lava",
+        art: "\u2593\u2593",
+        spawnRate: 0.033
+      },
+      {
+        id: "pyr_bod_12",
+        name: "Molten",
+        art: "++",
+        spawnRate: 0.028
+      },
+      {
+        id: "pyr_bod_13",
+        name: "Forge",
+        art: "##",
+        spawnRate: 0.022
+      },
+      {
+        id: "pyr_bod_14",
+        name: "Crucible",
+        art: "\u25C6\u25C6",
+        spawnRate: 0.017
+      },
+      {
+        id: "pyr_bod_15",
+        name: "Core",
+        art: "\u25C8\u25C8",
+        spawnRate: 0.011
+      },
+      {
+        id: "pyr_bod_16",
+        name: "Plasma",
+        art: "\u2B21\u2B21",
+        spawnRate: 6e-3
+      },
+      {
+        id: "pyr_bod_17",
+        name: "Solar",
+        art: "\u2605\u2605",
+        spawnRate: 3e-3
+      }
     ],
     tail: [
-      { id: "pyr_tal_01", name: "Wisp", art: "~/", spawnRate: 0.14 },
-      { id: "pyr_tal_02", name: "Trail", art: "~~", spawnRate: 0.12 },
-      { id: "pyr_tal_03", name: "Drift", art: "/~", spawnRate: 0.1 },
-      { id: "pyr_tal_04", name: "Smoke", art: "\u2307/", spawnRate: 0.09 },
-      { id: "pyr_tal_05", name: "Spark", art: "~\u2307", spawnRate: 0.08 },
-      { id: "pyr_tal_06", name: "Cinder", art: "/\u2307", spawnRate: 0.07 },
-      { id: "pyr_tal_07", name: "Ember", art: "\u2307~", spawnRate: 0.06 },
-      { id: "pyr_tal_08", name: "Scorch", art: "~\u223F", spawnRate: 0.05 },
-      { id: "pyr_tal_09", name: "Blaze", art: "\u2307\u2307", spawnRate: 0.04 },
-      { id: "pyr_tal_10", name: "Flare", art: "\u223F\u223F", spawnRate: 0.03 },
-      { id: "pyr_tal_11", name: "Torch", art: "\u21AF~", spawnRate: 0.025 },
-      { id: "pyr_tal_12", name: "Burn", art: "\u21AF\u21AF", spawnRate: 0.02 },
-      { id: "pyr_tal_13", name: "Pyre", art: "\u224B\u224B", spawnRate: 0.015 },
-      { id: "pyr_tal_14", name: "Inferno", art: "\u26A1\u2307", spawnRate: 0.01 },
-      { id: "pyr_tal_15", name: "Eruption", art: "\u2727\u2307", spawnRate: 7e-3 },
-      { id: "pyr_tal_16", name: "Phoenix", art: "\u2727\u2727", spawnRate: 5e-3 },
-      { id: "pyr_tal_17", name: "Eternal", art: "\u2604\u2604", spawnRate: 3e-3 }
+      {
+        id: "pyr_tal_01",
+        name: "Wisp",
+        art: "~/",
+        spawnRate: 0.159
+      },
+      {
+        id: "pyr_tal_02",
+        name: "Trail",
+        art: "~~",
+        spawnRate: 0.138
+      },
+      {
+        id: "pyr_tal_03",
+        name: "Drift",
+        art: "/~",
+        spawnRate: 0.115
+      },
+      {
+        id: "pyr_tal_04",
+        name: "Smoke",
+        art: "\u2307/",
+        spawnRate: 0.104
+      },
+      {
+        id: "pyr_tal_05",
+        name: "Spark",
+        art: "~\u2307",
+        spawnRate: 0.092
+      },
+      {
+        id: "pyr_tal_06",
+        name: "Cinder",
+        art: "/\u2307",
+        spawnRate: 0.081
+      },
+      {
+        id: "pyr_tal_07",
+        name: "Ember",
+        art: "\u2307~",
+        spawnRate: 0.069
+      },
+      {
+        id: "pyr_tal_08",
+        name: "Scorch",
+        art: "~\u223F",
+        spawnRate: 0.058
+      },
+      {
+        id: "pyr_tal_09",
+        name: "Blaze",
+        art: "\u2307\u2307",
+        spawnRate: 0.046
+      },
+      {
+        id: "pyr_tal_10",
+        name: "Flare",
+        art: "\u223F\u223F",
+        spawnRate: 0.035
+      },
+      {
+        id: "pyr_tal_11",
+        name: "Torch",
+        art: "\u21AF~",
+        spawnRate: 0.029
+      },
+      {
+        id: "pyr_tal_12",
+        name: "Burn",
+        art: "\u21AF\u21AF",
+        spawnRate: 0.023
+      },
+      {
+        id: "pyr_tal_13",
+        name: "Pyre",
+        art: "\u224B\u224B",
+        spawnRate: 0.017
+      },
+      {
+        id: "pyr_tal_14",
+        name: "Inferno",
+        art: "\u26A1\u2307",
+        spawnRate: 0.012
+      },
+      {
+        id: "pyr_tal_15",
+        name: "Eruption",
+        art: "\u2727\u2307",
+        spawnRate: 8e-3
+      },
+      {
+        id: "pyr_tal_16",
+        name: "Phoenix",
+        art: "\u2727\u2727",
+        spawnRate: 6e-3
+      },
+      {
+        id: "pyr_tal_17",
+        name: "Eternal",
+        art: "\u2604\u2604",
+        spawnRate: 3e-3
+      }
     ]
   }
 };
@@ -31290,24 +31706,37 @@ function pickSpecies(rng) {
   }
   return species[species.length - 1];
 }
-function pickTraitForSlot(species, slotId, rng) {
+function pickTraitForSlot(species, slotId, playerLevel, rng) {
   const traits = species.traitPools[slotId];
   if (!traits || traits.length === 0) {
     throw new Error(`No traits for slot ${slotId} in species ${species.id}`);
   }
-  const totalWeight = traits.reduce((sum, t) => sum + t.spawnRate, 0);
+  const { getTraitRankCap: getTraitRankCap2 } = (init_progression(), __toCommonJS(progression_exports));
+  const rankCap = getTraitRankCap2(playerLevel);
+  const poolSize = traits.length;
+  const maxRank = Math.min(rankCap, poolSize - 1);
+  const totalWeight = (maxRank + 1) * (maxRank + 2) / 2;
   let roll = rng() * totalWeight;
-  for (const t of traits) {
-    roll -= t.spawnRate;
-    if (roll <= 0) return t;
+  for (let k = 0; k <= maxRank; k++) {
+    roll -= maxRank - k + 1;
+    if (roll <= 0) return traits[k];
   }
-  return traits[traits.length - 1];
+  return traits[maxRank];
 }
 function getTraitDefinition(speciesId, variantId) {
   ensureLoaded();
   const variantMap = _traitIndex.get(speciesId);
   if (!variantMap) return void 0;
   return variantMap.get(variantId);
+}
+function getTraitRank(speciesId, slotId, variantId) {
+  ensureLoaded();
+  const species = _speciesById.get(speciesId);
+  if (!species) return -1;
+  const pool = species.traitPools[slotId];
+  if (!pool) return -1;
+  const index = pool.findIndex((t) => t.id === variantId);
+  return index;
 }
 
 // config/traits.json
@@ -31548,12 +31977,13 @@ function loadCreatureName(rng) {
 }
 
 // src/engine/batch.ts
+init_loader();
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 function pickColor(rng) {
-  const config4 = loadConfig();
-  const weights = config4.colors;
+  const config3 = loadConfig();
+  const weights = config3.colors;
   const entries = Object.entries(weights);
   const total = entries.reduce((sum, [, w]) => sum + w, 0);
   let roll = rng() * total;
@@ -31569,12 +31999,12 @@ function pickBatchSize(rng) {
   if (roll < 0.8) return 4;
   return 5;
 }
-function generateCreatureSlots(speciesId, rng) {
+function generateCreatureSlots(speciesId, playerLevel, rng) {
   const species = getSpeciesById(speciesId);
   if (!species) throw new Error(`Unknown species: ${speciesId}`);
   const speciesSlots = Object.keys(species.traitPools);
   return speciesSlots.map((slotId) => {
-    const trait = pickTraitForSlot(species, slotId, rng);
+    const trait = pickTraitForSlot(species, slotId, playerLevel, rng);
     const color = pickColor(rng);
     return { slotId, variantId: trait.id, color };
   });
@@ -31591,7 +32021,7 @@ function spawnBatch(state, now, rng) {
       id: generateId(),
       speciesId: species.id,
       name: loadCreatureName(rng),
-      slots: generateCreatureSlots(species.id, rng),
+      slots: generateCreatureSlots(species.id, state.profile.level, rng),
       spawnedAt: now
     };
     spawned.push(creature);
@@ -31620,18 +32050,25 @@ function cleanupBatch(state, now) {
   return [];
 }
 
+// src/engine/catch.ts
+init_loader();
+
 // src/engine/energy.ts
-var config3 = loadConfig();
-var ENERGY_GAIN_INTERVAL_MS = config3.energy.gainIntervalMs;
-var MAX_ENERGY = config3.energy.maxEnergy;
+init_loader();
+var _config2 = null;
+function getConfig() {
+  if (!_config2) _config2 = loadConfig();
+  return _config2;
+}
 function processEnergyGain(state, now) {
+  const config3 = getConfig();
   const elapsed = now - state.lastEnergyGainAt;
-  const intervals = Math.floor(elapsed / ENERGY_GAIN_INTERVAL_MS);
+  const intervals = Math.floor(elapsed / config3.energy.gainIntervalMs);
   if (intervals <= 0) return 0;
-  const maxGain = MAX_ENERGY - state.energy;
+  const maxGain = config3.energy.maxEnergy - state.energy;
   const gained = Math.min(intervals, maxGain);
   state.energy += gained;
-  state.lastEnergyGainAt += intervals * ENERGY_GAIN_INTERVAL_MS;
+  state.lastEnergyGainAt += intervals * config3.energy.gainIntervalMs;
   return gained;
 }
 function spendEnergy(state, amount) {
@@ -31640,52 +32077,59 @@ function spendEnergy(state, amount) {
   }
   state.energy -= amount;
 }
-var SESSION_ENERGY_BONUS = config3.energy.sessionBonus;
 function processSessionEnergyBonus(state, sessionId) {
+  const config3 = getConfig();
   if (!sessionId || state.currentSessionId === sessionId) {
     return 0;
   }
   state.currentSessionId = sessionId;
   state.sessionUpgradeCount = 0;
-  const maxGain = MAX_ENERGY - state.energy;
-  const gained = Math.min(SESSION_ENERGY_BONUS, maxGain);
+  const maxGain = config3.energy.maxEnergy - state.energy;
+  const gained = Math.min(config3.energy.sessionBonus, maxGain);
   state.energy += gained;
   return gained;
 }
+var MAX_ENERGY = getConfig().energy.maxEnergy;
+var ENERGY_GAIN_INTERVAL_MS = getConfig().energy.gainIntervalMs;
+var SESSION_ENERGY_BONUS = getConfig().energy.sessionBonus;
 
 // src/engine/catch.ts
 function calculateCatchRate(speciesId, slots, failPenalty) {
-  const config4 = loadConfig();
-  const { baseCatchRate, minCatchRate, maxCatchRate, maxTraitSpawnRate, difficultyScale } = config4.catching;
-  let rarestRate = maxTraitSpawnRate;
+  const config3 = loadConfig();
+  const { minCatchRate, maxCatchRate } = config3.catching;
+  const species = getSpeciesById(speciesId);
+  let totalChance = 0;
   for (const slot of slots) {
-    const trait = getTraitDefinition(speciesId, slot.variantId);
-    if (trait && trait.spawnRate < rarestRate) {
-      rarestRate = trait.spawnRate;
-    }
+    const rank = getTraitRank(speciesId, slot.slotId, slot.variantId);
+    const poolSize = species?.traitPools[slot.slotId]?.length ?? 1;
+    const maxRankInPool = Math.max(poolSize - 1, 1);
+    const traitChance = 1 - Math.max(rank, 0) / maxRankInPool * 0.5;
+    totalChance += traitChance;
   }
-  const rate = baseCatchRate - difficultyScale * (1 - rarestRate / maxTraitSpawnRate) - failPenalty;
+  const avgChance = slots.length > 0 ? totalChance / slots.length : 1;
+  const cappedAvg = Math.min(avgChance, maxCatchRate);
+  const rate = cappedAvg - failPenalty;
   return Math.max(minCatchRate, Math.min(maxCatchRate, rate));
 }
-function calculateXpEarned(speciesId, slots) {
-  const config4 = loadConfig();
-  let rareCount = 0;
-  for (const slot of slots) {
-    const trait = getTraitDefinition(speciesId, slot.variantId);
-    if (trait && trait.spawnRate < 0.05) rareCount++;
-  }
-  return config4.catching.xpBase + rareCount * config4.catching.xpRarityMultiplier;
+function calculateXpEarned(_speciesId, _slots) {
+  const config3 = loadConfig();
+  return config3.catching.xpBase;
 }
 function calculateEnergyCost(speciesId, slots) {
-  let rareCount = 0;
+  if (slots.length === 0) return 1;
+  const species = getSpeciesById(speciesId);
+  let totalRatio = 0;
   for (const slot of slots) {
-    const trait = getTraitDefinition(speciesId, slot.variantId);
-    if (trait && trait.spawnRate < 0.05) rareCount++;
+    const rank = getTraitRank(speciesId, slot.slotId, slot.variantId);
+    const poolSize = species?.traitPools[slot.slotId]?.length ?? 1;
+    const maxRankInPool = Math.max(poolSize - 1, 1);
+    totalRatio += Math.max(rank, 0) / maxRankInPool;
   }
-  return Math.min(1 + rareCount, 5);
+  const avgRatio = totalRatio / slots.length;
+  return Math.min(1 + Math.floor(avgRatio * 4), 5);
 }
 function attemptCatch(state, nearbyIndex, rng = Math.random) {
-  const config4 = loadConfig();
+  const config3 = loadConfig();
   if (!state.batch) {
     throw new Error("No active batch");
   }
@@ -31722,7 +32166,7 @@ function attemptCatch(state, nearbyIndex, rng = Math.random) {
     state.profile.xp += xpEarned;
     state.profile.totalCatches++;
   } else {
-    state.batch.failPenalty += config4.catching.failPenaltyPerMiss;
+    state.batch.failPenalty += config3.catching.failPenaltyPerMiss;
   }
   return {
     success: success2,
@@ -31739,6 +32183,9 @@ function attemptCatch(state, nearbyIndex, rng = Math.random) {
 var SLOT_IDS = ["eyes", "mouth", "body", "tail"];
 var MAX_COLLECTION_SIZE = 15;
 
+// src/engine/breed.ts
+init_loader();
+
 // src/engine/gold.ts
 function earnGold(state, amount) {
   if (amount < 0) throw new Error("Cannot earn negative gold");
@@ -31749,38 +32196,8 @@ function spendGold(state, amount) {
   state.gold -= amount;
 }
 
-// src/engine/progression.ts
-function getXpForNextLevel(level) {
-  const config4 = loadConfig();
-  const thresholds = config4.leveling.thresholds;
-  const index = Math.min(level - 1, thresholds.length - 1);
-  return thresholds[index];
-}
-function grantXp(state, amount) {
-  state.profile.xp += amount;
-  const oldLevel = state.profile.level;
-  let currentLevel = oldLevel;
-  while (true) {
-    const needed = getXpForNextLevel(currentLevel);
-    if (state.profile.xp >= needed) {
-      state.profile.xp -= needed;
-      currentLevel++;
-    } else {
-      break;
-    }
-  }
-  if (currentLevel > oldLevel) {
-    state.profile.level = currentLevel;
-    return {
-      oldLevel,
-      newLevel: currentLevel,
-      xpOverflow: state.profile.xp
-    };
-  }
-  return null;
-}
-
 // src/engine/breed.ts
+init_progression();
 function generateId2() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
@@ -31904,13 +32321,13 @@ function executeBreed(state, parentAId, parentBId, rng = Math.random) {
     });
     inheritedFrom[si.slotId] = fromA ? "A" : "B";
   }
-  const config4 = loadConfig();
+  const config3 = loadConfig();
   const childRanks = childSlots.map((s) => {
     const m = s.variantId.match(/_r(\d+)$/);
     return m ? parseInt(m[1], 10) : 0;
   });
   const childAvgRank = childRanks.reduce((a, b) => a + b, 0) / childRanks.length;
-  const goldCost = config4.mergeGold.baseCost + Math.floor(childAvgRank * config4.mergeGold.rankMultiplier);
+  const goldCost = config3.mergeGold.baseCost + Math.floor(childAvgRank * config3.mergeGold.rankMultiplier);
   spendGold(state, goldCost);
   const upgradeIndex = Math.floor(rng() * childSlots.length);
   const upgradeSlot = childSlots[upgradeIndex];
@@ -31922,7 +32339,7 @@ function executeBreed(state, parentAId, parentBId, rng = Math.random) {
       `_r${currentRank + 1}`
     );
   }
-  if (rng() < config4.mergeGold.downgradeChance && childSlots.length > 1) {
+  if (rng() < config3.mergeGold.downgradeChance && childSlots.length > 1) {
     const otherIndices = childSlots.map((_, i) => i).filter((i) => i !== upgradeIndex);
     const pick2 = Math.floor(rng() * otherIndices.length);
     const downgradeIndex = otherIndices[pick2];
@@ -31954,7 +32371,7 @@ function executeBreed(state, parentAId, parentBId, rng = Math.random) {
   state.collection.push(child);
   state.energy -= energyCost;
   state.profile.totalMerges += 1;
-  grantXp(state, config4.leveling.xpPerMerge);
+  grantXp(state, config3.leveling.xpPerMerge);
   return {
     child,
     parentA,
@@ -32019,11 +32436,13 @@ function isCollectionFull(state) {
 }
 
 // src/engine/upgrade.ts
+init_loader();
+init_progression();
 function performUpgrade(state, creatureId, slotId) {
-  const config4 = loadConfig();
-  if (state.sessionUpgradeCount >= config4.upgrade.sessionCap) {
+  const config3 = loadConfig();
+  if (state.sessionUpgradeCount >= config3.upgrade.sessionCap) {
     throw new Error(
-      `Session upgrade cap reached (${config4.upgrade.sessionCap} per session)`
+      `Session upgrade cap reached (${config3.upgrade.sessionCap} per session)`
     );
   }
   const creature = state.collection.find((c) => c.id === creatureId);
@@ -32039,20 +32458,23 @@ function performUpgrade(state, creatureId, slotId) {
   }
   const rankMatch = slot.variantId.match(/_r(\d+)$/);
   const currentRank = rankMatch ? parseInt(rankMatch[1], 10) : 0;
-  if (currentRank >= config4.upgrade.maxRank) {
+  if (currentRank >= config3.upgrade.maxRank) {
     throw new Error(
-      `Trait ${slotId} is already at max rank (${config4.upgrade.maxRank})`
+      `Trait ${slotId} is already at max rank (${config3.upgrade.maxRank})`
     );
   }
-  const cost = config4.upgrade.costs[currentRank];
+  const cost = config3.upgrade.costs[currentRank];
   spendGold(state, cost);
   const newRank = currentRank + 1;
   slot.variantId = slot.variantId.replace(/_r\d+$/, `_r${newRank}`);
   state.sessionUpgradeCount++;
   state.profile.totalUpgrades++;
-  grantXp(state, config4.leveling.xpPerUpgrade);
+  grantXp(state, config3.leveling.xpPerUpgrade);
   return {
     creatureId,
+    creatureName: creature.name,
+    speciesId: creature.speciesId,
+    slots: creature.slots,
     slotId,
     fromRank: currentRank,
     toRank: newRank,
@@ -32061,6 +32483,8 @@ function performUpgrade(state, creatureId, slotId) {
 }
 
 // src/engine/quest.ts
+init_loader();
+init_progression();
 function generateQuestId() {
   return "q_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
@@ -32077,23 +32501,23 @@ function calculateTeamPower(state, creatureIds) {
   return total;
 }
 function calculateQuestReward(teamPower) {
-  const config4 = loadConfig();
+  const config3 = loadConfig();
   return Math.max(
-    config4.quest.rewardFloor,
-    Math.floor(teamPower * config4.quest.rewardMultiplier)
+    config3.quest.rewardFloor,
+    Math.floor(teamPower * config3.quest.rewardMultiplier)
   );
 }
 function startQuest(state, creatureIds) {
-  const config4 = loadConfig();
+  const config3 = loadConfig();
   if (state.activeQuest) {
     throw new Error("Already on a quest. Wait for the current quest to complete.");
   }
   if (creatureIds.length === 0) {
     throw new Error("Must send at least 1 creature on a quest.");
   }
-  if (creatureIds.length > config4.quest.maxTeamSize) {
+  if (creatureIds.length > config3.quest.maxTeamSize) {
     throw new Error(
-      `Max team size is ${config4.quest.maxTeamSize}, got ${creatureIds.length}`
+      `Max team size is ${config3.quest.maxTeamSize}, got ${creatureIds.length}`
     );
   }
   for (const id of creatureIds) {
@@ -32111,13 +32535,18 @@ function startQuest(state, creatureIds) {
     creatureIds: [...creatureIds],
     startedAtSession: 0,
     // will be tracked by session ID
-    sessionsRemaining: config4.quest.lockDurationSessions,
+    sessionsRemaining: config3.quest.lockDurationSessions,
     teamPower
   };
   state.activeQuest = quest;
+  const creatures = creatureIds.map((id) => {
+    const c = state.collection.find((cr) => cr.id === id);
+    return { name: c.name, speciesId: c.speciesId, slots: c.slots };
+  });
   return {
     quest,
-    creaturesLocked: [...creatureIds]
+    creaturesLocked: [...creatureIds],
+    creatures
   };
 }
 function checkQuest(state) {
@@ -32128,24 +32557,31 @@ function checkQuest(state) {
   if (state.activeQuest.sessionsRemaining > 0) {
     return null;
   }
-  const config4 = loadConfig();
+  const config3 = loadConfig();
   const quest = state.activeQuest;
   const goldReward = calculateQuestReward(quest.teamPower);
   earnGold(state, goldReward);
-  grantXp(state, config4.leveling.xpPerQuest);
+  grantXp(state, config3.leveling.xpPerQuest);
   state.profile.totalQuests++;
   state.activeQuest = null;
+  const creatures = quest.creatureIds.map((id) => {
+    const c = state.collection.find((cr) => cr.id === id);
+    return { name: c.name, speciesId: c.speciesId, slots: c.slots };
+  });
   return {
     questId: quest.id,
     goldEarned: goldReward,
-    xpEarned: config4.leveling.xpPerQuest,
-    creaturesReturned: [...quest.creatureIds]
+    xpEarned: config3.leveling.xpPerQuest,
+    creaturesReturned: [...quest.creatureIds],
+    creatures
   };
 }
 
 // src/engine/discovery.ts
+init_loader();
+init_progression();
 function recordDiscovery(state, speciesId) {
-  const config4 = loadConfig();
+  const config3 = loadConfig();
   if (state.discoveredSpecies.includes(speciesId)) {
     return {
       speciesId,
@@ -32155,7 +32591,7 @@ function recordDiscovery(state, speciesId) {
     };
   }
   state.discoveredSpecies.push(speciesId);
-  const bonusXp = config4.leveling.xpDiscoveryBonus;
+  const bonusXp = config3.leveling.xpDiscoveryBonus;
   grantXp(state, bonusXp);
   return {
     speciesId,
@@ -32165,10 +32601,17 @@ function recordDiscovery(state, speciesId) {
   };
 }
 
+// src/engine/game-engine.ts
+init_progression();
+init_loader();
+
 // src/engine/advisor.ts
+init_loader();
+init_progression();
+
+// src/engine/tiers.ts
 var TIER_BOUNDARIES = [0, 5, 9, 12, 15, 17];
 var TIER_NAMES = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
-var POWER_MILESTONES = [25, 50, 100, 150, 200, 300, 500];
 function extractRank(variantId) {
   const m = variantId.match(/_r(\d+)$/);
   return m ? parseInt(m[1], 10) : 0;
@@ -32185,6 +32628,9 @@ function getNextTierBoundary(rank) {
   }
   return null;
 }
+
+// src/engine/advisor.ts
+var POWER_MILESTONES = [25, 50, 100, 150, 200, 300, 500];
 function calculateTeamPower2(state) {
   let total = 0;
   const questCreatureIds = state.activeQuest?.creatureIds ?? [];
@@ -32198,7 +32644,7 @@ function calculateTeamPower2(state) {
   return total;
 }
 function getProgressInfo(state) {
-  const config4 = loadConfig();
+  const config3 = loadConfig();
   const xpToNextLevel = getXpForNextLevel(state.profile.level);
   const xpPercent = xpToNextLevel > 0 ? Math.round(state.profile.xp / xpToNextLevel * 100) : 100;
   let bestTrait = null;
@@ -32249,7 +32695,7 @@ function getProgressInfo(state) {
     }
   }
   let nextSpeciesUnlock = null;
-  const unlockLevels = config4.discovery?.speciesUnlockLevels ?? {};
+  const unlockLevels = config3.discovery?.speciesUnlockLevels ?? {};
   let closestUnlockLevel = Infinity;
   for (const [species, unlockLevel] of Object.entries(unlockLevels)) {
     const lvl = unlockLevel;
@@ -32283,7 +32729,7 @@ function getProgressInfo(state) {
   };
 }
 function getViableActions(state) {
-  const config4 = loadConfig();
+  const config3 = loadConfig();
   const actions = [];
   const questCreatureIds = state.activeQuest?.creatureIds ?? [];
   if (state.nearby.length > 0 && state.batch && state.batch.attemptsRemaining > 0) {
@@ -32302,15 +32748,15 @@ function getViableActions(state) {
       }
     }
   }
-  if (state.sessionUpgradeCount < config4.upgrade.sessionCap) {
+  if (state.sessionUpgradeCount < config3.upgrade.sessionCap) {
     for (let ci = 0; ci < state.collection.length; ci++) {
       const creature = state.collection[ci];
       if (creature.archived) continue;
       if (questCreatureIds.includes(creature.id)) continue;
       for (const slot of creature.slots) {
         const rank = extractRank(slot.variantId);
-        if (rank >= config4.upgrade.maxRank) continue;
-        const cost = config4.upgrade.costs[rank];
+        if (rank >= config3.upgrade.maxRank) continue;
+        const cost = config3.upgrade.costs[rank];
         if (state.gold < cost) continue;
         const nextBoundary = getNextTierBoundary(rank);
         const nearTier = nextBoundary !== null && nextBoundary - rank === 1;
@@ -32343,12 +32789,12 @@ function getViableActions(state) {
     const ai = sorted[0];
     const bi = sorted[1];
     const avgRank = state.collection[ai].slots.reduce((s, sl) => s + extractRank(sl.variantId), 0) / 4;
-    const goldCost = config4.mergeGold.baseCost + Math.floor(avgRank * config4.mergeGold.rankMultiplier);
-    if (state.gold >= goldCost && state.energy >= config4.energy.baseMergeCost) {
+    const goldCost = config3.mergeGold.baseCost + Math.floor(avgRank * config3.mergeGold.rankMultiplier);
+    if (state.gold >= goldCost && state.energy >= config3.energy.baseMergeCost) {
       actions.push({
         type: "merge",
         label: `Merge ${state.collection[ai].name} + ${state.collection[bi].name}`,
-        cost: { gold: goldCost, energy: config4.energy.baseMergeCost },
+        cost: { gold: goldCost, energy: config3.energy.baseMergeCost },
         priority: 0,
         reasoning: `${indexes.length} ${speciesId} available for merge`,
         target: { creatureIndex: ai + 1, partnerIndex: bi + 1 }
@@ -32360,7 +32806,7 @@ function getViableActions(state) {
       (c) => !c.archived && !questCreatureIds.includes(c.id)
     );
     if (availableCreatures.length > 0) {
-      const teamSize = Math.min(availableCreatures.length, config4.quest.maxTeamSize);
+      const teamSize = Math.min(availableCreatures.length, config3.quest.maxTeamSize);
       actions.push({
         type: "quest",
         label: `Send ${teamSize} creature${teamSize > 1 ? "s" : ""} on a quest`,
@@ -32541,8 +32987,8 @@ var GameEngine = class {
     }
     const result = attemptCatch(this.state, nearbyIndex, rng);
     if (result.success) {
-      const config4 = loadConfig();
-      grantXp(this.state, config4.leveling.xpPerCatch);
+      const config3 = loadConfig();
+      grantXp(this.state, config3.leveling.xpPerCatch);
       const discovery = recordDiscovery(this.state, result.creature.speciesId);
       if (discovery.isNew) {
         result.discovery = discovery;
@@ -32602,6 +33048,7 @@ var GameEngine = class {
 };
 
 // src/engine/rarity.ts
+init_loader();
 function calculateTraitRarityScore(speciesId, slotId, variantId) {
   const species = getSpeciesById(speciesId);
   if (!species) return 50;
@@ -32614,8 +33061,8 @@ function calculateTraitRarityScore(speciesId, slotId, variantId) {
   return index / (sorted.length - 1) * 99 + 1;
 }
 function calculateColorRarityScore(color) {
-  const config4 = loadConfig();
-  const colorMap = config4.colors;
+  const config3 = loadConfig();
+  const colorMap = config3.colors;
   const entries = Object.entries(colorMap).sort((a, b) => b[1] - a[1]);
   if (entries.length <= 1) return 50;
   const index = entries.findIndex(([name]) => name === color);
@@ -33040,7 +33487,6 @@ var SimpleTextRenderer = class {
   }
   renderUpgradeResult(result) {
     const lines = [];
-    const slotLabel = result.slotId.padEnd(5);
     const rankColors = [
       COLOR_ANSI.grey,
       // rank 0→1
@@ -33063,9 +33509,13 @@ var SimpleTextRenderer = class {
     const toColor = rankColors[result.toRank] ?? COLOR_ANSI.red;
     lines.push(`  ${GREEN}${BOLD}\u2726 UPGRADE \u2726${RESET}`);
     lines.push("");
-    lines.push(`  ${DIM}Slot:${RESET}  ${WHITE}${slotLabel}${RESET}`);
-    lines.push(`  ${DIM}Rank:${RESET}  ${fromColor}\u2605${result.fromRank}${RESET} \u2192 ${toColor}\u2605${result.toRank}${RESET}`);
-    lines.push(`  ${DIM}Cost:${RESET}  ${YELLOW}${result.goldCost} gold${RESET}`);
+    const creatureScore = calculateCreatureScore(result.speciesId, result.slots);
+    lines.push(`  ${BOLD}${result.creatureName}${RESET}  \u2B50 ${creatureScore}`);
+    for (const line of renderCreatureSideBySide(result.slots, result.speciesId)) {
+      lines.push(line);
+    }
+    lines.push("");
+    lines.push(`  ${DIM}${result.slotId}:${RESET}  ${fromColor}\u2605${result.fromRank}${RESET} \u2192 ${toColor}\u2605${result.toRank}${RESET}   ${DIM}-${result.goldCost}${RESET}${YELLOW} gold${RESET}`);
     lines.push("");
     lines.push(divider());
     return lines.join("\n");
@@ -33075,11 +33525,14 @@ var SimpleTextRenderer = class {
     const q = result.quest;
     lines.push(`  ${BLUE}${BOLD}\u2726 QUEST STARTED \u2726${RESET}`);
     lines.push("");
-    lines.push(`  ${DIM}Team:${RESET}      ${result.creaturesLocked.length} creature(s)`);
-    lines.push(`  ${DIM}Power:${RESET}     ${q.teamPower}`);
-    lines.push(`  ${DIM}Duration:${RESET}  ${q.sessionsRemaining} session(s)`);
-    lines.push("");
-    lines.push(`  ${DIM}Creatures are away on the quest.${RESET}`);
+    for (const c of result.creatures) {
+      lines.push(`  ${BOLD}${c.name}${RESET}  ${DIM}(${c.speciesId})${RESET}`);
+      for (const line of renderCreatureSideBySide(c.slots, c.speciesId)) {
+        lines.push(line);
+      }
+      lines.push("");
+    }
+    lines.push(`  ${DIM}Power:${RESET} ${q.teamPower}   ${DIM}Duration:${RESET} ${q.sessionsRemaining} session(s)`);
     lines.push(`  ${DIM}Use /quest check once complete to collect rewards.${RESET}`);
     lines.push("");
     lines.push(divider());
@@ -33091,8 +33544,13 @@ var SimpleTextRenderer = class {
     lines.push("");
     lines.push(`  ${YELLOW}+${result.goldEarned} gold${RESET}  ${GREEN}+${result.xpEarned} XP${RESET}`);
     lines.push("");
-    lines.push(`  ${DIM}${result.creaturesReturned.length} creature(s) returned safely.${RESET}`);
-    lines.push("");
+    for (const c of result.creatures) {
+      lines.push(`  ${BOLD}${c.name}${RESET} returned!  ${DIM}(${c.speciesId})${RESET}`);
+      for (const line of renderCreatureSideBySide(c.slots, c.speciesId)) {
+        lines.push(line);
+      }
+      lines.push("");
+    }
     lines.push(divider());
     return lines.join("\n");
   }
@@ -33179,26 +33637,9 @@ var SimpleTextRenderer = class {
 };
 
 // src/engine/companion.ts
-function extractRank2(variantId) {
-  const m = variantId.match(/_r(\d+)$/);
-  return m ? parseInt(m[1], 10) : 0;
-}
-var TIER_BOUNDARIES2 = [0, 5, 9, 12, 15, 17];
-var TIER_NAMES2 = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
-function getTierName2(rank) {
-  for (let i = TIER_BOUNDARIES2.length - 1; i >= 0; i--) {
-    if (rank >= TIER_BOUNDARIES2[i]) return TIER_NAMES2[i];
-  }
-  return "common";
-}
-function getNextTierBoundary2(rank) {
-  for (const boundary of TIER_BOUNDARIES2) {
-    if (boundary > rank) return boundary;
-  }
-  return null;
-}
+init_loader();
 function getCompanionOverview(state) {
-  const config4 = loadConfig();
+  const config3 = loadConfig();
   const progress = getProgressInfo(state);
   const suggestedActions = getSuggestedActions("companion", null, state);
   const nearbyHighlights = state.nearby.map((creature, i) => {
@@ -33237,15 +33678,15 @@ function getCompanionOverview(state) {
     });
   }
   const upgradeOpportunities = [];
-  if (state.sessionUpgradeCount < config4.upgrade.sessionCap) {
+  if (state.sessionUpgradeCount < config3.upgrade.sessionCap) {
     for (const creature of state.collection) {
       if (creature.archived || questCreatureIds.includes(creature.id)) continue;
       for (const slot of creature.slots) {
-        const rank = extractRank2(slot.variantId);
-        if (rank >= config4.upgrade.maxRank) continue;
-        const cost = config4.upgrade.costs[rank];
+        const rank = extractRank(slot.variantId);
+        if (rank >= config3.upgrade.maxRank) continue;
+        const cost = config3.upgrade.costs[rank];
         if (cost === void 0 || state.gold < cost) continue;
-        const nextBoundary = getNextTierBoundary2(rank);
+        const nextBoundary = getNextTierBoundary(rank);
         const nearTier = nextBoundary !== null && nextBoundary - rank === 1;
         upgradeOpportunities.push({
           creatureId: creature.id,
@@ -33254,7 +33695,7 @@ function getCompanionOverview(state) {
           currentRank: rank,
           goldCost: cost,
           nearTier,
-          tierName: getTierName2(rank)
+          tierName: getTierName(rank)
         });
       }
     }
@@ -33508,7 +33949,6 @@ Notifications: ${settings.notificationLevel}`);
     const renderer = new SimpleTextRenderer();
     const state = engine.getState();
     const overview = getCompanionOverview(state);
-    stateManager.save(state);
     const rendered = prependStatusBar(engine, renderer, renderer.renderCompanionOverview(overview));
     if (options.writeDisplayFile) {
       fs3.writeFileSync(displayPath, rendered);

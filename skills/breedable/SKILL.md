@@ -6,13 +6,11 @@ description: List creatures in your collection that have a valid breeding partne
 
 This command takes no arguments. It lists all creatures in the user's collection that have at least one same-species partner to breed with.
 
-1. Call `mcp__plugin_compi_compi__breed` with no arguments.
-2. Run this Bash command to display the output with colors:
+1. Run this Bash command (renders colors directly):
+   ```
+   node scripts/cli.js breed
+   ```
 
-```
-_t="$(node -p "require('os').tmpdir()")" && cat "$_t/compi_display.txt" && rm -f "$_t/compi_display.txt"
-```
-
-3. Respond: "Press Ctrl+O to expand the list above. Run `/breed N` to see partners for creature #N, or `/breed N M` to preview breeding."
+2. Respond: "Press Ctrl+O to expand the list above. Run `/breed N M` to preview breeding two creatures."
 
 Do not describe the tool output in your own words.

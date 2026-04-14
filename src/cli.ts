@@ -99,12 +99,32 @@ try {
 
     case "breed":
     case "merge": {
-      const parentAId = args[1];
-      const parentBId = args[2];
+      const argA = args[1];
+      const argB = args[2];
       const confirm = args.includes("--confirm");
-      if (!parentAId || !parentBId) {
-        console.error("Usage: compi breed <parentAId> <parentBId> [--confirm]");
-        process.exit(1);
+      if (!argA || !argB) {
+        // No args: show breed table
+        const breedTable = engine.buildBreedTable();
+        output(breedTable, renderer.renderBreedTable(breedTable));
+        break;
+      }
+      // Support both indexes (numbers) and creature IDs (strings)
+      let parentAId = argA;
+      let parentBId = argB;
+      const indexA = parseInt(argA, 10);
+      const indexB = parseInt(argB, 10);
+      if (!isNaN(indexA) && !isNaN(indexB)) {
+        const collection = engine.getState().collection;
+        if (indexA < 1 || indexA > collection.length) {
+          console.error(`No creature at index ${indexA}. You have ${collection.length} creatures.`);
+          process.exit(1);
+        }
+        if (indexB < 1 || indexB > collection.length) {
+          console.error(`No creature at index ${indexB}. You have ${collection.length} creatures.`);
+          process.exit(1);
+        }
+        parentAId = collection[indexA - 1].id;
+        parentBId = collection[indexB - 1].id;
       }
       if (confirm) {
         const result = engine.breedExecute(parentAId, parentBId);
@@ -198,11 +218,20 @@ try {
     case "quest": {
       const subCmd = args[1];
       if (subCmd === "start") {
-        const creatureIds = args.slice(2);
-        if (creatureIds.length === 0) {
-          console.error("Usage: compi quest start <creatureId1> [creatureId2] [creatureId3]");
+        const rawArgs = args.slice(2).filter(a => !a.startsWith("--"));
+        if (rawArgs.length === 0) {
+          console.error("Usage: compi quest start <index1> [index2] [index3]");
           process.exit(1);
         }
+        // Support both indexes (numbers) and creature IDs (strings)
+        const collection = engine.getState().collection;
+        const creatureIds = rawArgs.map(a => {
+          const idx = parseInt(a, 10);
+          if (!isNaN(idx) && idx >= 1 && idx <= collection.length) {
+            return collection[idx - 1].id;
+          }
+          return a;
+        });
         const result = engine.questStart(creatureIds);
         save();
         output(result, renderer.renderQuestStart(result));
@@ -243,14 +272,14 @@ try {
       console.log("  scan                    Show nearby creatures");
       console.log("  catch [n]               Catch creature #n");
       console.log("  collection              View your creatures");
-      console.log("  breed <aId> <bId> [--confirm]  Preview or execute breed");
+      console.log("  breed [N] [M] [--confirm]  Show breed table, preview, or execute");
       console.log("  archive [id]            View archive or archive a creature");
       console.log("  release <id>            Permanently release a creature");
       console.log("  energy                  Show current energy");
       console.log("  status                  Your profile");
       console.log("  settings [key] [value]  View/change settings");
       console.log("  upgrade <index> <slot>  Upgrade a creature's trait (slot: eyes/mouth/body/tail)");
-      console.log("  quest start <id...>     Send creatures on a quest");
+      console.log("  quest start <n...>      Send creatures on a quest (by index)");
       console.log("  quest check             Check if active quest is complete");
       console.log("  gold                    Show current gold balance");
       console.log("\nAdd --json for machine-readable output.");

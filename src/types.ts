@@ -133,6 +133,9 @@ export interface ActiveQuest {
 // --- Upgrade ---
 export interface UpgradeResult {
   creatureId: string;
+  creatureName: string;
+  speciesId: string;
+  slots: CreatureSlot[];
   slotId: SlotId;
   fromRank: number;
   toRank: number;
@@ -143,6 +146,7 @@ export interface UpgradeResult {
 export interface QuestStartResult {
   quest: ActiveQuest;
   creaturesLocked: string[];
+  creatures: { name: string; speciesId: string; slots: CreatureSlot[] }[];
 }
 
 export interface QuestCompleteResult {
@@ -150,6 +154,7 @@ export interface QuestCompleteResult {
   goldEarned: number;
   xpEarned: number;
   creaturesReturned: string[];
+  creatures: { name: string; speciesId: string; slots: CreatureSlot[] }[];
 }
 
 // --- Level Up ---

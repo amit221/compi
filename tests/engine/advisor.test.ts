@@ -371,6 +371,9 @@ describe("getAdvisorMode", () => {
     const state = makeState({ collection: [c1], gold: 50 });
     const upgradeResult: UpgradeResult = {
       creatureId: "c1",
+      creatureName: "Test",
+      speciesId: "compi",
+      slots: c1.slots,
       slotId: "eyes",
       fromRank: 3,
       toRank: 4,
@@ -387,6 +390,7 @@ describe("getAdvisorMode", () => {
       goldEarned: 30,
       xpEarned: 15,
       creaturesReturned: ["c1"],
+      creatures: [],
     };
     const mode = getAdvisorMode("quest_complete", questResult, state);
     expect(mode).toBe("autopilot");

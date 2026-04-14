@@ -82,6 +82,9 @@ export function performUpgrade(
 
   return {
     creatureId,
+    creatureName: creature.name,
+    speciesId: creature.speciesId,
+    slots: creature.slots,
     slotId,
     fromRank: currentRank,
     toRank: newRank,

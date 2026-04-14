@@ -84,9 +84,15 @@ export function startQuest(
 
   state.activeQuest = quest;
 
+  const creatures = creatureIds.map(id => {
+    const c = state.collection.find(cr => cr.id === id)!;
+    return { name: c.name, speciesId: c.speciesId, slots: c.slots };
+  });
+
   return {
     quest,
     creaturesLocked: [...creatureIds],
+    creatures,
   };
 }
 
@@ -117,11 +123,17 @@ export function checkQuest(state: GameState): QuestCompleteResult | null {
   state.profile.totalQuests++;
   state.activeQuest = null;
 
+  const creatures = quest.creatureIds.map(id => {
+    const c = state.collection.find(cr => cr.id === id)!;
+    return { name: c.name, speciesId: c.speciesId, slots: c.slots };
+  });
+
   return {
     questId: quest.id,
     goldEarned: goldReward,
     xpEarned: config.leveling.xpPerQuest,
     creaturesReturned: [...quest.creatureIds],
+    creatures,
   };
 }
 

@@ -8,16 +8,13 @@ Parse the argument for which creature number (1-indexed) from the scan list.
 
 Usage: `/catch [number]`
 
-1. Call the `mcp__plugin_compi_compi__catch` tool with the parsed `index` (number).
-2. Then run this Bash command to display the result with colors:
+1. Run this Bash command to attempt the catch (renders colors directly):
    ```
-   _t="$(node -p "require('os').tmpdir()")" && cat "$_t/compi_display.txt" && rm -f "$_t/compi_display.txt"
+   node scripts/cli.js catch <number>
    ```
 
-After both steps:
-- Read the `advisor_context` JSON block at the end of the tool response.
+After the Bash output:
 - Narrate what happened in 2-3 sentences with game personality. Reference the specific creature name and any notable traits from the response. Suggest a next action when relevant.
-- If `advisor_context.mode` is `"advisor"`, list the top suggested actions from `advisor_context.suggestedActions` (up to 3) as a short numbered list with their labels.
 - End with: "Press Ctrl+O to expand the output above and see the result."
 
 Example narrator lines:

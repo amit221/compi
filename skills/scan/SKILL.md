@@ -4,13 +4,12 @@ model: claude-haiku-4-5-20251001
 description: Show nearby creatures that can be caught
 ---
 
-1. Call the `mcp__plugin_compi_compi__scan` tool to scan for nearby creatures.
-2. Then run this Bash command to display the result with colors:
+1. Run this Bash command to scan for nearby creatures (renders colors directly):
    ```
-   _t="$(node -p "require('os').tmpdir()")" && cat "$_t/compi_display.txt" && rm -f "$_t/compi_display.txt"
+   node scripts/cli.js scan
    ```
 
-After both steps:
+After the Bash output:
 - Narrate the scan result in 2-3 sentences with game personality. Comment on how many creatures appeared and name any species you can spot in the response. Suggest catching the most interesting one if relevant.
 - End with: "Press Ctrl+O to expand the output above and see them."
 

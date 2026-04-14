@@ -556,7 +556,6 @@ export class SimpleTextRenderer implements Renderer {
 
   renderUpgradeResult(result: UpgradeResult): string {
     const lines: string[] = [];
-    const slotLabel = result.slotId.padEnd(5);
 
     // Rank-to-color: higher rank = rarer color
     const rankColors = [
@@ -574,9 +573,13 @@ export class SimpleTextRenderer implements Renderer {
 
     lines.push(`  ${GREEN}${BOLD}✦ UPGRADE ✦${RESET}`);
     lines.push("");
-    lines.push(`  ${DIM}Slot:${RESET}  ${WHITE}${slotLabel}${RESET}`);
-    lines.push(`  ${DIM}Rank:${RESET}  ${fromColor}★${result.fromRank}${RESET} → ${toColor}★${result.toRank}${RESET}`);
-    lines.push(`  ${DIM}Cost:${RESET}  ${YELLOW}${result.goldCost} gold${RESET}`);
+    const creatureScore = calculateCreatureScore(result.speciesId, result.slots);
+    lines.push(`  ${BOLD}${result.creatureName}${RESET}  ⭐ ${creatureScore}`);
+    for (const line of renderCreatureSideBySide(result.slots, result.speciesId)) {
+      lines.push(line);
+    }
+    lines.push("");
+    lines.push(`  ${DIM}${result.slotId}:${RESET}  ${fromColor}★${result.fromRank}${RESET} → ${toColor}★${result.toRank}${RESET}   ${DIM}-${result.goldCost}${RESET}${YELLOW} gold${RESET}`);
     lines.push("");
     lines.push(divider());
     return lines.join("\n");
@@ -588,11 +591,14 @@ export class SimpleTextRenderer implements Renderer {
 
     lines.push(`  ${BLUE}${BOLD}✦ QUEST STARTED ✦${RESET}`);
     lines.push("");
-    lines.push(`  ${DIM}Team:${RESET}      ${result.creaturesLocked.length} creature(s)`);
-    lines.push(`  ${DIM}Power:${RESET}     ${q.teamPower}`);
-    lines.push(`  ${DIM}Duration:${RESET}  ${q.sessionsRemaining} session(s)`);
-    lines.push("");
-    lines.push(`  ${DIM}Creatures are away on the quest.${RESET}`);
+    for (const c of result.creatures) {
+      lines.push(`  ${BOLD}${c.name}${RESET}  ${DIM}(${c.speciesId})${RESET}`);
+      for (const line of renderCreatureSideBySide(c.slots, c.speciesId)) {
+        lines.push(line);
+      }
+      lines.push("");
+    }
+    lines.push(`  ${DIM}Power:${RESET} ${q.teamPower}   ${DIM}Duration:${RESET} ${q.sessionsRemaining} session(s)`);
     lines.push(`  ${DIM}Use /quest check once complete to collect rewards.${RESET}`);
     lines.push("");
     lines.push(divider());
@@ -606,8 +612,13 @@ export class SimpleTextRenderer implements Renderer {
     lines.push("");
     lines.push(`  ${YELLOW}+${result.goldEarned} gold${RESET}  ${GREEN}+${result.xpEarned} XP${RESET}`);
     lines.push("");
-    lines.push(`  ${DIM}${result.creaturesReturned.length} creature(s) returned safely.${RESET}`);
-    lines.push("");
+    for (const c of result.creatures) {
+      lines.push(`  ${BOLD}${c.name}${RESET} returned!  ${DIM}(${c.speciesId})${RESET}`);
+      for (const line of renderCreatureSideBySide(c.slots, c.speciesId)) {
+        lines.push(line);
+      }
+      lines.push("");
+    }
     lines.push(divider());
     return lines.join("\n");
   }

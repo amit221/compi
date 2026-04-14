@@ -4,13 +4,12 @@ model: claude-haiku-4-5-20251001
 description: Browse your caught creatures and their traits
 ---
 
-1. Call the `mcp__plugin_compi_compi__collection` tool to browse caught creatures.
-2. Then run this Bash command to display the result with colors:
+1. Run this Bash command to view your collection (renders colors directly):
    ```
-   _t="$(node -p "require('os').tmpdir()")" && cat "$_t/compi_display.txt" && rm -f "$_t/compi_display.txt"
+   node scripts/cli.js collection
    ```
 
-After both steps:
+After the Bash output:
 - Narrate the collection state in 2-3 sentences with game personality. Reference any standout creature names or trait tiers you can see in the response. Suggest a next action if relevant (e.g., upgrade a strong trait, make room if nearly full, or send someone on a quest).
 - End with: "Press Ctrl+O to expand the output above and see your collection."
 

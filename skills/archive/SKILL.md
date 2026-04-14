@@ -8,15 +8,10 @@ Parse the arguments for an optional creature ID.
 
 Usage: `/archive [creatureId]`
 
-If a creature ID is provided:
-1. Call `mcp__plugin_compi_compi__archive` with `id` set to the creature ID.
-2. Then run this Bash command to display it with colors:
-   ```
-   _t="$(node -p "require('os').tmpdir()")" && cat "$_t/compi_display.txt" && rm -f "$_t/compi_display.txt"
-   ```
-3. Respond with: "Press Ctrl+O to expand the archive result above."
+1. Run this Bash command (renders colors directly):
+   - With ID: `node scripts/cli.js archive <creatureId>`
+   - Without ID: `node scripts/cli.js archive`
 
-If no creature ID is provided:
-1. Call `mcp__plugin_compi_compi__archive` with no arguments to view the full archive.
-2. Run the same Bash cat+rm command.
-3. Respond with: "Press Ctrl+O to expand the archive above."
+After the Bash output:
+- If archiving: "Press Ctrl+O to expand the archive result above."
+- If viewing: "Press Ctrl+O to expand the archive above."

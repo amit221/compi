@@ -11,27 +11,16 @@ Parse the arguments. The command supports two shapes:
 
 Flow:
 
-1. If the subcommand is `start`:
-   - Parse the creature IDs from the arguments (1-3 IDs)
-   - Call `mcp__plugin_compi_compi__quest_start` with `creatureIds` array
-2. If the subcommand is `check` (or no subcommand given):
-   - Call `mcp__plugin_compi_compi__quest_check` with no arguments
-
-After the tool call, run this Bash command to display the result with colors:
-
-```
-_t="$(node -p "require('os').tmpdir()")" && cat "$_t/compi_display.txt" && rm -f "$_t/compi_display.txt"
-```
+1. Run the appropriate Bash command (renders colors directly):
+   - Start: `node scripts/cli.js quest start <id1> [id2] [id3]`
+   - Check: `node scripts/cli.js quest check`
 
 Then respond based on which mode was used:
 
 - Start mode:
-  - Read the `advisor_context` JSON block at the end of the tool response.
   - Narrate the quest departure in 1-2 sentences (e.g. "Your crew heads out into the unknown — come back with gold!").
-  - Show the top suggested actions from `advisor_context.suggestedActions` (up to 3) as a short numbered list.
   - End with: "Press Ctrl+O to expand the output above. Your creatures are on their quest!"
 - Check mode (complete):
-  - Read the `advisor_context` JSON block at the end of the tool response.
   - Narrate the return in 1-2 sentences (e.g. celebrate the gold and XP earned).
   - End with: "Press Ctrl+O to expand the output above and see your rewards."
 - Check mode (in progress): Report the in-progress message as-is.

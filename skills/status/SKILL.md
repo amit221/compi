@@ -4,13 +4,12 @@ model: claude-haiku-4-5-20251001
 description: View your player profile and game stats
 ---
 
-1. Call the `mcp__plugin_compi_compi__status` tool to view player stats.
-2. Then run this Bash command to display it with colors:
+1. Run this Bash command to view player stats (renders colors directly):
    ```
-   _t="$(node -p "require('os').tmpdir()")" && cat "$_t/compi_display.txt" && rm -f "$_t/compi_display.txt"
+   node scripts/cli.js status
    ```
 
-After both steps:
+After the Bash output:
 - Narrate the player's current standing in 2-3 sentences with game personality. Reference their specific level, streak, or gold from the response. Suggest a next action when relevant (e.g., spend gold on an upgrade, go on a quest, or catch more creatures).
 - End with: "Press Ctrl+O to expand the output above."
 
