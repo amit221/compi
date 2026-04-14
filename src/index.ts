@@ -16,4 +16,5 @@ export {
   getAdvisorMode,
   getSuggestedActions,
 } from "./engine/advisor";
+export { getCompanionOverview } from "./engine/companion";
 export * from "./types";

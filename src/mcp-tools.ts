@@ -14,6 +14,7 @@ import { SimpleTextRenderer } from "./renderers/simple-text";
 import { MAX_ENERGY } from "./engine/energy";
 import { AdvisorContext } from "./types";
 import { getProgressInfo } from "./engine/advisor";
+import { getCompanionOverview } from "./engine/companion";
 
 const statePath =
   process.env.COMPI_STATE_PATH ||
@@ -297,5 +298,17 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
       return text(prependStatusBar(engine, renderer, `Quest in progress. ${activeQuest.sessionsRemaining} session(s) remaining.`));
     }
     return text(prependStatusBar(engine, renderer, "No active quest. Use quest_start to begin one."));
+  }, meta);
+
+  addTool(server, "companion", "Get a full game overview with strategic insights for the companion AI", z.object({}), async () => {
+    const { stateManager, engine } = loadEngine();
+    const renderer = new SimpleTextRenderer();
+    const state = engine.getState();
+    const overview = getCompanionOverview(state);
+    stateManager.save(state);
+    const rendered = renderer.renderCompanionOverview(overview);
+    const json = JSON.stringify(overview, null, 2);
+    const content = `${rendered}\n\n<companion_overview>\n${json}\n</companion_overview>`;
+    return text(prependStatusBar(engine, renderer, content));
   }, meta);
 }
