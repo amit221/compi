@@ -83,8 +83,8 @@ catchRate = average(traitCatchChance for each trait slot)
 
 | Parameter | Value |
 |-----------|-------|
-| Maximum | 20 |
-| Starting (new game) | 20 |
+| Maximum | 30 |
+| Starting (new game) | 30 |
 | Regen per session | +3 |
 | Catch cost | 1 |
 | Merge cost | 1 |
@@ -112,7 +112,7 @@ catchRate = average(traitCatchChance for each trait slot)
 
 | Parameter | Value |
 |-----------|-------|
-| Collection slots | 12 |
+| Collection slots | 15 |
 | Starting gold | 10g |
 
 ### 1.8 Tier System
@@ -285,7 +285,7 @@ The economy is essentially perfectly balanced. Players never accumulate meaningf
 
 ### 5.4 Sink Shift with 50-100 Species
 
-With 6 species and 12 collection slots (~2 per species), merges happen frequently (~1.5/session). With 50-100 species, same-species pairs become rare -- estimated ~1 merge per 5-10 sessions instead of 1.5 per session.
+With 6 species and 15 collection slots (~2-3 per species), merges happen frequently (~1.5/session). With 50-100 species, same-species pairs become rare -- estimated ~1 merge per 5-10 sessions instead of 1.5 per session.
 
 **Impact:**
 - Merges drop from ~41% of gold spending to ~5-10%
@@ -307,7 +307,7 @@ With 6 species and 12 collection slots (~2 per species), merges happen frequentl
 | **Total spent** | | | **1-5** |
 | **Regen** | | +3 | **+3** |
 
-With 20 max energy and +3 regen per session, energy sustains ~6-7 sessions of full activity before needing to coast. In practice, energy is rarely the binding constraint -- gold and merge-pair availability are the primary limiters.
+With 30 max energy and +3 regen per session, energy sustains ~10 sessions of full activity before needing to coast. In practice, energy is rarely the binding constraint -- gold and merge-pair availability are the primary limiters.
 
 ### 6.2 Energy as a Gate
 
@@ -409,15 +409,15 @@ First two sessions always have limited viable actions since the collection start
 
 ## 9. Re-validation Notes (50-100 Species)
 
-The balance simulation was run with **6 species** and **12 collection slots**. Expanding to 50-100 species fundamentally changes merge dynamics and has cascading effects. The following must be re-simulated.
+The balance simulation was run with **6 species** and **15 collection slots**. Expanding to 50-100 species fundamentally changes merge dynamics and has cascading effects. The following must be re-simulated.
 
 ### 9.1 MUST Re-validate
 
 | Parameter / System | Why | Risk if Skipped |
 |-------------------|-----|-----------------|
-| **Merge frequency** | With 50-100 species and 12 slots, same-species pairs become very rare (~1 per 5-10 sessions vs 1.5/session). The entire merge economy changes. | Gold accumulation, progression stall past rank 7 |
+| **Merge frequency** | With 50-100 species and 15 slots, same-species pairs become very rare (~1 per 5-10 sessions vs 1.5/session). The entire merge economy changes. | Gold accumulation, progression stall past rank 7 |
 | **Gold sink distribution** | Upgrades become ~80-90% of spending instead of ~50%. Upgrade ceiling at rank 7 may cause gold to pile up. | Sink/faucet ratio failure (Model 1) |
-| **Collection slot count** | 12 slots with 50-100 species means most species never coexist. May need 20-30 slots or a species-rotation mechanic. | Merge becomes nearly impossible without major collection changes |
+| **Collection slot count** | 15 slots with 50-100 species means most species never coexist. May need further expansion or a species-rotation mechanic. | Merge becomes nearly impossible without major collection changes |
 | **Quest team composition** | With diverse species, team power distribution changes. Quest rewards formula may produce different income curves. | Inflation curve shift (Model 3) |
 | **Progression milestones** | Fewer merges means slower progression past rank 7. Epic/Legendary/Mythic timelines will shift significantly later. | Player frustration from perceived stagnation |
 | **Species unlock pacing** | 6 species unlocked by L10 was fast. 50-100 species need a longer unlock curve across many more levels. | All species trivially unlocked too early, or gated so hard late species are never seen |

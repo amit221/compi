@@ -25,16 +25,21 @@ export class GameEngine {
 
     processNewTick(this.state, tick);
 
-    // Grant session energy bonus if this tick carries a new session ID
+    // Grant session energy bonus if this tick carries a new session ID.
+    // Capture the previous session ID before processSessionEnergyBonus updates it,
+    // so we know whether this tick represents a new session.
     const sessionId = tick.sessionId ?? String(tick.timestamp);
+    const isNewSession = this.state.currentSessionId !== sessionId;
     processSessionEnergyBonus(this.state, sessionId);
 
     const energyGained = processEnergyGain(this.state, tick.timestamp);
 
     const despawned = cleanupBatch(this.state, tick.timestamp);
 
-    // Advance the active quest (once per session)
-    if (this.state.activeQuest) {
+    // Advance the active quest once per new session only.
+    // checkQuest decrements the session counter, so calling it on every tick
+    // within the same session would let a 2-session quest complete in one session.
+    if (this.state.activeQuest && isNewSession) {
       const questResult = checkQuest(this.state);
       if (questResult) {
         notifications.push({

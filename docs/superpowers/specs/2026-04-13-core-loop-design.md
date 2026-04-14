@@ -8,7 +8,7 @@
 
 ## Overview
 
-This spec defines the core mechanics of Compi's game loop. The fundamental shift from the previous design: **50-100 species with 12 collection slots** means same-species pairs are rare. Merging becomes an exciting event, not routine progression. Discovery and upgrades are the primary loops.
+This spec defines the core mechanics of Compi's game loop. The fundamental shift from the previous design: **50-100 species with 15 collection slots** means same-species pairs are rare. Merging becomes an exciting event, not routine progression. Discovery and upgrades are the primary loops.
 
 ```
 Scan -> Catch -> Upgrade -> Quest -> (rare) Merge -> Repeat
@@ -116,9 +116,9 @@ mergeCost = 10 + floor(childAvgRank * 5)
 
 ### Impact of 50-100 Species
 
-With 6 species and 12 slots, you averaged ~2 creatures per species -- merging was routine (~1.5 per session). With 50-100 species:
+With 6 species and 15 slots, you averaged ~2-3 creatures per species -- merging was routine (~1.5 per session). With 50-100 species:
 
-- **Expected same-species pairs in collection:** With 12 slots drawn from 50-100 species, the probability of having a mergeable pair at any given time is low. For N species with equal weights, P(at least one pair in 12 slots) follows the birthday problem: ~50% for 17 species, ~10% for 50 species.
+- **Expected same-species pairs in collection:** With 15 slots drawn from 50-100 species, the probability of having a mergeable pair at any given time is low. For N species with equal weights, P(at least one pair in 15 slots) follows the birthday problem: ~50% for 21 species, ~10% for 50 species.
 - **Merge frequency estimate:** Roughly 1 merge per 5-15 sessions (down from 1.5 per session). [REVALIDATE with actual spawn weights]
 - **Merging becomes a celebration**, not a routine action. When you get a same-species pair, it's exciting.
 - **Strategic tension:** When you have a pair, do you merge immediately or wait to upgrade both parents first?
@@ -149,8 +149,8 @@ Send creatures on timed missions to earn gold.
 
 | Parameter | Value |
 |-----------|-------|
-| Maximum | 20 |
-| Starting (new game) | 20 |
+| Maximum | 30 |
+| Starting (new game) | 30 |
 | Regen per session | +3 |
 | Catch cost | 1 per attempt |
 | Merge cost | 1 |
@@ -165,11 +165,11 @@ Energy is rarely the binding constraint. Gold and (now) merge-pair availability 
 
 | Parameter | Value |
 |-----------|-------|
-| Max slots | 12 |
+| Max slots | 15 |
 
 ### Curation with 50-100 Species
 
-With 6 species, 12 slots meant ~2 per species (merge fodder). With 50-100 species, 12 slots means **hard choices about what to keep**.
+With 6 species, 15 slots meant ~2-3 per species (merge fodder). With 50-100 species, 15 slots means **hard choices about what to keep**.
 
 #### Release
 
@@ -192,7 +192,7 @@ Players must decide:
 - **Release to discover:** Free slots to catch new species
 - **Archive trophies:** Preserve favorites without wasting slots
 
-The 12-slot limit with 50-100 species creates a **curation game**. Players can never collect everything simultaneously -- they must specialize and rotate.
+The 15-slot limit with 50-100 species creates a **curation game**. Players can never collect everything simultaneously -- they must specialize and rotate.
 
 ---
 
@@ -352,7 +352,7 @@ Unchanged from previous spec. Trait tiers describe individual trait quality:
 |----------|--------------------|--------------------|--------|
 | Merging | ~1.5/session, routine | ~1 per 5-15 sessions, rare event | Merging becomes exciting, not routine |
 | Upgrading | Secondary to merging | Primary progression | Gold investment decisions matter more |
-| Collection (12 slots) | ~2 per species, merge fodder | Hard curation choices | Release/archive become core actions |
+| Collection (15 slots) | ~2-3 per species, merge fodder | Hard curation choices | Release/archive become core actions |
 | Species unlock | 6 species by Lv10 | 75 species through Lv21+ | Discovery is a long-term motivator |
 | Discovery | N/A | New mechanic with tracking | "Caught X/75" drives exploration |
 | Quest risk | High (might miss merge) | Low (merge pairs are rare anyway) | Players quest more freely |

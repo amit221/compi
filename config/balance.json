@@ -32,7 +32,7 @@
     "gainIntervalMs": 1800000,
     "maxEnergy": 30,
     "startingEnergy": 5,
-    "sessionBonus": 1,
+    "sessionBonus": 3,
     "costPerRarity": {
       "common": 1,
       "uncommon": 1,

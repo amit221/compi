@@ -32,9 +32,9 @@ Then respond based on which mode was used:
 - Preview mode: "Press Ctrl+O to expand the breed preview above. Run `/breed N M --confirm` to proceed."
 - Execute mode (--confirm):
   - Read the `advisor_context` JSON block at the end of the tool response.
-  - Narrate the birth in 1-2 sentences with personality (e.g. which parent the child resembles, a comment on the inherited traits).
+  - Narrate the birth in 2-3 sentences with personality. Reference the child's name and any notable inherited traits or tier upgrades from the response. Suggest a next action if relevant.
   - If `advisor_context.mode` is `"advisor"`, show the top suggested actions from `advisor_context.suggestedActions` (up to 3) as a short numbered list.
   - End with: "Press Ctrl+O to expand the breed result above."
 - Error mode: Report the error message as-is.
 
-Keep narrator commentary to 1-2 sentences. Do not describe the full tool output in your own words.
+Keep narrator commentary to 2-3 sentences. Do not describe the full tool output in your own words.

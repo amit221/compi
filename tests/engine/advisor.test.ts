@@ -196,14 +196,14 @@ describe("getProgressInfo", () => {
   });
 
   test("calculates nearest tier threshold", () => {
-    // Trait at rank 3 -- tier boundaries are at rank 4 (uncommon->uncommon high)
-    const c1 = makeCreature("c1", "compi", [3, 1, 1, 1]);
+    // Trait at rank 4 -- next tier boundary is at rank 5 (Common->Uncommon)
+    const c1 = makeCreature("c1", "compi", [4, 1, 1, 1]);
     const state = makeState({ collection: [c1], gold: 50 });
     const progress = getProgressInfo(state);
     expect(progress.nearestTierThreshold).not.toBeNull();
-    expect(progress.nearestTierThreshold!.currentRank).toBe(3);
-    // Next tier boundary is at rank 4
-    expect(progress.nearestTierThreshold!.targetRank).toBe(4);
+    expect(progress.nearestTierThreshold!.currentRank).toBe(4);
+    // Next tier boundary is at rank 5
+    expect(progress.nearestTierThreshold!.targetRank).toBe(5);
     expect(progress.nearestTierThreshold!.method).toBe("upgrade");
   });
 
@@ -366,14 +366,15 @@ describe("getAdvisorMode", () => {
   });
 
   test("advisor for upgrade near tier threshold", () => {
-    const c1 = makeCreature("c1", "compi", [3, 1, 1, 1]);
+    // Creature has eyes at rank 4, which is 1 away from the Uncommon boundary (rank 5)
+    const c1 = makeCreature("c1", "compi", [4, 1, 1, 1]);
     const state = makeState({ collection: [c1], gold: 50 });
     const upgradeResult: UpgradeResult = {
       creatureId: "c1",
       slotId: "eyes",
-      fromRank: 2,
-      toRank: 3,
-      goldCost: 9,
+      fromRank: 3,
+      toRank: 4,
+      goldCost: 15,
     };
     const mode = getAdvisorMode("upgrade", upgradeResult, state);
     expect(mode).toBe("advisor");

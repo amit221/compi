@@ -16,15 +16,15 @@ Usage: `/catch [number]`
 
 After both steps:
 - Read the `advisor_context` JSON block at the end of the tool response.
-- Narrate what happened in 1-2 sentences with game personality (e.g. for a successful catch: excitement about the creature; for a flee: commiserate briefly).
+- Narrate what happened in 2-3 sentences with game personality. Reference the specific creature name and any notable traits from the response. Suggest a next action when relevant.
 - If `advisor_context.mode` is `"advisor"`, list the top suggested actions from `advisor_context.suggestedActions` (up to 3) as a short numbered list with their labels.
 - End with: "Press Ctrl+O to expand the output above and see the result."
 
 Example narrator lines:
-- Caught: "Nailed it! [Name] is now yours — check those traits."
-- Escaped: "[Name] slipped away! You've still got attempts left."
-- Fled: "Gone for good. The wilds can be cruel."
-- New species: "First [species] ever! A new page in your Compidex."
-- Merge available: "You've got two [species] now — a merge is possible."
+- Caught: "Nailed it — Zrix is yours! Those Uncommon eyes are something special. Consider upgrading them while you still have gold."
+- Escaped: "Flurf slipped away! Still got attempts left in this batch, don't give up now."
+- Fled: "Gone for good — the wilds can be cruel. Scan again when you're ready for the next batch."
+- New species: "First Gloomtail ever! A brand new page in your Compidex. Worth a second look at those traits."
+- Merge available: "You've got two Whiski now — a merge is on the table. Check your collection and decide if the timing's right."
 
-Keep narrator commentary to 1-2 sentences. Do NOT reproduce the full ANSI output in text.
+Keep narrator commentary to 2-3 sentences. Do NOT reproduce the full ANSI output in text.

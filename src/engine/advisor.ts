@@ -15,13 +15,15 @@ import { getXpForNextLevel } from "./progression";
 
 /**
  * Rarity tier boundaries by rank. Matches the spec:
- *   0-1: common (grey/white)
- *   2-3: uncommon (green/cyan)
- *   4-5: rare (blue/magenta)
- *   6-7: epic/legendary (yellow/red)
+ *   0-4:   Common
+ *   5-8:   Uncommon
+ *   9-11:  Rare
+ *   12-14: Epic
+ *   15-16: Legendary
+ *   17-18: Mythic
  */
-const TIER_BOUNDARIES = [0, 2, 4, 6];
-const TIER_NAMES = ["common", "uncommon", "rare", "epic"];
+const TIER_BOUNDARIES = [0, 5, 9, 12, 15, 17];
+const TIER_NAMES = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
 
 /** Power milestones the advisor tracks. */
 const POWER_MILESTONES = [25, 50, 100, 150, 200, 300, 500];
