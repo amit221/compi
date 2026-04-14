@@ -163,16 +163,32 @@ describe("calculateXpEarned", () => {
 });
 
 describe("calculateEnergyCost", () => {
-  test("always returns 1 regardless of traits", () => {
-    setupTraitRates({ c1: 0.12, c2: 0.10, c3: 0.08, c4: 0.06 });
+  test("all rank-0 traits cost 1 energy", () => {
+    setupTraitRanks({ c1: 0, c2: 0, c3: 0, c4: 0 });
     const slots = makeSlots(["c1", "c2", "c3", "c4"]);
     expect(calculateEnergyCost("compi", slots)).toBe(1);
   });
 
-  test("returns 1 even for rare traits", () => {
-    setupTraitRates({ r1: 0.01, r2: 0.003, r3: 0.02, r4: 0.04 });
+  test("mid-rank traits cost more energy", () => {
+    // avg ratio = 9/18 = 0.5 → 1 + floor(0.5 * 4) = 3
+    setupTraitRanks({ r1: 9, r2: 9, r3: 9, r4: 9 });
     const slots = makeSlots(["r1", "r2", "r3", "r4"]);
-    expect(calculateEnergyCost("compi", slots)).toBe(1);
+    expect(calculateEnergyCost("compi", slots)).toBe(3);
+  });
+
+  test("max-rank traits cost 5 energy (capped)", () => {
+    // avg ratio = 18/18 = 1.0 → 1 + floor(1.0 * 4) = 5
+    setupTraitRanks({ r1: 18, r2: 18, r3: 18, r4: 18 });
+    const slots = makeSlots(["r1", "r2", "r3", "r4"]);
+    expect(calculateEnergyCost("compi", slots)).toBe(5);
+  });
+
+  test("mixed ranks average out", () => {
+    // avg ratio = (0/18 + 0/18 + 9/18 + 18/18) / 4 = (0 + 0 + 0.5 + 1.0) / 4 = 0.375
+    // 1 + floor(0.375 * 4) = 1 + 1 = 2
+    setupTraitRanks({ c1: 0, c2: 0, r1: 9, r2: 18 });
+    const slots = makeSlots(["c1", "c2", "r1", "r2"]);
+    expect(calculateEnergyCost("compi", slots)).toBe(2);
   });
 });
 
@@ -252,14 +268,16 @@ describe("attemptCatch", () => {
     expect(state.profile.totalCatches).toBe(1);
   });
 
-  test("rare creature has same flat energy cost and XP", () => {
+  test("higher rank creature costs more energy", () => {
     setupTraitRates({ common1: 0.12, common2: 0.12, rare1: 0.03, rare2: 0.01 });
+    // Set ranks: two rank-0, two rank-9 → avg ratio = (0+0+0.5+0.5)/4 = 0.25 → cost = 1+floor(0.25*4) = 2
+    setupTraitRanks({ common1: 0, common2: 0, rare1: 9, rare2: 9 });
     const state = makeState({
       nearby: [makeNearby("c1", ["common1", "common2", "rare1", "rare2"])],
     });
     const result = attemptCatch(state, 0, () => 0.1);
     expect(result.success).toBe(true);
-    expect(result.energySpent).toBe(1); // flat energy cost
-    expect(result.xpEarned).toBe(20); // flat base XP
+    expect(result.energySpent).toBe(2);
+    expect(result.xpEarned).toBe(20); // XP stays flat
   });
 });

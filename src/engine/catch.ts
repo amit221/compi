@@ -38,10 +38,24 @@ export function calculateXpEarned(_speciesId: string, _slots: CreatureSlot[]): n
 }
 
 /**
- * Energy cost per catch attempt: flat 1.
+ * Energy cost per catch attempt: scales with average trait rank.
+ * Formula: 1 + floor(avgRankRatio * 4), capped at [1, 5].
+ * Rank 0 creatures cost 1, max-rank creatures cost 5.
  */
-export function calculateEnergyCost(_speciesId: string, _slots: CreatureSlot[]): number {
-  return 1;
+export function calculateEnergyCost(speciesId: string, slots: CreatureSlot[]): number {
+  if (slots.length === 0) return 1;
+  const species = getSpeciesById(speciesId);
+
+  let totalRatio = 0;
+  for (const slot of slots) {
+    const rank = getTraitRank(speciesId, slot.slotId, slot.variantId);
+    const poolSize = species?.traitPools[slot.slotId]?.length ?? 1;
+    const maxRankInPool = Math.max(poolSize - 1, 1);
+    totalRatio += Math.max(rank, 0) / maxRankInPool;
+  }
+
+  const avgRatio = totalRatio / slots.length;
+  return Math.min(1 + Math.floor(avgRatio * 4), 5);
 }
 
 /**
