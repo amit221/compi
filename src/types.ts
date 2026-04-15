@@ -28,8 +28,8 @@ export interface CreatureSlot {
 
 // --- Colors ---
 
-export type CreatureColor = "grey" | "white" | "cyan" | "magenta" | "yellow" | "red";
-export const CREATURE_COLORS: CreatureColor[] = ["grey", "white", "cyan", "magenta", "yellow", "red"];
+export type CreatureColor = "grey" | "white" | "green" | "cyan" | "blue" | "magenta" | "yellow" | "red";
+export const CREATURE_COLORS: CreatureColor[] = ["grey", "white", "green", "cyan", "blue", "magenta", "yellow", "red"];
 
 // --- Species ---
 
@@ -443,11 +443,11 @@ export interface BalanceConfig {
     rareThreashold: number; // spawn rate below which trait counts as "rare" for cost
   };
   breed: {
-    inheritanceBase: number; // 0.50
-    inheritanceRarityScale: number; // 0.80
-    inheritanceMin: number; // 0.45
-    inheritanceMax: number; // 0.58
-    referenceSpawnRate: number; // 0.12
+    baseChance: number; // 0.50 — chance when ranks are equal
+    rankDiffScale: number; // 0.065 — bonus per rank difference
+    maxAdvantage: number; // 0.35 — cap on rank advantage
+    synergyBonus: number; // 0.05 — max synergy boost from matching rarity tiers
+    rarityTiers: Array<{ name: string; minSpawnRate: number }>;
   };
   progression: {
     xpPerLevel: number;

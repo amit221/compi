@@ -1,11 +1,13 @@
 {
   "colors": {
-    "grey": 0.30,
-    "white": 0.25,
-    "cyan": 0.20,
-    "magenta": 0.13,
-    "yellow": 0.08,
-    "red": 0.04
+    "grey": 0.28,
+    "white": 0.22,
+    "green": 0.18,
+    "cyan": 0.14,
+    "blue": 0.08,
+    "magenta": 0.05,
+    "yellow": 0.03,
+    "red": 0.02
   },
   "batch": {
     "spawnIntervalMs": 1800000,
@@ -46,11 +48,17 @@
     "rareThreashold": 0.05
   },
   "breed": {
-    "inheritanceBase": 0.50,
-    "inheritanceRarityScale": 0.80,
-    "inheritanceMin": 0.45,
-    "inheritanceMax": 0.58,
-    "referenceSpawnRate": 0.12
+    "baseChance": 0.50,
+    "rankDiffScale": 0.065,
+    "maxAdvantage": 0.35,
+    "synergyBonus": 0.05,
+    "rarityTiers": [
+      { "name": "common", "minSpawnRate": 0.08 },
+      { "name": "uncommon", "minSpawnRate": 0.04 },
+      { "name": "rare", "minSpawnRate": 0.02 },
+      { "name": "epic", "minSpawnRate": 0.01 },
+      { "name": "legendary", "minSpawnRate": 0.0 }
+    ]
   },
   "merge": {
     "slotWeightBase": 1.0,
