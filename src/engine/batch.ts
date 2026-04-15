@@ -25,9 +25,10 @@ export function pickColor(rng: () => number): CreatureColor {
 
 export function pickBatchSize(rng: () => number): number {
   const roll = rng();
-  if (roll < 0.4) return 3;
-  if (roll < 0.8) return 4;
-  return 5;
+  if (roll < 0.25) return 4;
+  if (roll < 0.55) return 5;
+  if (roll < 0.80) return 6;
+  return 7;
 }
 
 const RARITY_FROM_COLOR: Record<string, number> = { grey: 0, white: 1, green: 2, cyan: 3, blue: 4, magenta: 5, yellow: 6, red: 7 };

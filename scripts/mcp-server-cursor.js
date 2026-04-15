@@ -32054,9 +32054,10 @@ function pickColor(rng) {
 }
 function pickBatchSize(rng) {
   const roll = rng();
-  if (roll < 0.4) return 3;
-  if (roll < 0.8) return 4;
-  return 5;
+  if (roll < 0.25) return 4;
+  if (roll < 0.55) return 5;
+  if (roll < 0.8) return 6;
+  return 7;
 }
 var RARITY_FROM_COLOR = { grey: 0, white: 1, green: 2, cyan: 3, blue: 4, magenta: 5, yellow: 6, red: 7 };
 function generateCreatureSlots(speciesId, playerLevel, rng) {
