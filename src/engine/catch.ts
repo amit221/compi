@@ -1,25 +1,22 @@
 import { GameState, NearbyCreature, CatchResult, CreatureSlot, CollectionCreature } from "../types";
-import { getTraitRank, getSpeciesById } from "../config/species";
 import { loadConfig } from "../config/loader";
 import { spendEnergy } from "./energy";
+import { updateSpeciesProgress } from "./breed";
 
 /**
- * Calculate catch rate using rank-based formula.
+ * Calculate catch rate using rarity-based formula.
  *
- * Per-trait: traitCatchChance = 1.0 - (traitRank / maxRankInPool) * 0.50
+ * Per-trait: traitCatchChance = 1.0 - (rarity / 7) * difficultyScale
  * Final: average of all per-trait chances - failPenalty, clamped to [min, max]
  */
 export function calculateCatchRate(speciesId: string, slots: CreatureSlot[], failPenalty: number): number {
   const config = loadConfig();
-  const { minCatchRate, maxCatchRate } = config.catching;
-  const species = getSpeciesById(speciesId);
+  const { minCatchRate, maxCatchRate, difficultyScale } = config.catching;
 
   let totalChance = 0;
   for (const slot of slots) {
-    const rank = getTraitRank(speciesId, slot.slotId, slot.variantId);
-    const poolSize = species?.traitPools[slot.slotId]?.length ?? 1;
-    const maxRankInPool = Math.max(poolSize - 1, 1);
-    const traitChance = 1.0 - (Math.max(rank, 0) / maxRankInPool) * 0.50;
+    const rarity = slot.rarity ?? 0;
+    const traitChance = 1.0 - (rarity / 7) * difficultyScale;
     totalChance += traitChance;
   }
 
@@ -38,24 +35,20 @@ export function calculateXpEarned(_speciesId: string, _slots: CreatureSlot[]): n
 }
 
 /**
- * Energy cost per catch attempt: scales with average trait rank.
- * Formula: 1 + floor(avgRankRatio * 4), capped at [1, 5].
- * Rank 0 creatures cost 1, max-rank creatures cost 5.
+ * Energy cost per catch attempt: scales with average rarity.
+ * Formula: 1 + floor((avgRarity / 7) * 4), clamped to [1, 5].
+ * Rarity 0 creatures cost 1, max-rarity creatures cost 5.
  */
 export function calculateEnergyCost(speciesId: string, slots: CreatureSlot[]): number {
   if (slots.length === 0) return 1;
-  const species = getSpeciesById(speciesId);
 
-  let totalRatio = 0;
+  let totalRarity = 0;
   for (const slot of slots) {
-    const rank = getTraitRank(speciesId, slot.slotId, slot.variantId);
-    const poolSize = species?.traitPools[slot.slotId]?.length ?? 1;
-    const maxRankInPool = Math.max(poolSize - 1, 1);
-    totalRatio += Math.max(rank, 0) / maxRankInPool;
+    totalRarity += slot.rarity ?? 0;
   }
 
-  const avgRatio = totalRatio / slots.length;
-  return Math.min(1 + Math.floor(avgRatio * 4), 5);
+  const avgRarity = totalRarity / slots.length;
+  return Math.max(1, Math.min(1 + Math.floor((avgRarity / 7) * 4), 5));
 }
 
 /**
@@ -116,6 +109,7 @@ export function attemptCatch(
       archived: false,
     };
     state.collection.push(collectionCreature);
+    updateSpeciesProgress(state, collectionCreature);
 
     state.profile.xp += xpEarned;
     state.profile.totalCatches++;

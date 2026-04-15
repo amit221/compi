@@ -30,6 +30,8 @@ export function pickBatchSize(rng: () => number): number {
   return 5;
 }
 
+const RARITY_FROM_COLOR: Record<string, number> = { grey: 0, white: 1, green: 2, cyan: 3, blue: 4, magenta: 5, yellow: 6, red: 7 };
+
 export function generateCreatureSlots(speciesId: string, playerLevel: number, rng: () => number): CreatureSlot[] {
   const species = getSpeciesById(speciesId);
   if (!species) throw new Error(`Unknown species: ${speciesId}`);
@@ -38,7 +40,8 @@ export function generateCreatureSlots(speciesId: string, playerLevel: number, rn
   return speciesSlots.map((slotId: SlotId) => {
     const trait = pickTraitForSlot(species, slotId, playerLevel, rng);
     const color = pickColor(rng);
-    return { slotId, variantId: trait.id, color };
+    const rarity = RARITY_FROM_COLOR[color] ?? 0;
+    return { slotId, variantId: trait.id, color, rarity };
   });
 }
 

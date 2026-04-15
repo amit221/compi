@@ -39,12 +39,13 @@ import { attemptCatch, calculateCatchRate, calculateXpEarned, calculateEnergyCos
 
 const SLOT_IDS: SlotId[] = ["eyes", "mouth", "body", "tail"];
 
-/** Build slots with given variant IDs */
-function makeSlots(variantIds: string[]): CreatureSlot[] {
+/** Build slots with given variant IDs (default rarity 0) */
+function makeSlots(variantIds: string[], rarities?: number[]): CreatureSlot[] {
   return variantIds.map((v, i) => ({
     slotId: SLOT_IDS[i % SLOT_IDS.length],
     variantId: v,
     color: "white" as const,
+    rarity: rarities ? rarities[i] : 0,
   }));
 }
 
@@ -114,39 +115,34 @@ beforeEach(() => {
 });
 
 describe("calculateCatchRate", () => {
-  test("all rank-0 traits = 100% base (clamped to maxCatchRate 0.90)", () => {
-    setupTraitRanks({ c1: 0, c2: 0, c3: 0, c4: 0 });
-    const slots = makeSlots(["c1", "c2", "c3", "c4"]);
+  test("all rarity-0 traits = 100% base (clamped to maxCatchRate 0.90)", () => {
+    const slots = makeSlots(["c1", "c2", "c3", "c4"], [0, 0, 0, 0]);
     const rate = calculateCatchRate("compi", slots, 0);
     expect(rate).toBeCloseTo(0.90);
   });
 
-  test("rank-8 traits lower catch rate", () => {
-    setupTraitRanks({ r1: 8, r2: 8, r3: 8, r4: 8 });
-    const slots = makeSlots(["r1", "r2", "r3", "r4"]);
+  test("rarity-4 (blue) traits lower catch rate", () => {
+    const slots = makeSlots(["r1", "r2", "r3", "r4"], [4, 4, 4, 4]);
     const rate = calculateCatchRate("compi", slots, 0);
-    // Each: 1.0 - (8/18)*0.50 = 1.0 - 0.2222 = 0.7778
-    expect(rate).toBeCloseTo(0.778, 2);
+    // Each: 1.0 - (4/7)*0.50 = 1.0 - 0.2857 = 0.7143
+    expect(rate).toBeCloseTo(0.714, 2);
   });
 
-  test("mixed ranks: average of per-trait chances", () => {
-    setupTraitRanks({ c1: 0, c2: 0, r1: 8, r2: 18 });
-    const slots = makeSlots(["c1", "c2", "r1", "r2"]);
+  test("mixed rarities: average of per-trait chances", () => {
+    const slots = makeSlots(["c1", "c2", "r1", "r2"], [0, 0, 4, 7]);
     const rate = calculateCatchRate("compi", slots, 0);
-    // rank 0: 1.0, rank 0: 1.0, rank 8: 0.778, rank 18: 0.50
-    // avg = (1.0 + 1.0 + 0.778 + 0.50) / 4 = 0.8194
-    expect(rate).toBeCloseTo(0.819, 2);
+    // rarity 0: 1.0, rarity 0: 1.0, rarity 4: 0.714, rarity 7: 0.50
+    // avg = (1.0 + 1.0 + 0.714 + 0.50) / 4 = 0.8036
+    expect(rate).toBeCloseTo(0.804, 2);
   });
 
   test("fail penalty reduces rate", () => {
-    setupTraitRanks({ c1: 0, c2: 0, c3: 0, c4: 0 });
-    const slots = makeSlots(["c1", "c2", "c3", "c4"]);
+    const slots = makeSlots(["c1", "c2", "c3", "c4"], [0, 0, 0, 0]);
     expect(calculateCatchRate("compi", slots, 0.10)).toBeCloseTo(0.80);
   });
 
   test("rate clamped to minimum (0.15)", () => {
-    setupTraitRanks({ r1: 18, r2: 18, r3: 18, r4: 18 });
-    const slots = makeSlots(["r1", "r2", "r3", "r4"]);
+    const slots = makeSlots(["r1", "r2", "r3", "r4"], [7, 7, 7, 7]);
     const rate = calculateCatchRate("compi", slots, 0.5);
     expect(rate).toBe(0.15);
   });
@@ -167,31 +163,26 @@ describe("calculateXpEarned", () => {
 });
 
 describe("calculateEnergyCost", () => {
-  test("all rank-0 traits cost 1 energy", () => {
-    setupTraitRanks({ c1: 0, c2: 0, c3: 0, c4: 0 });
-    const slots = makeSlots(["c1", "c2", "c3", "c4"]);
+  test("all rarity-0 traits cost 1 energy", () => {
+    const slots = makeSlots(["c1", "c2", "c3", "c4"], [0, 0, 0, 0]);
     expect(calculateEnergyCost("compi", slots)).toBe(1);
   });
 
-  test("mid-rank traits cost more energy", () => {
-    // avg ratio = 9/18 = 0.5 → 1 + floor(0.5 * 4) = 3
-    setupTraitRanks({ r1: 9, r2: 9, r3: 9, r4: 9 });
-    const slots = makeSlots(["r1", "r2", "r3", "r4"]);
+  test("mid-rarity traits cost more energy", () => {
+    // avg rarity = 3.5 → 1 + floor((3.5/7)*4) = 1 + floor(2) = 3
+    const slots = makeSlots(["r1", "r2", "r3", "r4"], [3, 3, 4, 4]);
     expect(calculateEnergyCost("compi", slots)).toBe(3);
   });
 
-  test("max-rank traits cost 5 energy (capped)", () => {
-    // avg ratio = 18/18 = 1.0 → 1 + floor(1.0 * 4) = 5
-    setupTraitRanks({ r1: 18, r2: 18, r3: 18, r4: 18 });
-    const slots = makeSlots(["r1", "r2", "r3", "r4"]);
+  test("max-rarity (7) traits cost 5 energy (capped)", () => {
+    // avg rarity = 7 → 1 + floor((7/7)*4) = 1 + 4 = 5
+    const slots = makeSlots(["r1", "r2", "r3", "r4"], [7, 7, 7, 7]);
     expect(calculateEnergyCost("compi", slots)).toBe(5);
   });
 
-  test("mixed ranks average out", () => {
-    // avg ratio = (0/18 + 0/18 + 9/18 + 18/18) / 4 = (0 + 0 + 0.5 + 1.0) / 4 = 0.375
-    // 1 + floor(0.375 * 4) = 1 + 1 = 2
-    setupTraitRanks({ c1: 0, c2: 0, r1: 9, r2: 18 });
-    const slots = makeSlots(["c1", "c2", "r1", "r2"]);
+  test("mixed rarities average out", () => {
+    // avg rarity = (0+0+3+4)/4 = 1.75 → 1 + floor((1.75/7)*4) = 1 + floor(1) = 2
+    const slots = makeSlots(["c1", "c2", "r1", "r2"], [0, 0, 3, 4]);
     expect(calculateEnergyCost("compi", slots)).toBe(2);
   });
 });
@@ -272,12 +263,13 @@ describe("attemptCatch", () => {
     expect(state.profile.totalCatches).toBe(1);
   });
 
-  test("higher rank creature costs more energy", () => {
-    setupTraitRates({ common1: 0.12, common2: 0.12, rare1: 0.03, rare2: 0.01 });
-    // Set ranks: two rank-0, two rank-9 → avg ratio = (0+0+0.5+0.5)/4 = 0.25 → cost = 1+floor(0.25*4) = 2
-    setupTraitRanks({ common1: 0, common2: 0, rare1: 9, rare2: 9 });
+  test("higher rarity creature costs more energy", () => {
+    // avg rarity = (0+0+3+4)/4 = 1.75 → 1 + floor((1.75/7)*4) = 1 + 1 = 2
     const state = makeState({
-      nearby: [makeNearby("c1", ["common1", "common2", "rare1", "rare2"])],
+      nearby: [{
+        id: "c1", speciesId: "compi", name: "Glorp", spawnedAt: Date.now(),
+        slots: makeSlots(["common1", "common2", "rare1", "rare2"], [0, 0, 3, 4]),
+      }],
     });
     const result = attemptCatch(state, 0, () => 0.1);
     expect(result.success).toBe(true);

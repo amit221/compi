@@ -64,10 +64,11 @@ describe("generateCreatureSlots", () => {
     }
   });
 
-  test("slots do not have a rarity field", () => {
+  test("each slot has a rarity field derived from color", () => {
     const slots = generateCreatureSlots("compi", 1, () => 0.5);
     for (const s of slots) {
-      expect(s).not.toHaveProperty("rarity");
+      expect(s).toHaveProperty("rarity");
+      expect(typeof s.rarity).toBe("number");
     }
   });
 
@@ -135,13 +136,14 @@ describe("spawnBatch", () => {
     }
   });
 
-  test("each spawned creature has 4 slots without rarity field", () => {
+  test("each spawned creature has slots with rarity field derived from color", () => {
     const state = makeState();
     spawnBatch(state, Date.now(), () => 0.5);
     for (const c of state.nearby) {
       expect(c.slots.length).toBeGreaterThanOrEqual(3);
       for (const s of c.slots) {
-        expect(s).not.toHaveProperty("rarity");
+        expect(s).toHaveProperty("rarity");
+        expect(typeof s.rarity).toBe("number");
       }
     }
   });
