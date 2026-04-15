@@ -2,6 +2,41 @@
 
 All notable changes to this project are documented in this file. This file is maintained automatically by [release-please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.0.0](https://github.com/amit221/compi/compare/v0.5.0...v1.0.0) (2026-04-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* update types for v6 — remove gold/quest/upgrade, add rarity/species fields
+
+### Features
+
+* add /species skill folder for slash command ([1deff18](https://github.com/amit221/compi/commit/1deff1834a67674788b41a2e6439e37ce4b67cad))
+* add rarity field to CreatureSlot with color mapping ([d020dcc](https://github.com/amit221/compi/commit/d020dccf1959a92028e8ee5f185545ae74d38ca4))
+* add species index command, update renderer for breed upgrades and hybrids ([1d98bfe](https://github.com/amit221/compi/commit/1d98bfe9b52caed452f36fcbe2eab84f3ad4a876))
+* auto-generate hybrid species during breed via register_hybrid tool ([5e4d7b3](https://github.com/amit221/compi/commit/5e4d7b34ea67ba22caa0c852ad356ebb4fa16a2e))
+* catch uses slot.rarity, add species index engine ([f32b2f8](https://github.com/amit221/compi/commit/f32b2f816a7665bbf590688f3d28f2bd276031ce))
+* expand CreatureColor to 8 colors (add green, blue) ([a414237](https://github.com/amit221/compi/commit/a414237121fccb6d8eb51d4cd1d733e52f975c43))
+* increase batch size to 4-7 creatures per spawn ([ff643ac](https://github.com/amit221/compi/commit/ff643acc7660769b12d24930fc74f3c957b0570b))
+* rewrite breeding — parents survive, rarity upgrades, cross-species detection ([a410b2b](https://github.com/amit221/compi/commit/a410b2b5c35adccde2ea5c144cf5f6bb133ad0da))
+* scan shows one creature, cleanup skills, hybrid breed context ([ff11784](https://github.com/amit221/compi/commit/ff117840b135e86d42eae8f60e9d5b7342b11104))
+* state migration v5→v6 with rarity extraction and species progress ([6d67f3d](https://github.com/amit221/compi/commit/6d67f3d34cf411d328ce0bc075a67fd36c4b06f7))
+* update types for v6 — remove gold/quest/upgrade, add rarity/species fields ([7e7c03f](https://github.com/amit221/compi/commit/7e7c03f58244f910908faa215625e784773acb3e))
+
+
+### Bug Fixes
+
+* address spec compliance issues — energy config, XP values, stale docs ([23f6145](https://github.com/amit221/compi/commit/23f6145593ef36c96f84667639332ac1557dd810))
+* allow cross-species breeding in previewBreed and advisor ([a42fd9a](https://github.com/amit221/compi/commit/a42fd9aa8a7a7da7b16bd253e5a035f7b4373b23))
+* companion uses slot.rarity, cross-species breedable pairs ([514d96d](https://github.com/amit221/compi/commit/514d96d9146f078b04be89d07f1d4286601b462a))
+* cross-species breeding works end-to-end ([158b022](https://github.com/amit221/compi/commit/158b022c02b7f40a8cfbcd9d6e53b1fdb61972c3))
+* force AI to show raw MCP tool output verbatim ([277314e](https://github.com/amit221/compi/commit/277314ee6ab52cbedc703cd3657a1222a11e3769))
+* renderer uses slot.rarity for colors, anti-summarize instructions ([3242a41](https://github.com/amit221/compi/commit/3242a41174b5893f12d7b79bae56f28ed1887046))
+* scan properly cycles through batch one creature at a time ([93538e9](https://github.com/amit221/compi/commit/93538e92bfc0ca1dae17dd7500eca90766e7a8a2))
+* skip bug-hunter simulation test (needs invariant update for v6) ([4e73d7e](https://github.com/amit221/compi/commit/4e73d7e5b06bee34b91b81ac1a2ed0dba93edc6b))
+* update breed table message (no same-species restriction) ([8797c49](https://github.com/amit221/compi/commit/8797c499aa5aea624cccd4c74d3b53fab6449dfa))
+* update tests for 8-color system and v6 migration ([25ffebe](https://github.com/amit221/compi/commit/25ffebe3728a65794b7591bb56db370d5ac50a74))
+
 ## [0.5.0](https://github.com/amit221/compi/compare/v0.4.0...v0.5.0) (2026-04-14)
 
 
