@@ -12,7 +12,7 @@ import { StateManager } from "./state/state-manager";
 import { GameEngine } from "./engine/game-engine";
 import { SimpleTextRenderer } from "./renderers/simple-text";
 import { MAX_ENERGY } from "./engine/energy";
-import { AdvisorContext } from "./types";
+import { AdvisorContext, SlotId, SpeciesDefinition } from "./types";
 import { getProgressInfo } from "./engine/advisor";
 import { getCompanionOverview } from "./engine/companion";
 
@@ -157,8 +157,7 @@ export function runBreedCommand(
     const result = engine.breedExecute(parentAId, parentBId);
     let output = renderer.renderBreedResult(result);
     if (result.isCrossSpecies) {
-      const traitSummary = result.child.slots.map(s => `${s.slotId}: ${s.variantId}`).join(", ");
-      output += `\n\n<hybrid_species_context>\nA new hybrid species was born from ${result.parentA.speciesId} × ${result.parentB.speciesId}!\nParent A: ${result.parentA.name} (${result.parentA.speciesId})\nParent B: ${result.parentB.name} (${result.parentB.speciesId})\nChild traits: ${traitSummary}\n\nThis hybrid creature is unique — it combines traits from two different species. Feel free to describe its appearance, personality, and lore. When the player is ready to formalize this as a new species, they can use /create-species.\n</hybrid_species_context>`;
+      output += `\n\n<hybrid_species_context>\nIMPORTANT: You MUST now generate a hybrid species. Do this immediately — do not ask the player first.\n\nCreate:\n1. A creative name blending both parent species themes (e.g. "Emberlotl" for compi × pyrax)\n2. ASCII art (3-4 lines) combining visual elements from both parents\n3. A one-line flavor description\n\nThen call the register_hybrid tool with:\n- speciesId: "${result.child.speciesId}"\n- name: your generated name\n- art: your generated ASCII art (newline-separated)\n- description: your flavor text\n</hybrid_species_context>`;
     }
     return { output, mutated: true };
   }
@@ -297,6 +296,37 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     const renderer = new SimpleTextRenderer();
     const state = engine.getState();
     return text(prependStatusBar(engine, renderer, renderer.renderSpeciesIndex(state.speciesProgress)));
+  }, meta);
+
+  addTool(server, "register_hybrid", "Register a newly bred hybrid species with AI-generated name and art", z.object({
+    speciesId: z.string().describe("The hybrid species ID (e.g., hybrid_compi_pyrax)"),
+    name: z.string().describe("Creative name for the hybrid species"),
+    art: z.string().describe("ASCII art for the creature (3-4 lines, separated by newlines)"),
+    description: z.string().describe("One-line flavor text description"),
+  }), async ({ speciesId, name, art, description }: { speciesId: string; name: string; art: string; description: string }) => {
+    const { stateManager, engine } = loadEngine();
+    const state = engine.getState();
+
+    if (state.personalSpecies.find((s: SpeciesDefinition) => s.id === speciesId)) {
+      return text(`Hybrid species "${name}" (${speciesId}) is already registered.`);
+    }
+
+    const artLines = art.split("\n");
+    const species: SpeciesDefinition = {
+      id: speciesId,
+      name,
+      description,
+      spawnWeight: 0,
+      art: artLines,
+      zones: ["eyes", "mouth", "body", "tail"] as SlotId[],
+      traitPools: {},
+    };
+
+    state.personalSpecies.push(species);
+    stateManager.save(state);
+
+    const artDisplay = artLines.join("\n");
+    return text(`★ Hybrid species "${name}" registered!\n\n${artDisplay}\n\n"${description}"`);
   }, meta);
 
   // companion_pick removed — agent presents choices directly in conversation text

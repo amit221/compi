@@ -6,7 +6,7 @@ import { GameEngine } from "./engine/game-engine";
 import { SimpleTextRenderer } from "./renderers/simple-text";
 import { logger } from "./logger";
 import { MAX_ENERGY } from "./engine/energy";
-import { ActionMenuEntry } from "./types";
+import { ActionMenuEntry, SlotId, SpeciesDefinition } from "./types";
 
 const statePath =
   process.env.COMPI_STATE_PATH ||
@@ -198,6 +198,37 @@ try {
       break;
     }
 
+    case "register-hybrid": {
+      // For testing — normally called by AI automatically during breed
+      const speciesId = args[1];
+      const name = args[2];
+      const art = args[3]; // newline-separated art lines
+      const description = args[4];
+      if (!speciesId || !name || !art || !description) {
+        console.error("Usage: compi register-hybrid <speciesId> <name> <art> <description>");
+        process.exit(1);
+      }
+      const currentState = engine.getState();
+      if (currentState.personalSpecies.find(s => s.id === speciesId)) {
+        output({ registered: false }, `Hybrid species "${name}" (${speciesId}) is already registered.`);
+        break;
+      }
+      const artLines = art.split("\\n");
+      const species: SpeciesDefinition = {
+        id: speciesId,
+        name,
+        description,
+        spawnWeight: 0,
+        art: artLines,
+        zones: ["eyes", "mouth", "body", "tail"] as SlotId[],
+        traitPools: {},
+      };
+      currentState.personalSpecies.push(species);
+      save();
+      output({ registered: true, speciesId, name }, `★ Hybrid species "${name}" registered!\n\n${artLines.join("\n")}\n\n"${description}"`);
+      break;
+    }
+
     default:
       console.log("Compi — Terminal Creature Collection Game\n");
       console.log("Commands:");
@@ -212,6 +243,7 @@ try {
       console.log("  status                  Your profile");
       console.log("  settings [key] [value]  View/change settings");
       console.log("  species                 Show species index");
+      console.log("  register-hybrid <id> <name> <art> <desc>  Register a hybrid species (for testing)");
       console.log("\nAdd --json for machine-readable output.");
       break;
   }

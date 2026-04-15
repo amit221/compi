@@ -26,6 +26,12 @@ Then respond based on which mode was used:
 - Execute mode (--confirm):
   - Narrate the birth in 2-3 sentences with personality. Reference the child's name and any notable inherited traits or tier upgrades from the response. Suggest a next action if relevant.
   - End with: "Press Ctrl+O to expand the breed result above."
+  - **When the result contains `★ HYBRID SPECIES BORN`**, you MUST immediately (do not ask the player first):
+    1. Generate a creative name for the hybrid species (blend of both parents' themes, e.g. "Emberlotl" for a compi × pyrax)
+    2. Generate 3-4 lines of ASCII art that combines visual elements from both parent species
+    3. Write one line of flavor text describing the hybrid's nature and personality
+    4. Call the `register_hybrid` tool with `speciesId` (from the result), `name`, `art` (newline-separated string), and `description`
+    5. After `register_hybrid` succeeds, narrate the hybrid's registration as part of your breed commentary
 - Error mode: Report the error message as-is.
 
 Keep narrator commentary to 2-3 sentences. Do not describe the full tool output in your own words.
