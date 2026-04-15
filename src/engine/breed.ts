@@ -1,4 +1,4 @@
-// src/engine/breed.ts — breeding system (replaces sacrifice merge)
+// src/engine/breed.ts — breeding system (overhaul: parents survive, rarity upgrades, cross-species)
 
 import {
   GameState,
@@ -16,9 +16,13 @@ import {
   BreedTable,
   BreedTableSpecies,
   BreedTableRow,
+  RARITY_COLORS,
+  MAX_COLLECTION_SIZE,
 } from "../types";
 import { loadConfig } from "../config/loader";
 import { getSpeciesById, getTraitDefinition } from "../config/species";
+import { loadCreatureName } from "../config/traits";
+import { spendEnergy } from "./energy";
 import { grantXp } from "./progression";
 
 function generateId(): string {
@@ -102,60 +106,263 @@ export function calculateInheritance(
 
 /**
  * Calculate the energy cost for a breed operation.
- * Base cost + 1 per trait with spawnRate below the rare threshold, capped at max.
+ * Base cost (from config.breed.baseCost, fallback 3) + 1 per trait slot where
+ * rarity >= 1 (uncommon or higher), across both parents (8 slots total).
+ * Capped at config.breed.maxBreedCost (default 11).
  */
-function calculateBreedCost(
-  speciesId: string,
+export function calculateBreedCost(
   parentA: CollectionCreature,
   parentB: CollectionCreature
 ): number {
-  const energyCfg = loadConfig().energy;
-  const base = energyCfg.baseMergeCost;
-  const max = energyCfg.maxMergeCost;
-  const threshold = energyCfg.rareThreashold;
+  const cfg = loadConfig().breed;
+  const base = cfg.baseCost ?? 3;
+  const max = cfg.maxBreedCost ?? 11;
 
-  let rareCount = 0;
+  let uncommonCount = 0;
   for (const parent of [parentA, parentB]) {
     for (const slot of parent.slots) {
-      const trait = getTraitDefinition(speciesId, slot.variantId);
-      if (trait && trait.spawnRate < threshold) {
-        rareCount++;
+      const rarity = slot.rarity ?? 0;
+      if (rarity >= 1) {
+        uncommonCount++;
       }
     }
   }
 
-  return Math.min(base + rareCount, max);
+  return Math.min(base + uncommonCount, max);
 }
 
 /**
- * Validate that two creatures can breed.
- * Throws descriptive errors on failure.
+ * Resolve a single trait slot for a child.
+ * - Same variantId: child gets that variant; upgrade chance depends on whether parents share rarity.
+ * - Different variantId: 50/50 pick (rng < 0.5 = slotA); upgrade chance depends on species match.
+ * Rarity is capped at maxRarity. Color is set from RARITY_COLORS[rarity].
  */
-function validateBreedPair(
+function resolveSlot(
+  slotA: CreatureSlot,
+  slotB: CreatureSlot,
+  sameSpecies: boolean,
+  rng: () => number,
+  maxRarity: number
+): { slot: CreatureSlot; upgraded: boolean; from: "A" | "B" } {
+  const cfg = loadConfig().breed;
+  const rarityA = slotA.rarity ?? 0;
+  const rarityB = slotB.rarity ?? 0;
+
+  let chosenVariantId: string;
+  let baseRarity: number;
+  let from: "A" | "B";
+  let upgradeChance: number;
+
+  if (slotA.variantId === slotB.variantId) {
+    // Same variant — child gets it, chance of rarity upgrade
+    chosenVariantId = slotA.variantId;
+    baseRarity = Math.max(rarityA, rarityB);
+    from = "A"; // same variant, attribute to A
+    const sameRarity = rarityA === rarityB;
+    upgradeChance = sameRarity
+      ? cfg.sameTraitUpgradeChance ?? 0.35
+      : cfg.sameTraitHigherParentUpgradeChance ?? 0.15;
+  } else {
+    // Different variant — 50/50 pick
+    const pickA = rng() < 0.5;
+    from = pickA ? "A" : "B";
+    const chosenSlot = pickA ? slotA : slotB;
+    chosenVariantId = chosenSlot.variantId;
+    baseRarity = chosenSlot.rarity ?? 0;
+    upgradeChance = sameSpecies
+      ? cfg.diffTraitSameSpeciesUpgradeChance ?? 0.10
+      : cfg.diffTraitCrossSpeciesUpgradeChance ?? 0.05;
+  }
+
+  // Roll for rarity upgrade
+  const upgraded = baseRarity < maxRarity && rng() < upgradeChance;
+  const finalRarity = upgraded ? Math.min(baseRarity + 1, maxRarity) : baseRarity;
+  const color = RARITY_COLORS[finalRarity] ?? "grey";
+
+  return {
+    slot: {
+      slotId: slotA.slotId,
+      variantId: chosenVariantId,
+      color,
+      rarity: finalRarity,
+    },
+    upgraded,
+    from,
+  };
+}
+
+/**
+ * Build a cooldown key for a pair (order-independent).
+ */
+function cooldownKey(idA: string, idB: string): string {
+  return [idA, idB].sort().join(":");
+}
+
+/**
+ * Update species progress array for a creature.
+ * Ensures state.speciesProgress[creature.speciesId] exists as array of 8 booleans.
+ * For each slot, marks progress[rarity] = true.
+ */
+export function updateSpeciesProgress(state: GameState, creature: CollectionCreature): void {
+  const sid = creature.speciesId;
+  if (!state.speciesProgress[sid]) {
+    state.speciesProgress[sid] = new Array(8).fill(false);
+  }
+  for (const slot of creature.slots) {
+    const rarity = slot.rarity ?? 0;
+    if (rarity >= 0 && rarity < state.speciesProgress[sid].length) {
+      state.speciesProgress[sid][rarity] = true;
+    }
+  }
+}
+
+/**
+ * Execute a breed:
+ * 1. Validate parents (not self, not archived, session limit, cooldown, energy, collection space)
+ * 2. Calculate and spend energy
+ * 3. Resolve each slot independently via resolveSlot
+ * 4. Build child creature (parents survive)
+ * 5. Push child to collection, increment counters, set cooldown
+ * 6. Grant XP (more for hybrid)
+ */
+export function executeBreed(
   state: GameState,
   parentAId: string,
-  parentBId: string
-): { parentA: CollectionCreature; parentB: CollectionCreature } {
+  parentBId: string,
+  rng: () => number = Math.random
+): BreedResult {
   if (parentAId === parentBId) {
     throw new Error("Cannot breed a creature with itself.");
   }
 
-  const parentA = state.collection.find((c) => c.id === parentAId);
-  const parentB = state.collection.find((c) => c.id === parentBId);
+  const parentA = state.collection.find((c) => c.id === parentAId && !c.archived);
+  const parentB = state.collection.find((c) => c.id === parentBId && !c.archived);
 
   if (!parentA) throw new Error(`Creature not found: ${parentAId}`);
   if (!parentB) throw new Error(`Creature not found: ${parentBId}`);
 
-  if (parentA.archived) throw new Error(`Creature is archived: ${parentAId}`);
-  if (parentB.archived) throw new Error(`Creature is archived: ${parentBId}`);
+  const config = loadConfig();
+  const maxBreedsPerSession = config.breed.maxBreedsPerSession ?? 3;
 
-  if (parentA.speciesId !== parentB.speciesId) {
+  if (state.sessionBreedCount >= maxBreedsPerSession) {
     throw new Error(
-      `Cannot breed different species: ${parentA.speciesId} and ${parentB.speciesId}`
+      `Session breed limit reached (${maxBreedsPerSession} per session).`
     );
   }
 
-  return { parentA, parentB };
+  const pairKey = cooldownKey(parentAId, parentBId);
+  const cooldownUntil = state.breedCooldowns[pairKey] ?? 0;
+  const now = Date.now();
+  if (now < cooldownUntil) {
+    const remaining = Math.ceil((cooldownUntil - now) / 60000);
+    throw new Error(
+      `This pair is on cooldown for ${remaining} more minute(s).`
+    );
+  }
+
+  const nonArchived = state.collection.filter((c) => !c.archived);
+  if (nonArchived.length >= MAX_COLLECTION_SIZE) {
+    throw new Error(
+      `Collection is full (${MAX_COLLECTION_SIZE}). Archive a creature first.`
+    );
+  }
+
+  const energyCost = calculateBreedCost(parentA, parentB);
+  if (state.energy < energyCost) {
+    throw new Error(
+      `Not enough energy: have ${state.energy}, need ${energyCost}`
+    );
+  }
+
+  const isCrossSpecies = parentA.speciesId !== parentB.speciesId;
+
+  // Get max rarity cap from leveling config
+  const rarityBreedCaps = config.leveling.rarityBreedCaps ?? config.leveling.traitRankCaps;
+  const levelIndex = Math.min(state.profile.level - 1, rarityBreedCaps.length - 1);
+  const maxRarity = rarityBreedCaps[levelIndex] ?? 7;
+
+  // Determine which slots to resolve (union of slots from both parents)
+  const slotIds: SlotId[] = [];
+  const speciesA = getSpeciesById(parentA.speciesId);
+  if (speciesA) {
+    slotIds.push(...(Object.keys(speciesA.traitPools) as SlotId[]));
+  } else {
+    slotIds.push(...SLOT_IDS);
+  }
+
+  const childSlots: CreatureSlot[] = [];
+  const inheritedFrom: Record<string, "A" | "B"> = {};
+  const upgrades: { slotId: SlotId; fromRarity: number; toRarity: number }[] = [];
+
+  for (const slotId of slotIds) {
+    const slotA = parentA.slots.find((s) => s.slotId === slotId);
+    const slotB = parentB.slots.find((s) => s.slotId === slotId);
+
+    if (!slotA || !slotB) {
+      // If one parent is missing this slot (cross-species), skip or use available slot
+      const available = slotA ?? slotB;
+      if (available) {
+        childSlots.push({ ...available });
+        inheritedFrom[slotId] = slotA ? "A" : "B";
+      }
+      continue;
+    }
+
+    const beforeRarity = Math.max(slotA.rarity ?? 0, slotB.rarity ?? 0);
+    const resolved = resolveSlot(slotA, slotB, !isCrossSpecies, rng, maxRarity);
+    childSlots.push(resolved.slot);
+    inheritedFrom[slotId] = resolved.from;
+
+    if (resolved.upgraded) {
+      upgrades.push({
+        slotId,
+        fromRarity: beforeRarity,
+        toRarity: resolved.slot.rarity ?? 0,
+      });
+    }
+  }
+
+  // Determine child speciesId
+  const childSpeciesId = isCrossSpecies
+    ? `hybrid_${parentA.speciesId}_${parentB.speciesId}`
+    : parentA.speciesId;
+
+  // Build child
+  const child: CollectionCreature = {
+    id: generateId(),
+    speciesId: childSpeciesId,
+    name: loadCreatureName(rng),
+    slots: childSlots,
+    caughtAt: now,
+    generation: Math.max(parentA.generation, parentB.generation) + 1,
+    mergedFrom: [parentAId, parentBId],
+    archived: false,
+  };
+
+  // Mutate state — parents survive
+  state.collection.push(child);
+  spendEnergy(state, energyCost);
+  state.sessionBreedCount += 1;
+  state.breedCooldowns[pairKey] = now + (config.breed.cooldownMs ?? 3600000);
+  state.profile.totalMerges += 1;
+
+  // Grant XP
+  const xp = isCrossSpecies
+    ? (config.leveling.xpPerHybrid ?? config.leveling.xpPerMerge)
+    : config.leveling.xpPerMerge;
+  grantXp(state, xp);
+
+  // Update species progress
+  updateSpeciesProgress(state, child);
+
+  return {
+    child,
+    parentA,
+    parentB,
+    inheritedFrom: inheritedFrom as Record<SlotId, "A" | "B">,
+    isCrossSpecies,
+    upgrades,
+  };
 }
 
 /**
@@ -192,7 +399,7 @@ function calculateSynergyBoost(
 }
 
 /**
- * Build slot inheritance data for all slots.
+ * Build slot inheritance data for all slots (used by previewBreed).
  */
 function buildSlotInheritance(
   speciesId: string,
@@ -248,16 +455,35 @@ function buildSlotInheritance(
 
 /**
  * Preview a breed: returns inheritance odds and energy cost without mutating state.
+ * Note: previewBreed still requires same species for backward compat with existing tests/renderer.
  */
 export function previewBreed(
   state: GameState,
   parentAId: string,
   parentBId: string
 ): BreedPreview {
-  const { parentA, parentB } = validateBreedPair(state, parentAId, parentBId);
+  if (parentAId === parentBId) {
+    throw new Error("Cannot breed a creature with itself.");
+  }
+
+  const parentA = state.collection.find((c) => c.id === parentAId);
+  const parentB = state.collection.find((c) => c.id === parentBId);
+
+  if (!parentA) throw new Error(`Creature not found: ${parentAId}`);
+  if (!parentB) throw new Error(`Creature not found: ${parentBId}`);
+
+  if (parentA.archived) throw new Error(`Creature is archived: ${parentAId}`);
+  if (parentB.archived) throw new Error(`Creature is archived: ${parentBId}`);
+
+  if (parentA.speciesId !== parentB.speciesId) {
+    throw new Error(
+      `Cannot breed different species: ${parentA.speciesId} and ${parentB.speciesId}`
+    );
+  }
+
   const speciesId = parentA.speciesId;
   const slotInheritance = buildSlotInheritance(speciesId, parentA, parentB);
-  const energyCost = calculateBreedCost(speciesId, parentA, parentB);
+  const energyCost = calculateBreedCost(parentA, parentB);
   const parentAIndex = state.collection.indexOf(parentA) + 1;
   const parentBIndex = state.collection.indexOf(parentB) + 1;
 
@@ -265,138 +491,24 @@ export function previewBreed(
 }
 
 /**
- * Execute a breed:
- * 1. Validate parents
- * 2. Check energy
- * 3. Resolve each slot via weighted random
- * 4. Build child creature
- * 5. Remove both parents, add child, spend energy
- */
-export function executeBreed(
-  state: GameState,
-  parentAId: string,
-  parentBId: string,
-  rng: () => number = Math.random
-): BreedResult {
-  const { parentA, parentB } = validateBreedPair(state, parentAId, parentBId);
-  const speciesId = parentA.speciesId;
-  const slotInheritance = buildSlotInheritance(speciesId, parentA, parentB);
-  const energyCost = calculateBreedCost(speciesId, parentA, parentB);
-
-  if (state.energy < energyCost) {
-    throw new Error(
-      `Not enough energy: have ${state.energy}, need ${energyCost}`
-    );
-  }
-
-  // Resolve each slot
-  const childSlots: CreatureSlot[] = [];
-  const inheritedFrom: Record<string, "A" | "B"> = {};
-
-  for (const si of slotInheritance) {
-    const roll = rng();
-    const fromA = roll < si.parentAChance;
-    const chosenVariant = fromA ? si.parentAVariant : si.parentBVariant;
-    const parentSlot = fromA
-      ? parentA.slots.find((s) => s.slotId === si.slotId)!
-      : parentB.slots.find((s) => s.slotId === si.slotId)!;
-
-    childSlots.push({
-      slotId: si.slotId,
-      variantId: chosenVariant.id,
-      color: parentSlot.color,
-    });
-    inheritedFrom[si.slotId] = fromA ? "A" : "B";
-  }
-
-  const config = loadConfig();
-
-  // --- Guaranteed +1 upgrade to one random trait ---
-  const upgradeIndex = Math.floor(rng() * childSlots.length);
-  const upgradeSlot = childSlots[upgradeIndex];
-  const upgradeRankMatch = upgradeSlot.variantId.match(/_r(\d+)$/);
-  if (upgradeRankMatch) {
-    const currentRank = parseInt(upgradeRankMatch[1], 10);
-    upgradeSlot.variantId = upgradeSlot.variantId.replace(
-      /_r\d+$/,
-      `_r${currentRank + 1}`
-    );
-  }
-
-  // --- 30% chance to downgrade one other random trait ---
-  if (rng() < config.breed.downgradeChance && childSlots.length > 1) {
-    // Pick a different slot than the one just upgraded
-    const otherIndices = childSlots
-      .map((_, i) => i)
-      .filter((i) => i !== upgradeIndex);
-    const pick = Math.floor(rng() * otherIndices.length);
-    const downgradeIndex = otherIndices[pick];
-    const downgradeSlot = childSlots[downgradeIndex];
-    const downgradeRankMatch = downgradeSlot.variantId.match(/_r(\d+)$/);
-    if (downgradeRankMatch) {
-      const currentRank = parseInt(downgradeRankMatch[1], 10);
-      if (currentRank > 0) {
-        downgradeSlot.variantId = downgradeSlot.variantId.replace(
-          /_r\d+$/,
-          `_r${currentRank - 1}`
-        );
-      }
-    }
-  }
-
-  // Build child
-  const child: CollectionCreature = {
-    id: generateId(),
-    speciesId,
-    name: parentA.name,
-    slots: childSlots,
-    caughtAt: Date.now(),
-    generation:
-      Math.max(parentA.generation, parentB.generation) + 1,
-    mergedFrom: [parentAId, parentBId],
-    archived: false,
-  };
-
-  // Mutate state
-  state.collection = state.collection.filter(
-    (c) => c.id !== parentAId && c.id !== parentBId
-  );
-  state.collection.push(child);
-  state.energy -= energyCost;
-  state.profile.totalMerges += 1;
-  grantXp(state, config.leveling.xpPerMerge);
-
-  return {
-    child,
-    parentA,
-    parentB,
-    inheritedFrom: inheritedFrom as Record<SlotId, "A" | "B">,
-    isCrossSpecies: false,
-    upgrades: [],
-  };
-}
-
-/**
- * List creatures from the collection that have at least one valid breeding partner
- * (same species, both non-archived, not themselves). Each entry uses a 1-indexed
- * position matching the creature's raw position in `state.collection`.
+ * List ALL non-archived creatures that have at least one other non-archived creature
+ * to breed with (any species — cross-species breeding is allowed).
+ * Each entry uses a 1-indexed position matching the creature's raw position in
+ * `state.collection`.
  */
 export function listBreedable(state: GameState): BreedableEntry[] {
-  const entries: BreedableEntry[] = [];
-
+  const nonArchivedIndices: number[] = [];
   for (let i = 0; i < state.collection.length; i++) {
-    const creature = state.collection[i];
-    if (creature.archived) continue;
-
-    let partnerCount = 0;
-    for (let j = 0; j < state.collection.length; j++) {
-      if (i === j) continue;
-      const candidate = state.collection[j];
-      if (candidate.archived) continue;
-      if (candidate.speciesId !== creature.speciesId) continue;
-      partnerCount++;
+    if (!state.collection[i].archived) {
+      nonArchivedIndices.push(i);
     }
+  }
 
+  const entries: BreedableEntry[] = [];
+  for (const i of nonArchivedIndices) {
+    const creature = state.collection[i];
+    // Partner count = all other non-archived creatures
+    const partnerCount = nonArchivedIndices.length - 1;
     if (partnerCount > 0) {
       entries.push({
         creatureIndex: i + 1,
@@ -411,8 +523,10 @@ export function listBreedable(state: GameState): BreedableEntry[] {
 
 /**
  * For a creature at the given 1-indexed collection position, return it and
- * its list of compatible (same-species, non-archived, non-self) partners with
- * each partner's 1-indexed collection position and the energy cost to breed.
+ * its list of compatible (non-archived, non-self) partners with each partner's
+ * 1-indexed collection position and the energy cost to breed.
+ * Cross-species partners are included. Cooldown status is reflected in energyCost
+ * (cooldown is noted but does not change energyCost display).
  *
  * Throws on out-of-range or archived selection.
  */
@@ -433,19 +547,18 @@ export function listPartnersFor(
     );
   }
 
+  const now = Date.now();
   const partners: BreedablePartner[] = [];
   for (let j = 0; j < state.collection.length; j++) {
     if (j === creatureIndex - 1) continue;
     const candidate = state.collection[j];
     if (candidate.archived) continue;
-    if (candidate.speciesId !== creature.speciesId) continue;
 
-    // Reuse previewBreed just for the energy cost. This also validates the pair.
-    const preview = previewBreed(state, creature.id, candidate.id);
+    const energyCost = calculateBreedCost(creature, candidate);
     partners.push({
       partnerIndex: j + 1,
       creature: candidate,
-      energyCost: preview.energyCost,
+      energyCost,
     });
   }
 

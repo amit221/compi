@@ -398,6 +398,14 @@ export interface BalanceConfig {
     synergyBonus: number; // 0.05 — max synergy boost from matching rarity tiers
     downgradeChance: number; // 0.30 — chance to downgrade one trait during breed
     rarityTiers: Array<{ name: string; minSpawnRate: number }>;
+    baseCost: number; // 3 — base energy cost per breed
+    maxBreedCost: number; // 11 — cap on energy cost
+    sameTraitUpgradeChance: number; // 0.35 — upgrade chance when same variant & same rarity
+    sameTraitHigherParentUpgradeChance: number; // 0.15 — upgrade chance when same variant, different rarity
+    diffTraitSameSpeciesUpgradeChance: number; // 0.10 — upgrade chance when different variants, same species
+    diffTraitCrossSpeciesUpgradeChance: number; // 0.05 — upgrade chance when different variants, cross species
+    maxBreedsPerSession: number; // 3 — max breeds per session
+    cooldownMs: number; // 3600000 — cooldown between same pair re-breeding
   };
   progression: {
     xpPerLevel: number;
@@ -413,7 +421,9 @@ export interface BalanceConfig {
     traitRankCaps: number[];
     xpPerCatch: number;
     xpPerMerge: number;
+    xpPerHybrid: number;
     xpDiscoveryBonus: number;
+    rarityBreedCaps: number[];
   };
   discovery: {
     speciesUnlockLevels: Record<string, number>;

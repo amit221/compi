@@ -59,7 +59,15 @@
       { "name": "rare", "minSpawnRate": 0.02 },
       { "name": "epic", "minSpawnRate": 0.01 },
       { "name": "legendary", "minSpawnRate": 0.0 }
-    ]
+    ],
+    "baseCost": 3,
+    "maxBreedCost": 11,
+    "sameTraitUpgradeChance": 0.35,
+    "sameTraitHigherParentUpgradeChance": 0.15,
+    "diffTraitSameSpeciesUpgradeChance": 0.10,
+    "diffTraitCrossSpeciesUpgradeChance": 0.05,
+    "maxBreedsPerSession": 3,
+    "cooldownMs": 3600000
   },
   "merge": {
     "slotWeightBase": 1.0,
@@ -169,7 +177,9 @@
     "traitRankCaps": [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8],
     "xpPerCatch": 10,
     "xpPerMerge": 25,
-    "xpDiscoveryBonus": 20
+    "xpPerHybrid": 40,
+    "xpDiscoveryBonus": 20,
+    "rarityBreedCaps": [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8]
   },
   "discovery": {
     "speciesUnlockLevels": {}
