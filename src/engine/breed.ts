@@ -455,7 +455,7 @@ function buildSlotInheritance(
 
 /**
  * Preview a breed: returns inheritance odds and energy cost without mutating state.
- * Note: previewBreed still requires same species for backward compat with existing tests/renderer.
+ * Any creature can breed with any creature (cross-species creates hybrids).
  */
 export function previewBreed(
   state: GameState,
@@ -474,12 +474,6 @@ export function previewBreed(
 
   if (parentA.archived) throw new Error(`Creature is archived: ${parentAId}`);
   if (parentB.archived) throw new Error(`Creature is archived: ${parentBId}`);
-
-  if (parentA.speciesId !== parentB.speciesId) {
-    throw new Error(
-      `Cannot breed different species: ${parentA.speciesId} and ${parentB.speciesId}`
-    );
-  }
 
   const speciesId = parentA.speciesId;
   const slotInheritance = buildSlotInheritance(speciesId, parentA, parentB);

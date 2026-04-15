@@ -186,11 +186,9 @@ export function getAdvisorMode(
         return "advisor";
       }
 
-      // Breed available: 2+ of same species in collection
-      const sameSpeciesCount = state.collection.filter(
-        (c) => c.speciesId === speciesId && !c.archived
-      ).length;
-      if (sameSpeciesCount >= 2) return "advisor";
+      // Breed available: 2+ non-archived creatures in collection (any species can breed)
+      const breedableCount = state.collection.filter((c) => !c.archived).length;
+      if (breedableCount >= 2) return "advisor";
     }
   }
 

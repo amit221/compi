@@ -6809,12 +6809,14 @@ var init_balance = __esm({
   "config/balance.json"() {
     balance_default = {
       colors: {
-        grey: 0.3,
-        white: 0.25,
-        cyan: 0.2,
-        magenta: 0.13,
-        yellow: 0.08,
-        red: 0.04
+        grey: 0.28,
+        white: 0.22,
+        green: 0.18,
+        cyan: 0.14,
+        blue: 0.08,
+        magenta: 0.05,
+        yellow: 0.03,
+        red: 0.02
       },
       batch: {
         spawnIntervalMs: 18e5,
@@ -6834,14 +6836,14 @@ var init_balance = __esm({
         failPenaltyPerMiss: 0.1,
         maxTraitSpawnRate: 0.12,
         difficultyScale: 0.5,
-        xpBase: 20,
+        xpBase: 10,
         xpRarityMultiplier: 5
       },
       energy: {
         gainIntervalMs: 18e5,
         maxEnergy: 30,
-        startingEnergy: 5,
-        sessionBonus: 3,
+        startingEnergy: 15,
+        sessionBonus: 5,
         costPerRarity: {
           common: 1,
           uncommon: 1,
@@ -6855,11 +6857,26 @@ var init_balance = __esm({
         rareThreashold: 0.05
       },
       breed: {
-        inheritanceBase: 0.5,
-        inheritanceRarityScale: 0.8,
-        inheritanceMin: 0.45,
-        inheritanceMax: 0.58,
-        referenceSpawnRate: 0.12
+        baseChance: 0.5,
+        rankDiffScale: 0.065,
+        maxAdvantage: 0.35,
+        synergyBonus: 0.05,
+        downgradeChance: 0.3,
+        rarityTiers: [
+          { name: "common", minSpawnRate: 0.08 },
+          { name: "uncommon", minSpawnRate: 0.04 },
+          { name: "rare", minSpawnRate: 0.02 },
+          { name: "epic", minSpawnRate: 0.01 },
+          { name: "legendary", minSpawnRate: 0 }
+        ],
+        baseCost: 3,
+        maxBreedCost: 11,
+        sameTraitUpgradeChance: 0.35,
+        sameTraitHigherParentUpgradeChance: 0.15,
+        diffTraitSameSpeciesUpgradeChance: 0.1,
+        diffTraitCrossSpeciesUpgradeChance: 0.05,
+        maxBreedsPerSession: 3,
+        cooldownMs: 36e5
       },
       merge: {
         slotWeightBase: 1,
@@ -6964,37 +6981,17 @@ var init_balance = __esm({
           milestone: "Milestone reached! +{energy} energy"
         }
       },
-      upgrade: {
-        costs: [3, 5, 9, 15, 24, 38, 55],
-        maxRank: 7,
-        sessionCap: 2
-      },
-      quest: {
-        maxTeamSize: 3,
-        lockDurationSessions: 2,
-        rewardMultiplier: 0.6,
-        rewardFloor: 10,
-        xpReward: 15
-      },
-      mergeGold: {
-        baseCost: 10,
-        rankMultiplier: 5,
-        downgradeChance: 0.3
-      },
       leveling: {
         thresholds: [30, 50, 80, 120, 170, 240, 340, 480, 680, 960, 1350, 1900, 2700],
         traitRankCaps: [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8],
         xpPerCatch: 10,
-        xpPerUpgrade: 8,
         xpPerMerge: 25,
-        xpPerQuest: 15,
-        xpDiscoveryBonus: 20
+        xpPerHybrid: 50,
+        xpDiscoveryBonus: 20,
+        rarityBreedCaps: [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8]
       },
       discovery: {
         speciesUnlockLevels: {}
-      },
-      economy: {
-        startingGold: 10
       }
     };
   }
@@ -7057,6 +7054,29 @@ var init_progression = __esm({
   "src/engine/progression.ts"() {
     "use strict";
     init_loader();
+  }
+});
+
+// src/engine/species-index.ts
+var species_index_exports = {};
+__export(species_index_exports, {
+  getSpeciesIndex: () => getSpeciesIndex
+});
+function getSpeciesIndex(progress) {
+  return Object.entries(progress).map(([speciesId, tiers]) => ({
+    speciesId,
+    tiers: tiers.length === 8 ? tiers : Array(8).fill(false).map((_, i) => tiers[i] ?? false),
+    discovered: tiers.filter(Boolean).length,
+    total: 8,
+    isHybrid: speciesId.startsWith("hybrid_")
+  })).sort((a, b) => {
+    if (a.isHybrid !== b.isHybrid) return a.isHybrid ? 1 : -1;
+    return a.speciesId.localeCompare(b.speciesId);
+  });
+}
+var init_species_index = __esm({
+  "src/engine/species-index.ts"() {
+    "use strict";
   }
 });
 
@@ -30529,7 +30549,7 @@ var logger = {
 function defaultState() {
   const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
   return {
-    version: 5,
+    version: 6,
     profile: {
       level: 1,
       xp: 0,
@@ -30538,13 +30558,11 @@ function defaultState() {
       totalTicks: 0,
       currentStreak: 0,
       longestStreak: 0,
-      lastActiveDate: today,
-      totalUpgrades: 0,
-      totalQuests: 0
+      lastActiveDate: today
     },
     collection: [],
     archive: [],
-    energy: loadConfig().energy.maxEnergy,
+    energy: loadConfig().energy.startingEnergy,
     lastEnergyGainAt: Date.now(),
     nearby: [],
     batch: null,
@@ -30554,11 +30572,12 @@ function defaultState() {
     settings: {
       notificationLevel: "moderate"
     },
-    gold: 10,
     discoveredSpecies: [],
-    activeQuest: null,
-    sessionUpgradeCount: 0,
-    currentSessionId: ""
+    currentSessionId: "",
+    speciesProgress: {},
+    personalSpecies: [],
+    sessionBreedCount: 0,
+    breedCooldowns: {}
   };
 }
 function migrateV3toV4(raw) {
@@ -30607,6 +30626,55 @@ function migrateV4toV5(raw) {
   state.version = 5;
   return state;
 }
+function migrateV5toV6(raw) {
+  const state = raw;
+  for (const list of [state.collection, state.nearby, state.archive]) {
+    if (Array.isArray(list)) {
+      for (const creature of list) {
+        if (Array.isArray(creature.slots)) {
+          for (const slot of creature.slots) {
+            const match = slot.variantId?.match(/_r(\d+)$/);
+            if (match) {
+              slot.rarity = parseInt(match[1], 10);
+              slot.variantId = slot.variantId.replace(/_r\d+$/, "");
+            } else {
+              slot.rarity = slot.rarity ?? 0;
+            }
+            const RARITY_TO_COLOR = ["grey", "white", "green", "cyan", "blue", "magenta", "yellow", "red"];
+            slot.color = RARITY_TO_COLOR[Math.min(slot.rarity, 7)] || "grey";
+          }
+        }
+      }
+    }
+  }
+  delete state.gold;
+  delete state.activeQuest;
+  delete state.sessionUpgradeCount;
+  if (state.profile) {
+    delete state.profile.totalUpgrades;
+    delete state.profile.totalQuests;
+  }
+  const progress = {};
+  for (const list of [state.collection, state.archive]) {
+    if (Array.isArray(list)) {
+      for (const creature of list) {
+        const sid = creature.speciesId;
+        if (!sid) continue;
+        if (!progress[sid]) progress[sid] = Array(8).fill(false);
+        for (const slot of creature.slots || []) {
+          const r = slot.rarity ?? 0;
+          if (r >= 0 && r < 8) progress[sid][r] = true;
+        }
+      }
+    }
+  }
+  state.speciesProgress = progress;
+  state.personalSpecies = state.personalSpecies || [];
+  state.sessionBreedCount = 0;
+  state.breedCooldowns = {};
+  state.version = 6;
+  return state;
+}
 var StateManager = class {
   constructor(filePath) {
     this.filePath = filePath;
@@ -30620,13 +30688,21 @@ var StateManager = class {
         logger.info("Migrating state from v3 to v4", { path: this.filePath });
         const v4 = migrateV3toV4(raw);
         logger.info("Migrating state from v4 to v5", { path: this.filePath });
-        return migrateV4toV5(v4);
+        const v5 = migrateV4toV5(v4);
+        logger.info("Migrating state from v5 to v6", { path: this.filePath });
+        return migrateV5toV6(v5);
       }
       if (version2 === 4) {
         logger.info("Migrating state from v4 to v5", { path: this.filePath });
-        return migrateV4toV5(raw);
+        const v5 = migrateV4toV5(raw);
+        logger.info("Migrating state from v5 to v6", { path: this.filePath });
+        return migrateV5toV6(v5);
       }
-      if (version2 !== 5) {
+      if (version2 === 5) {
+        logger.info("Migrating state from v5 to v6", { path: this.filePath });
+        return migrateV5toV6(raw);
+      }
+      if (version2 !== 6) {
         logger.info("Incompatible state version, creating fresh state", { path: this.filePath });
         return defaultState();
       }
@@ -30634,18 +30710,10 @@ var StateManager = class {
       if (state.lastSpawnAt === void 0) {
         state.lastSpawnAt = 0;
       }
-      for (const list of [state.collection, state.nearby, state.archive]) {
-        if (Array.isArray(list)) {
-          for (const c of list) {
-            delete c.color;
-            if (Array.isArray(c.slots)) {
-              for (const slot of c.slots) {
-                if (!slot.color) slot.color = "white";
-              }
-            }
-          }
-        }
-      }
+      if (!state.speciesProgress) state.speciesProgress = {};
+      if (!state.personalSpecies) state.personalSpecies = [];
+      if (state.sessionBreedCount === void 0) state.sessionBreedCount = 0;
+      if (!state.breedCooldowns) state.breedCooldowns = {};
       return state;
     } catch (err) {
       const errObj = err;
@@ -31729,15 +31797,6 @@ function getTraitDefinition(speciesId, variantId) {
   if (!variantMap) return void 0;
   return variantMap.get(variantId);
 }
-function getTraitRank(speciesId, slotId, variantId) {
-  ensureLoaded();
-  const species = _speciesById.get(speciesId);
-  if (!species) return -1;
-  const pool = species.traitPools[slotId];
-  if (!pool) return -1;
-  const index = pool.findIndex((t) => t.id === variantId);
-  return index;
-}
 
 // config/traits.json
 var traits_default = {
@@ -31999,6 +32058,7 @@ function pickBatchSize(rng) {
   if (roll < 0.8) return 4;
   return 5;
 }
+var RARITY_FROM_COLOR = { grey: 0, white: 1, green: 2, cyan: 3, blue: 4, magenta: 5, yellow: 6, red: 7 };
 function generateCreatureSlots(speciesId, playerLevel, rng) {
   const species = getSpeciesById(speciesId);
   if (!species) throw new Error(`Unknown species: ${speciesId}`);
@@ -32006,7 +32066,8 @@ function generateCreatureSlots(speciesId, playerLevel, rng) {
   return speciesSlots.map((slotId) => {
     const trait = pickTraitForSlot(species, slotId, playerLevel, rng);
     const color = pickColor(rng);
-    return { slotId, variantId: trait.id, color };
+    const rarity = RARITY_FROM_COLOR[color] ?? 0;
+    return { slotId, variantId: trait.id, color, rarity };
   });
 }
 function spawnBatch(state, now, rng) {
@@ -32083,7 +32144,6 @@ function processSessionEnergyBonus(state, sessionId) {
     return 0;
   }
   state.currentSessionId = sessionId;
-  state.sessionUpgradeCount = 0;
   const maxGain = config3.energy.maxEnergy - state.energy;
   const gained = Math.min(config3.energy.sessionBonus, maxGain);
   state.energy += gained;
@@ -32093,17 +32153,336 @@ var MAX_ENERGY = getConfig().energy.maxEnergy;
 var ENERGY_GAIN_INTERVAL_MS = getConfig().energy.gainIntervalMs;
 var SESSION_ENERGY_BONUS = getConfig().energy.sessionBonus;
 
+// src/types.ts
+var SLOT_IDS = ["eyes", "mouth", "body", "tail"];
+var RARITY_COLORS = ["grey", "white", "green", "cyan", "blue", "magenta", "yellow", "red"];
+var MAX_COLLECTION_SIZE = 15;
+
+// src/engine/breed.ts
+init_loader();
+init_progression();
+function generateId2() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+}
+function extractRank(variantId) {
+  const m = variantId.match(/_r(\d+)$/);
+  return m ? parseInt(m[1], 10) : 0;
+}
+function getRarityTier(spawnRate) {
+  const tiers = loadConfig().breed.rarityTiers;
+  for (const tier of tiers) {
+    if (spawnRate >= tier.minSpawnRate) {
+      return tier.name;
+    }
+  }
+  return tiers[tiers.length - 1].name;
+}
+function calculateInheritance(speciesId, variantIdA, variantIdB, synergyBoost = 0) {
+  if (variantIdA === variantIdB) {
+    return { chanceA: 1, chanceB: 0 };
+  }
+  const traitA = getTraitDefinition(speciesId, variantIdA);
+  const traitB = getTraitDefinition(speciesId, variantIdB);
+  if (!traitA || !traitB) {
+    throw new Error(
+      `Trait not found: ${!traitA ? variantIdA : variantIdB} for species ${speciesId}`
+    );
+  }
+  const cfg = loadConfig().breed;
+  const rankA = extractRank(variantIdA);
+  const rankB = extractRank(variantIdB);
+  const rankDiff = Math.abs(rankA - rankB);
+  const rankAdvantage = Math.min(rankDiff * cfg.rankDiffScale, cfg.maxAdvantage);
+  const synergy = synergyBoost * cfg.synergyBonus;
+  const totalAdvantage = Math.min(rankAdvantage + synergy, cfg.maxAdvantage);
+  if (rankA > rankB) {
+    return { chanceA: cfg.baseChance + totalAdvantage, chanceB: cfg.baseChance - totalAdvantage };
+  } else if (rankB > rankA) {
+    return { chanceA: cfg.baseChance - totalAdvantage, chanceB: cfg.baseChance + totalAdvantage };
+  } else {
+    if (synergy > 0) {
+      return { chanceA: cfg.baseChance + synergy, chanceB: cfg.baseChance - synergy };
+    }
+    return { chanceA: 0.5, chanceB: 0.5 };
+  }
+}
+function calculateBreedCost(parentA, parentB) {
+  const cfg = loadConfig().breed;
+  const base = cfg.baseCost ?? 3;
+  const max = cfg.maxBreedCost ?? 11;
+  let uncommonCount = 0;
+  for (const parent of [parentA, parentB]) {
+    for (const slot of parent.slots) {
+      const rarity = slot.rarity ?? 0;
+      if (rarity >= 1) {
+        uncommonCount++;
+      }
+    }
+  }
+  return Math.min(base + uncommonCount, max);
+}
+function resolveSlot(slotA, slotB, sameSpecies, rng, maxRarity) {
+  const cfg = loadConfig().breed;
+  const rarityA = slotA.rarity ?? 0;
+  const rarityB = slotB.rarity ?? 0;
+  let chosenVariantId;
+  let baseRarity;
+  let from;
+  let upgradeChance;
+  if (slotA.variantId === slotB.variantId) {
+    chosenVariantId = slotA.variantId;
+    baseRarity = Math.max(rarityA, rarityB);
+    from = "A";
+    const sameRarity = rarityA === rarityB;
+    upgradeChance = sameRarity ? cfg.sameTraitUpgradeChance ?? 0.35 : cfg.sameTraitHigherParentUpgradeChance ?? 0.15;
+  } else {
+    const pickA = rng() < 0.5;
+    from = pickA ? "A" : "B";
+    const chosenSlot = pickA ? slotA : slotB;
+    chosenVariantId = chosenSlot.variantId;
+    baseRarity = chosenSlot.rarity ?? 0;
+    upgradeChance = sameSpecies ? cfg.diffTraitSameSpeciesUpgradeChance ?? 0.1 : cfg.diffTraitCrossSpeciesUpgradeChance ?? 0.05;
+  }
+  const upgraded = baseRarity < maxRarity && rng() < upgradeChance;
+  const finalRarity = upgraded ? Math.min(baseRarity + 1, maxRarity) : baseRarity;
+  const color = RARITY_COLORS[finalRarity] ?? "grey";
+  return {
+    slot: {
+      slotId: slotA.slotId,
+      variantId: chosenVariantId,
+      color,
+      rarity: finalRarity
+    },
+    upgraded,
+    from
+  };
+}
+function cooldownKey(idA, idB) {
+  return [idA, idB].sort().join(":");
+}
+function updateSpeciesProgress(state, creature) {
+  const sid = creature.speciesId;
+  if (!state.speciesProgress[sid]) {
+    state.speciesProgress[sid] = new Array(8).fill(false);
+  }
+  for (const slot of creature.slots) {
+    const rarity = slot.rarity ?? 0;
+    if (rarity >= 0 && rarity < state.speciesProgress[sid].length) {
+      state.speciesProgress[sid][rarity] = true;
+    }
+  }
+}
+function executeBreed(state, parentAId, parentBId, rng = Math.random) {
+  if (parentAId === parentBId) {
+    throw new Error("Cannot breed a creature with itself.");
+  }
+  const parentA = state.collection.find((c) => c.id === parentAId && !c.archived);
+  const parentB = state.collection.find((c) => c.id === parentBId && !c.archived);
+  if (!parentA) throw new Error(`Creature not found: ${parentAId}`);
+  if (!parentB) throw new Error(`Creature not found: ${parentBId}`);
+  const config3 = loadConfig();
+  const maxBreedsPerSession = config3.breed.maxBreedsPerSession ?? 3;
+  if (state.sessionBreedCount >= maxBreedsPerSession) {
+    throw new Error(
+      `Session breed limit reached (${maxBreedsPerSession} per session).`
+    );
+  }
+  const pairKey = cooldownKey(parentAId, parentBId);
+  const cooldownUntil = state.breedCooldowns[pairKey] ?? 0;
+  const now = Date.now();
+  if (now < cooldownUntil) {
+    const remaining = Math.ceil((cooldownUntil - now) / 6e4);
+    throw new Error(
+      `This pair is on cooldown for ${remaining} more minute(s).`
+    );
+  }
+  const nonArchived = state.collection.filter((c) => !c.archived);
+  if (nonArchived.length >= MAX_COLLECTION_SIZE) {
+    throw new Error(
+      `Collection is full (${MAX_COLLECTION_SIZE}). Archive a creature first.`
+    );
+  }
+  const energyCost = calculateBreedCost(parentA, parentB);
+  if (state.energy < energyCost) {
+    throw new Error(
+      `Not enough energy: have ${state.energy}, need ${energyCost}`
+    );
+  }
+  const isCrossSpecies = parentA.speciesId !== parentB.speciesId;
+  const rarityBreedCaps = config3.leveling.rarityBreedCaps ?? config3.leveling.traitRankCaps;
+  const levelIndex = Math.min(state.profile.level - 1, rarityBreedCaps.length - 1);
+  const maxRarity = rarityBreedCaps[levelIndex] ?? 7;
+  const slotIds = [];
+  const speciesA = getSpeciesById(parentA.speciesId);
+  if (speciesA) {
+    slotIds.push(...Object.keys(speciesA.traitPools));
+  } else {
+    slotIds.push(...SLOT_IDS);
+  }
+  const childSlots = [];
+  const inheritedFrom = {};
+  const upgrades = [];
+  for (const slotId of slotIds) {
+    const slotA = parentA.slots.find((s) => s.slotId === slotId);
+    const slotB = parentB.slots.find((s) => s.slotId === slotId);
+    if (!slotA || !slotB) {
+      const available = slotA ?? slotB;
+      if (available) {
+        childSlots.push({ ...available });
+        inheritedFrom[slotId] = slotA ? "A" : "B";
+      }
+      continue;
+    }
+    const beforeRarity = Math.max(slotA.rarity ?? 0, slotB.rarity ?? 0);
+    const resolved = resolveSlot(slotA, slotB, !isCrossSpecies, rng, maxRarity);
+    childSlots.push(resolved.slot);
+    inheritedFrom[slotId] = resolved.from;
+    if (resolved.upgraded) {
+      upgrades.push({
+        slotId,
+        fromRarity: beforeRarity,
+        toRarity: resolved.slot.rarity ?? 0
+      });
+    }
+  }
+  const childSpeciesId = isCrossSpecies ? `hybrid_${parentA.speciesId}_${parentB.speciesId}` : parentA.speciesId;
+  const child = {
+    id: generateId2(),
+    speciesId: childSpeciesId,
+    name: loadCreatureName(rng),
+    slots: childSlots,
+    caughtAt: now,
+    generation: Math.max(parentA.generation, parentB.generation) + 1,
+    mergedFrom: [parentAId, parentBId],
+    archived: false
+  };
+  state.collection.push(child);
+  spendEnergy(state, energyCost);
+  state.sessionBreedCount += 1;
+  state.breedCooldowns[pairKey] = now + (config3.breed.cooldownMs ?? 36e5);
+  state.profile.totalMerges += 1;
+  const xp = isCrossSpecies ? config3.leveling.xpPerHybrid ?? config3.leveling.xpPerMerge : config3.leveling.xpPerMerge;
+  grantXp(state, xp);
+  updateSpeciesProgress(state, child);
+  return {
+    child,
+    parentA,
+    parentB,
+    inheritedFrom,
+    isCrossSpecies,
+    upgrades
+  };
+}
+function calculateSynergyBoost(speciesId, currentSlotId, parentA, parentB, speciesSlots) {
+  const otherSlots = speciesSlots.filter((s) => s !== currentSlotId);
+  if (otherSlots.length === 0) return 0;
+  let matches = 0;
+  for (const slotId of otherSlots) {
+    const slotA = parentA.slots.find((s) => s.slotId === slotId);
+    const slotB = parentB.slots.find((s) => s.slotId === slotId);
+    if (!slotA || !slotB) continue;
+    const traitA = getTraitDefinition(speciesId, slotA.variantId);
+    const traitB = getTraitDefinition(speciesId, slotB.variantId);
+    if (!traitA || !traitB) continue;
+    if (getRarityTier(traitA.spawnRate) === getRarityTier(traitB.spawnRate)) {
+      matches++;
+    }
+  }
+  return matches / otherSlots.length;
+}
+function buildSlotInheritance(speciesId, parentA, parentB) {
+  const species = getSpeciesById(speciesId);
+  const speciesSlots = species ? Object.keys(species.traitPools) : SLOT_IDS;
+  return speciesSlots.map((slotId) => {
+    const slotA = parentA.slots.find((s) => s.slotId === slotId);
+    const slotB = parentB.slots.find((s) => s.slotId === slotId);
+    if (!slotA || !slotB) {
+      throw new Error(`Missing slot ${slotId} on parent`);
+    }
+    const traitA = getTraitDefinition(speciesId, slotA.variantId);
+    const traitB = getTraitDefinition(speciesId, slotB.variantId);
+    if (!traitA || !traitB) {
+      throw new Error(
+        `Trait definition not found for slot ${slotId}`
+      );
+    }
+    const synergyBoost = calculateSynergyBoost(
+      speciesId,
+      slotId,
+      parentA,
+      parentB,
+      speciesSlots
+    );
+    const { chanceA, chanceB } = calculateInheritance(
+      speciesId,
+      slotA.variantId,
+      slotB.variantId,
+      synergyBoost
+    );
+    return {
+      slotId,
+      parentAVariant: traitA,
+      parentBVariant: traitB,
+      parentAChance: chanceA,
+      parentBChance: chanceB
+    };
+  });
+}
+function previewBreed(state, parentAId, parentBId) {
+  if (parentAId === parentBId) {
+    throw new Error("Cannot breed a creature with itself.");
+  }
+  const parentA = state.collection.find((c) => c.id === parentAId);
+  const parentB = state.collection.find((c) => c.id === parentBId);
+  if (!parentA) throw new Error(`Creature not found: ${parentAId}`);
+  if (!parentB) throw new Error(`Creature not found: ${parentBId}`);
+  if (parentA.archived) throw new Error(`Creature is archived: ${parentAId}`);
+  if (parentB.archived) throw new Error(`Creature is archived: ${parentBId}`);
+  const speciesId = parentA.speciesId;
+  const slotInheritance = buildSlotInheritance(speciesId, parentA, parentB);
+  const energyCost = calculateBreedCost(parentA, parentB);
+  const parentAIndex = state.collection.indexOf(parentA) + 1;
+  const parentBIndex = state.collection.indexOf(parentB) + 1;
+  return { parentA, parentB, parentAIndex, parentBIndex, slotInheritance, energyCost };
+}
+function buildBreedTable(state) {
+  const speciesOrder = [];
+  const bySpecies = /* @__PURE__ */ new Map();
+  const silhouetteBy = /* @__PURE__ */ new Map();
+  for (let i = 0; i < state.collection.length; i++) {
+    const creature = state.collection[i];
+    if (creature.archived) continue;
+    if (!bySpecies.has(creature.speciesId)) {
+      bySpecies.set(creature.speciesId, []);
+      speciesOrder.push(creature.speciesId);
+      silhouetteBy.set(creature.speciesId, creature.slots);
+    }
+    bySpecies.get(creature.speciesId).push({
+      creatureIndex: i + 1,
+      creature
+    });
+  }
+  const species = [];
+  for (const speciesId of speciesOrder) {
+    const rows = bySpecies.get(speciesId);
+    if (rows.length < 2) continue;
+    species.push({
+      speciesId,
+      silhouette: silhouetteBy.get(speciesId),
+      rows
+    });
+  }
+  return { species };
+}
+
 // src/engine/catch.ts
 function calculateCatchRate(speciesId, slots, failPenalty) {
   const config3 = loadConfig();
-  const { minCatchRate, maxCatchRate } = config3.catching;
-  const species = getSpeciesById(speciesId);
+  const { minCatchRate, maxCatchRate, difficultyScale } = config3.catching;
   let totalChance = 0;
   for (const slot of slots) {
-    const rank = getTraitRank(speciesId, slot.slotId, slot.variantId);
-    const poolSize = species?.traitPools[slot.slotId]?.length ?? 1;
-    const maxRankInPool = Math.max(poolSize - 1, 1);
-    const traitChance = 1 - Math.max(rank, 0) / maxRankInPool * 0.5;
+    const rarity = slot.rarity ?? 0;
+    const traitChance = 1 - rarity / 7 * difficultyScale;
     totalChance += traitChance;
   }
   const avgChance = slots.length > 0 ? totalChance / slots.length : 1;
@@ -32117,16 +32496,12 @@ function calculateXpEarned(_speciesId, _slots) {
 }
 function calculateEnergyCost(speciesId, slots) {
   if (slots.length === 0) return 1;
-  const species = getSpeciesById(speciesId);
-  let totalRatio = 0;
+  let totalRarity = 0;
   for (const slot of slots) {
-    const rank = getTraitRank(speciesId, slot.slotId, slot.variantId);
-    const poolSize = species?.traitPools[slot.slotId]?.length ?? 1;
-    const maxRankInPool = Math.max(poolSize - 1, 1);
-    totalRatio += Math.max(rank, 0) / maxRankInPool;
+    totalRarity += slot.rarity ?? 0;
   }
-  const avgRatio = totalRatio / slots.length;
-  return Math.min(1 + Math.floor(avgRatio * 4), 5);
+  const avgRarity = totalRarity / slots.length;
+  return Math.max(1, Math.min(1 + Math.floor(avgRarity / 7 * 4), 5));
 }
 function attemptCatch(state, nearbyIndex, rng = Math.random) {
   const config3 = loadConfig();
@@ -32163,6 +32538,7 @@ function attemptCatch(state, nearbyIndex, rng = Math.random) {
       archived: false
     };
     state.collection.push(collectionCreature);
+    updateSpeciesProgress(state, collectionCreature);
     state.profile.xp += xpEarned;
     state.profile.totalCatches++;
   } else {
@@ -32177,236 +32553,6 @@ function attemptCatch(state, nearbyIndex, rng = Math.random) {
     attemptsRemaining: state.batch.attemptsRemaining,
     failPenalty: state.batch.failPenalty
   };
-}
-
-// src/types.ts
-var SLOT_IDS = ["eyes", "mouth", "body", "tail"];
-var MAX_COLLECTION_SIZE = 15;
-
-// src/engine/breed.ts
-init_loader();
-
-// src/engine/gold.ts
-function earnGold(state, amount) {
-  if (amount < 0) throw new Error("Cannot earn negative gold");
-  state.gold += amount;
-}
-function spendGold(state, amount) {
-  if (state.gold < amount) throw new Error(`Not enough gold: have ${state.gold}, need ${amount}`);
-  state.gold -= amount;
-}
-
-// src/engine/breed.ts
-init_progression();
-function generateId2() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-}
-function traitPassChance(spawnRate) {
-  const cfg = loadConfig().breed;
-  const raw = cfg.inheritanceBase + (cfg.referenceSpawnRate - spawnRate) * cfg.inheritanceRarityScale;
-  return Math.max(cfg.inheritanceMin, Math.min(cfg.inheritanceMax, raw));
-}
-function calculateInheritance(speciesId, variantIdA, variantIdB) {
-  if (variantIdA === variantIdB) {
-    return { chanceA: 1, chanceB: 0 };
-  }
-  const traitA = getTraitDefinition(speciesId, variantIdA);
-  const traitB = getTraitDefinition(speciesId, variantIdB);
-  if (!traitA || !traitB) {
-    throw new Error(
-      `Trait not found: ${!traitA ? variantIdA : variantIdB} for species ${speciesId}`
-    );
-  }
-  const rawA = traitPassChance(traitA.spawnRate);
-  const rawB = traitPassChance(traitB.spawnRate);
-  const total = rawA + rawB;
-  return {
-    chanceA: rawA / total,
-    chanceB: rawB / total
-  };
-}
-function calculateBreedCost(speciesId, parentA, parentB) {
-  const energyCfg = loadConfig().energy;
-  const base = energyCfg.baseMergeCost;
-  const max = energyCfg.maxMergeCost;
-  const threshold = energyCfg.rareThreashold;
-  let rareCount = 0;
-  for (const parent of [parentA, parentB]) {
-    for (const slot of parent.slots) {
-      const trait = getTraitDefinition(speciesId, slot.variantId);
-      if (trait && trait.spawnRate < threshold) {
-        rareCount++;
-      }
-    }
-  }
-  return Math.min(base + rareCount, max);
-}
-function validateBreedPair(state, parentAId, parentBId) {
-  if (parentAId === parentBId) {
-    throw new Error("Cannot breed a creature with itself.");
-  }
-  const parentA = state.collection.find((c) => c.id === parentAId);
-  const parentB = state.collection.find((c) => c.id === parentBId);
-  if (!parentA) throw new Error(`Creature not found: ${parentAId}`);
-  if (!parentB) throw new Error(`Creature not found: ${parentBId}`);
-  if (parentA.archived) throw new Error(`Creature is archived: ${parentAId}`);
-  if (parentB.archived) throw new Error(`Creature is archived: ${parentBId}`);
-  if (parentA.speciesId !== parentB.speciesId) {
-    throw new Error(
-      `Cannot breed different species: ${parentA.speciesId} and ${parentB.speciesId}`
-    );
-  }
-  return { parentA, parentB };
-}
-function buildSlotInheritance(speciesId, parentA, parentB) {
-  const species = getSpeciesById(speciesId);
-  const speciesSlots = species ? Object.keys(species.traitPools) : SLOT_IDS;
-  return speciesSlots.map((slotId) => {
-    const slotA = parentA.slots.find((s) => s.slotId === slotId);
-    const slotB = parentB.slots.find((s) => s.slotId === slotId);
-    if (!slotA || !slotB) {
-      throw new Error(`Missing slot ${slotId} on parent`);
-    }
-    const traitA = getTraitDefinition(speciesId, slotA.variantId);
-    const traitB = getTraitDefinition(speciesId, slotB.variantId);
-    if (!traitA || !traitB) {
-      throw new Error(
-        `Trait definition not found for slot ${slotId}`
-      );
-    }
-    const { chanceA, chanceB } = calculateInheritance(
-      speciesId,
-      slotA.variantId,
-      slotB.variantId
-    );
-    return {
-      slotId,
-      parentAVariant: traitA,
-      parentBVariant: traitB,
-      parentAChance: chanceA,
-      parentBChance: chanceB
-    };
-  });
-}
-function previewBreed(state, parentAId, parentBId) {
-  const { parentA, parentB } = validateBreedPair(state, parentAId, parentBId);
-  const speciesId = parentA.speciesId;
-  const slotInheritance = buildSlotInheritance(speciesId, parentA, parentB);
-  const energyCost = calculateBreedCost(speciesId, parentA, parentB);
-  const parentAIndex = state.collection.indexOf(parentA) + 1;
-  const parentBIndex = state.collection.indexOf(parentB) + 1;
-  return { parentA, parentB, parentAIndex, parentBIndex, slotInheritance, energyCost };
-}
-function executeBreed(state, parentAId, parentBId, rng = Math.random) {
-  const { parentA, parentB } = validateBreedPair(state, parentAId, parentBId);
-  const speciesId = parentA.speciesId;
-  const slotInheritance = buildSlotInheritance(speciesId, parentA, parentB);
-  const energyCost = calculateBreedCost(speciesId, parentA, parentB);
-  if (state.energy < energyCost) {
-    throw new Error(
-      `Not enough energy: have ${state.energy}, need ${energyCost}`
-    );
-  }
-  const childSlots = [];
-  const inheritedFrom = {};
-  for (const si of slotInheritance) {
-    const roll = rng();
-    const fromA = roll < si.parentAChance;
-    const chosenVariant = fromA ? si.parentAVariant : si.parentBVariant;
-    const parentSlot = fromA ? parentA.slots.find((s) => s.slotId === si.slotId) : parentB.slots.find((s) => s.slotId === si.slotId);
-    childSlots.push({
-      slotId: si.slotId,
-      variantId: chosenVariant.id,
-      color: parentSlot.color
-    });
-    inheritedFrom[si.slotId] = fromA ? "A" : "B";
-  }
-  const config3 = loadConfig();
-  const childRanks = childSlots.map((s) => {
-    const m = s.variantId.match(/_r(\d+)$/);
-    return m ? parseInt(m[1], 10) : 0;
-  });
-  const childAvgRank = childRanks.reduce((a, b) => a + b, 0) / childRanks.length;
-  const goldCost = config3.mergeGold.baseCost + Math.floor(childAvgRank * config3.mergeGold.rankMultiplier);
-  spendGold(state, goldCost);
-  const upgradeIndex = Math.floor(rng() * childSlots.length);
-  const upgradeSlot = childSlots[upgradeIndex];
-  const upgradeRankMatch = upgradeSlot.variantId.match(/_r(\d+)$/);
-  if (upgradeRankMatch) {
-    const currentRank = parseInt(upgradeRankMatch[1], 10);
-    upgradeSlot.variantId = upgradeSlot.variantId.replace(
-      /_r\d+$/,
-      `_r${currentRank + 1}`
-    );
-  }
-  if (rng() < config3.mergeGold.downgradeChance && childSlots.length > 1) {
-    const otherIndices = childSlots.map((_, i) => i).filter((i) => i !== upgradeIndex);
-    const pick2 = Math.floor(rng() * otherIndices.length);
-    const downgradeIndex = otherIndices[pick2];
-    const downgradeSlot = childSlots[downgradeIndex];
-    const downgradeRankMatch = downgradeSlot.variantId.match(/_r(\d+)$/);
-    if (downgradeRankMatch) {
-      const currentRank = parseInt(downgradeRankMatch[1], 10);
-      if (currentRank > 0) {
-        downgradeSlot.variantId = downgradeSlot.variantId.replace(
-          /_r\d+$/,
-          `_r${currentRank - 1}`
-        );
-      }
-    }
-  }
-  const child = {
-    id: generateId2(),
-    speciesId,
-    name: parentA.name,
-    slots: childSlots,
-    caughtAt: Date.now(),
-    generation: Math.max(parentA.generation, parentB.generation) + 1,
-    mergedFrom: [parentAId, parentBId],
-    archived: false
-  };
-  state.collection = state.collection.filter(
-    (c) => c.id !== parentAId && c.id !== parentBId
-  );
-  state.collection.push(child);
-  state.energy -= energyCost;
-  state.profile.totalMerges += 1;
-  grantXp(state, config3.leveling.xpPerMerge);
-  return {
-    child,
-    parentA,
-    parentB,
-    inheritedFrom
-  };
-}
-function buildBreedTable(state) {
-  const speciesOrder = [];
-  const bySpecies = /* @__PURE__ */ new Map();
-  const silhouetteBy = /* @__PURE__ */ new Map();
-  for (let i = 0; i < state.collection.length; i++) {
-    const creature = state.collection[i];
-    if (creature.archived) continue;
-    if (!bySpecies.has(creature.speciesId)) {
-      bySpecies.set(creature.speciesId, []);
-      speciesOrder.push(creature.speciesId);
-      silhouetteBy.set(creature.speciesId, creature.slots);
-    }
-    bySpecies.get(creature.speciesId).push({
-      creatureIndex: i + 1,
-      creature
-    });
-  }
-  const species = [];
-  for (const speciesId of speciesOrder) {
-    const rows = bySpecies.get(speciesId);
-    if (rows.length < 2) continue;
-    species.push({
-      speciesId,
-      silhouette: silhouetteBy.get(speciesId),
-      rows
-    });
-  }
-  return { species };
 }
 
 // src/engine/archive.ts
@@ -32433,148 +32579,6 @@ function releaseCreature(state, creatureId) {
 }
 function isCollectionFull(state) {
   return state.collection.length >= MAX_COLLECTION_SIZE;
-}
-
-// src/engine/upgrade.ts
-init_loader();
-init_progression();
-function performUpgrade(state, creatureId, slotId) {
-  const config3 = loadConfig();
-  if (state.sessionUpgradeCount >= config3.upgrade.sessionCap) {
-    throw new Error(
-      `Session upgrade cap reached (${config3.upgrade.sessionCap} per session)`
-    );
-  }
-  const creature = state.collection.find((c) => c.id === creatureId);
-  if (!creature) {
-    throw new Error(`Creature not found: ${creatureId}`);
-  }
-  if (creature.archived) {
-    throw new Error(`Creature is archived: ${creatureId}`);
-  }
-  const slot = creature.slots.find((s) => s.slotId === slotId);
-  if (!slot) {
-    throw new Error(`Slot not found on creature: ${slotId}`);
-  }
-  const rankMatch = slot.variantId.match(/_r(\d+)$/);
-  const currentRank = rankMatch ? parseInt(rankMatch[1], 10) : 0;
-  if (currentRank >= config3.upgrade.maxRank) {
-    throw new Error(
-      `Trait ${slotId} is already at max rank (${config3.upgrade.maxRank})`
-    );
-  }
-  const cost = config3.upgrade.costs[currentRank];
-  spendGold(state, cost);
-  const newRank = currentRank + 1;
-  slot.variantId = slot.variantId.replace(/_r\d+$/, `_r${newRank}`);
-  state.sessionUpgradeCount++;
-  state.profile.totalUpgrades++;
-  grantXp(state, config3.leveling.xpPerUpgrade);
-  return {
-    creatureId,
-    creatureName: creature.name,
-    speciesId: creature.speciesId,
-    slots: creature.slots,
-    slotId,
-    fromRank: currentRank,
-    toRank: newRank,
-    goldCost: cost
-  };
-}
-
-// src/engine/quest.ts
-init_loader();
-init_progression();
-function generateQuestId() {
-  return "q_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-}
-function calculateTeamPower(state, creatureIds) {
-  let total = 0;
-  for (const id of creatureIds) {
-    const creature = state.collection.find((c) => c.id === id);
-    if (!creature) continue;
-    for (const slot of creature.slots) {
-      const rankMatch = slot.variantId.match(/_r(\d+)$/);
-      total += rankMatch ? parseInt(rankMatch[1], 10) : 0;
-    }
-  }
-  return total;
-}
-function calculateQuestReward(teamPower) {
-  const config3 = loadConfig();
-  return Math.max(
-    config3.quest.rewardFloor,
-    Math.floor(teamPower * config3.quest.rewardMultiplier)
-  );
-}
-function startQuest(state, creatureIds) {
-  const config3 = loadConfig();
-  if (state.activeQuest) {
-    throw new Error("Already on a quest. Wait for the current quest to complete.");
-  }
-  if (creatureIds.length === 0) {
-    throw new Error("Must send at least 1 creature on a quest.");
-  }
-  if (creatureIds.length > config3.quest.maxTeamSize) {
-    throw new Error(
-      `Max team size is ${config3.quest.maxTeamSize}, got ${creatureIds.length}`
-    );
-  }
-  for (const id of creatureIds) {
-    const creature = state.collection.find((c) => c.id === id);
-    if (!creature) {
-      throw new Error(`Creature not found: ${id}`);
-    }
-    if (creature.archived) {
-      throw new Error(`Creature is archived and cannot quest: ${id}`);
-    }
-  }
-  const teamPower = calculateTeamPower(state, creatureIds);
-  const quest = {
-    id: generateQuestId(),
-    creatureIds: [...creatureIds],
-    startedAtSession: 0,
-    // will be tracked by session ID
-    sessionsRemaining: config3.quest.lockDurationSessions,
-    teamPower
-  };
-  state.activeQuest = quest;
-  const creatures = creatureIds.map((id) => {
-    const c = state.collection.find((cr) => cr.id === id);
-    return { name: c.name, speciesId: c.speciesId, slots: c.slots };
-  });
-  return {
-    quest,
-    creaturesLocked: [...creatureIds],
-    creatures
-  };
-}
-function checkQuest(state) {
-  if (!state.activeQuest) {
-    return null;
-  }
-  state.activeQuest.sessionsRemaining--;
-  if (state.activeQuest.sessionsRemaining > 0) {
-    return null;
-  }
-  const config3 = loadConfig();
-  const quest = state.activeQuest;
-  const goldReward = calculateQuestReward(quest.teamPower);
-  earnGold(state, goldReward);
-  grantXp(state, config3.leveling.xpPerQuest);
-  state.profile.totalQuests++;
-  state.activeQuest = null;
-  const creatures = quest.creatureIds.map((id) => {
-    const c = state.collection.find((cr) => cr.id === id);
-    return { name: c.name, speciesId: c.speciesId, slots: c.slots };
-  });
-  return {
-    questId: quest.id,
-    goldEarned: goldReward,
-    xpEarned: config3.leveling.xpPerQuest,
-    creaturesReturned: [...quest.creatureIds],
-    creatures
-  };
 }
 
 // src/engine/discovery.ts
@@ -32612,7 +32616,7 @@ init_progression();
 // src/engine/tiers.ts
 var TIER_BOUNDARIES = [0, 5, 9, 12, 15, 17];
 var TIER_NAMES = ["common", "uncommon", "rare", "epic", "legendary", "mythic"];
-function extractRank(variantId) {
+function extractRank2(variantId) {
   const m = variantId.match(/_r(\d+)$/);
   return m ? parseInt(m[1], 10) : 0;
 }
@@ -32622,27 +32626,8 @@ function getTierName(rank) {
   }
   return "common";
 }
-function getNextTierBoundary(rank) {
-  for (const boundary of TIER_BOUNDARIES) {
-    if (boundary > rank) return boundary;
-  }
-  return null;
-}
 
 // src/engine/advisor.ts
-var POWER_MILESTONES = [25, 50, 100, 150, 200, 300, 500];
-function calculateTeamPower2(state) {
-  let total = 0;
-  const questCreatureIds = state.activeQuest?.creatureIds ?? [];
-  for (const creature of state.collection) {
-    if (creature.archived) continue;
-    if (questCreatureIds.includes(creature.id)) continue;
-    for (const slot of creature.slots) {
-      total += extractRank(slot.variantId);
-    }
-  }
-  return total;
-}
 function getProgressInfo(state) {
   const config3 = loadConfig();
   const xpToNextLevel = getXpForNextLevel(state.profile.level);
@@ -32652,7 +32637,7 @@ function getProgressInfo(state) {
   for (const creature of state.collection) {
     if (creature.archived) continue;
     for (const slot of creature.slots) {
-      const rank = extractRank(slot.variantId);
+      const rank = extractRank2(slot.variantId);
       if (rank > bestRank) {
         bestRank = rank;
         bestTrait = {
@@ -32662,36 +32647,6 @@ function getProgressInfo(state) {
           tierName: getTierName(rank)
         };
       }
-    }
-  }
-  let nearestTierThreshold = null;
-  let minDistance = Infinity;
-  for (const creature of state.collection) {
-    if (creature.archived) continue;
-    for (const slot of creature.slots) {
-      const rank = extractRank(slot.variantId);
-      const nextBoundary = getNextTierBoundary(rank);
-      if (nextBoundary !== null) {
-        const distance = nextBoundary - rank;
-        if (distance < minDistance) {
-          minDistance = distance;
-          nearestTierThreshold = {
-            creatureName: creature.name,
-            slot: slot.slotId,
-            currentRank: rank,
-            targetRank: nextBoundary,
-            method: distance === 1 ? "upgrade" : "merge"
-          };
-        }
-      }
-    }
-  }
-  const teamPower = calculateTeamPower2(state);
-  let nextPowerMilestone = POWER_MILESTONES[POWER_MILESTONES.length - 1];
-  for (const milestone of POWER_MILESTONES) {
-    if (milestone > teamPower) {
-      nextPowerMilestone = milestone;
-      break;
     }
   }
   let nextSpeciesUnlock = null;
@@ -32716,22 +32671,17 @@ function getProgressInfo(state) {
     xpPercent,
     nextSpeciesUnlock,
     bestTrait,
-    nearestTierThreshold,
-    teamPower,
-    nextPowerMilestone,
     collectionSize: state.collection.filter((c) => !c.archived).length,
     collectionMax: MAX_COLLECTION_SIZE,
-    gold: state.gold,
     energy: state.energy,
     energyMax: MAX_ENERGY,
     discoveredCount: state.discoveredSpecies.length,
-    totalSpecies
+    totalSpecies,
+    speciesProgress: state.speciesProgress
   };
 }
 function getViableActions(state) {
-  const config3 = loadConfig();
   const actions = [];
-  const questCreatureIds = state.activeQuest?.creatureIds ?? [];
   if (state.nearby.length > 0 && state.batch && state.batch.attemptsRemaining > 0) {
     for (let i = 0; i < state.nearby.length; i++) {
       const creature = state.nearby[i];
@@ -32748,73 +32698,30 @@ function getViableActions(state) {
       }
     }
   }
-  if (state.sessionUpgradeCount < config3.upgrade.sessionCap) {
-    for (let ci = 0; ci < state.collection.length; ci++) {
-      const creature = state.collection[ci];
-      if (creature.archived) continue;
-      if (questCreatureIds.includes(creature.id)) continue;
-      for (const slot of creature.slots) {
-        const rank = extractRank(slot.variantId);
-        if (rank >= config3.upgrade.maxRank) continue;
-        const cost = config3.upgrade.costs[rank];
-        if (state.gold < cost) continue;
-        const nextBoundary = getNextTierBoundary(rank);
-        const nearTier = nextBoundary !== null && nextBoundary - rank === 1;
-        actions.push({
-          type: "upgrade",
-          label: `Upgrade ${creature.name}'s ${slot.slotId} (rank ${rank} -> ${rank + 1})`,
-          cost: { gold: cost },
-          priority: 0,
-          reasoning: nearTier ? `Pushes ${slot.slotId} into ${getTierName(rank + 1)} tier` : `Increases ${slot.slotId} rank`,
-          target: { creatureIndex: ci + 1, slotId: slot.slotId }
-        });
-      }
-    }
-  }
   const speciesGroups = {};
   for (let ci = 0; ci < state.collection.length; ci++) {
     const creature = state.collection[ci];
     if (creature.archived) continue;
-    if (questCreatureIds.includes(creature.id)) continue;
     if (!speciesGroups[creature.speciesId]) speciesGroups[creature.speciesId] = [];
     speciesGroups[creature.speciesId].push(ci);
   }
   for (const [speciesId, indexes] of Object.entries(speciesGroups)) {
     if (indexes.length < 2) continue;
     const sorted = [...indexes].sort((a, b) => {
-      const powerA = state.collection[a].slots.reduce((s, sl) => s + extractRank(sl.variantId), 0);
-      const powerB = state.collection[b].slots.reduce((s, sl) => s + extractRank(sl.variantId), 0);
+      const powerA = state.collection[a].slots.reduce((s, sl) => s + extractRank2(sl.variantId), 0);
+      const powerB = state.collection[b].slots.reduce((s, sl) => s + extractRank2(sl.variantId), 0);
       return powerB - powerA;
     });
     const ai = sorted[0];
     const bi = sorted[1];
-    const avgRank = state.collection[ai].slots.reduce((s, sl) => s + extractRank(sl.variantId), 0) / 4;
-    const goldCost = config3.mergeGold.baseCost + Math.floor(avgRank * config3.mergeGold.rankMultiplier);
-    if (state.gold >= goldCost && state.energy >= config3.energy.baseMergeCost) {
-      actions.push({
-        type: "merge",
-        label: `Merge ${state.collection[ai].name} + ${state.collection[bi].name}`,
-        cost: { gold: goldCost, energy: config3.energy.baseMergeCost },
-        priority: 0,
-        reasoning: `${indexes.length} ${speciesId} available for merge`,
-        target: { creatureIndex: ai + 1, partnerIndex: bi + 1 }
-      });
-    }
-  }
-  if (!state.activeQuest) {
-    const availableCreatures = state.collection.filter(
-      (c) => !c.archived && !questCreatureIds.includes(c.id)
-    );
-    if (availableCreatures.length > 0) {
-      const teamSize = Math.min(availableCreatures.length, config3.quest.maxTeamSize);
-      actions.push({
-        type: "quest",
-        label: `Send ${teamSize} creature${teamSize > 1 ? "s" : ""} on a quest`,
-        cost: {},
-        priority: 0,
-        reasoning: "Earn gold while you wait"
-      });
-    }
+    actions.push({
+      type: "breed",
+      label: `Breed ${state.collection[ai].name} + ${state.collection[bi].name}`,
+      cost: {},
+      priority: 0,
+      reasoning: `${indexes.length} ${speciesId} available for breeding`,
+      target: { creatureIndex: ai + 1, partnerIndex: bi + 1 }
+    });
   }
   if (state.nearby.length === 0 || !state.batch) {
     actions.push({
@@ -32844,7 +32751,6 @@ function getViableActions(state) {
   return actions;
 }
 function getAdvisorMode(action, result, state) {
-  if (action === "quest_complete") return "autopilot";
   if (action === "catch") {
     const catchResult = result;
     if (catchResult.success) {
@@ -32852,24 +32758,11 @@ function getAdvisorMode(action, result, state) {
       if (!state.discoveredSpecies.includes(speciesId)) {
         return "advisor";
       }
-      const sameSpeciesCount = state.collection.filter(
-        (c) => c.speciesId === speciesId && !c.archived
-      ).length;
-      if (sameSpeciesCount >= 2) return "advisor";
+      const breedableCount = state.collection.filter((c) => !c.archived).length;
+      if (breedableCount >= 2) return "advisor";
     }
   }
-  if (action === "upgrade") {
-    const upgradeResult = result;
-    const creature = state.collection.find((c) => c.id === upgradeResult.creatureId);
-    if (creature) {
-      for (const slot of creature.slots) {
-        const rank = extractRank(slot.variantId);
-        const nextBoundary = getNextTierBoundary(rank);
-        if (nextBoundary !== null && nextBoundary - rank === 1) return "advisor";
-      }
-    }
-  }
-  if (action === "merge" || action === "breed") return "advisor";
+  if (action === "breed") return "advisor";
   if (state.energy <= 2) {
     return "advisor";
   }
@@ -32895,29 +32788,11 @@ function getSuggestedActions(action, result, state) {
   });
   return top;
 }
-function scoreAction(action, lastAction, lastResult, state) {
+function scoreAction(action, lastAction, _lastResult, state) {
   let score = 50;
-  if (action.type === "merge") score = 5;
-  if (action.type === "upgrade") {
-    score = 30;
-    if (action.target?.slotId) {
-      const creature = state.collection[(action.target.creatureIndex ?? 1) - 1];
-      if (creature) {
-        const slot = creature.slots.find((s) => s.slotId === action.target.slotId);
-        if (slot) {
-          const rank = extractRank(slot.variantId);
-          const nextBoundary = getNextTierBoundary(rank);
-          if (nextBoundary !== null && nextBoundary - rank === 1) score = 8;
-        }
-      }
-    }
-  }
+  if (action.type === "breed") score = 5;
   if (action.type === "catch" && lastAction === "scan") score = 5;
   if (action.type === "catch" && lastAction === "catch") score = 15;
-  if (action.type === "quest") {
-    score = 35;
-    if (state.energy <= 3) score = 12;
-  }
   if (action.type === "scan") score = 40;
   if (action.type === "release") score = 3;
   if (action.type === "collection") score = 100;
@@ -32932,6 +32807,7 @@ function buildAdvisorContext(action, result, state) {
 }
 
 // src/engine/game-engine.ts
+init_species_index();
 var GameEngine = class {
   state;
   constructor(state) {
@@ -32943,17 +32819,15 @@ var GameEngine = class {
     const sessionId = tick.sessionId ?? String(tick.timestamp);
     const isNewSession = this.state.currentSessionId !== sessionId;
     processSessionEnergyBonus(this.state, sessionId);
-    const energyGained = processEnergyGain(this.state, tick.timestamp);
-    const despawned = cleanupBatch(this.state, tick.timestamp);
-    if (this.state.activeQuest && isNewSession) {
-      const questResult = checkQuest(this.state);
-      if (questResult) {
-        notifications.push({
-          message: `Quest complete! Earned ${questResult.goldEarned} gold.`,
-          level: "moderate"
-        });
+    if (isNewSession) {
+      this.state.sessionBreedCount = 0;
+      const now = Date.now();
+      for (const key of Object.keys(this.state.breedCooldowns)) {
+        if (this.state.breedCooldowns[key] <= now) delete this.state.breedCooldowns[key];
       }
     }
+    const energyGained = processEnergyGain(this.state, tick.timestamp);
+    const despawned = cleanupBatch(this.state, tick.timestamp);
     let spawned = false;
     const timeSinceLastSpawn = tick.timestamp - this.state.lastSpawnAt;
     if (!this.state.batch && timeSinceLastSpawn >= SPAWN_INTERVAL_MS) {
@@ -32967,11 +32841,14 @@ var GameEngine = class {
     return { notifications, spawned, energyGained, despawned };
   }
   scan(rng = Math.random) {
+    if (this.state.nearby.length > 0) {
+      this.state.nearby.shift();
+    }
     if (this.state.nearby.length === 0) {
       spawnBatch(this.state, Date.now(), rng);
     }
-    const nearby = this.state.nearby.map((creature, index) => ({
-      index,
+    const nearby = this.state.nearby.slice(0, 1).map((creature) => ({
+      index: 0,
       creature,
       catchRate: calculateCatchRate(creature.speciesId, creature.slots, this.state.batch?.failPenalty ?? 0),
       energyCost: calculateEnergyCost(creature.speciesId, creature.slots)
@@ -33019,22 +32896,12 @@ var GameEngine = class {
       energy: this.state.energy,
       nearbyCount: this.state.nearby.length,
       batchAttemptsRemaining: this.state.batch?.attemptsRemaining ?? 0,
-      gold: this.state.gold,
       discoveredCount: this.state.discoveredSpecies.length,
-      activeQuest: this.state.activeQuest
+      speciesProgress: this.state.speciesProgress
     };
   }
-  upgrade(creatureId, slotId) {
-    return performUpgrade(this.state, creatureId, slotId);
-  }
-  questStart(creatureIds) {
-    return startQuest(this.state, creatureIds);
-  }
-  questCheck() {
-    return checkQuest(this.state);
-  }
-  getGold() {
-    return this.state.gold;
+  species() {
+    return getSpeciesIndex(this.state.speciesProgress);
   }
   getDiscoveredSpecies() {
     return [...this.state.discoveredSpecies];
@@ -33046,39 +32913,6 @@ var GameEngine = class {
     return this.state;
   }
 };
-
-// src/engine/rarity.ts
-init_loader();
-function calculateTraitRarityScore(speciesId, slotId, variantId) {
-  const species = getSpeciesById(speciesId);
-  if (!species) return 50;
-  const pool = species.traitPools[slotId];
-  if (!pool || pool.length === 0) return 50;
-  if (pool.length === 1) return 50;
-  const sorted = [...pool].sort((a, b) => b.spawnRate - a.spawnRate);
-  const index = sorted.findIndex((t) => t.id === variantId);
-  if (index === -1) return 50;
-  return index / (sorted.length - 1) * 99 + 1;
-}
-function calculateColorRarityScore(color) {
-  const config3 = loadConfig();
-  const colorMap = config3.colors;
-  const entries = Object.entries(colorMap).sort((a, b) => b[1] - a[1]);
-  if (entries.length <= 1) return 50;
-  const index = entries.findIndex(([name]) => name === color);
-  if (index === -1) return 50;
-  return index / (entries.length - 1) * 99 + 1;
-}
-function calculateSlotScore(speciesId, slot) {
-  const traitScore = calculateTraitRarityScore(speciesId, slot.slotId, slot.variantId);
-  const colorScore = calculateColorRarityScore(slot.color);
-  return 0.8 * traitScore + 0.2 * colorScore;
-}
-function calculateCreatureScore(speciesId, slots) {
-  if (slots.length === 0) return 50;
-  const total = slots.reduce((sum, slot) => sum + calculateSlotScore(speciesId, slot), 0);
-  return Math.round(total / slots.length);
-}
 
 // src/renderers/simple-text.ts
 var stringWidth = require_string_width();
@@ -33101,15 +32935,10 @@ var COLOR_ANSI = {
   red: "\x1B[31m"
 };
 var ENERGY_ICON = `${YELLOW}\u26A1${RESET}`;
-function calculateRarityColor(rarityScore) {
-  if (rarityScore <= 12.5) return COLOR_ANSI.grey;
-  if (rarityScore <= 25) return COLOR_ANSI.white;
-  if (rarityScore <= 37.5) return COLOR_ANSI.green;
-  if (rarityScore <= 50) return COLOR_ANSI.cyan;
-  if (rarityScore <= 62.5) return COLOR_ANSI.blue;
-  if (rarityScore <= 75) return COLOR_ANSI.magenta;
-  if (rarityScore <= 87.5) return COLOR_ANSI.yellow;
-  return COLOR_ANSI.red;
+var RARITY_ANSI = ["\x1B[90m", "\x1B[97m", "\x1B[32m", "\x1B[36m", "\x1B[34m", "\x1B[35m", "\x1B[33m", "\x1B[31m"];
+var RARITY_NAMES = ["Common", "Uncommon", "Rare", "Superior", "Elite", "Epic", "Legendary", "Mythic"];
+function rarityColor(rarity) {
+  return RARITY_ANSI[rarity ?? 0] || "\x1B[90m";
 }
 function renderCreatureLines(slots, speciesId) {
   const slotArt = {};
@@ -33119,8 +32948,7 @@ function renderCreatureLines(slots, speciesId) {
   }
   const slotColor = {};
   for (const s of slots) {
-    const rarityScore = speciesId ? calculateTraitRarityScore(speciesId, s.slotId, s.variantId) : 50;
-    slotColor[s.slotId] = calculateRarityColor(rarityScore);
+    slotColor[s.slotId] = rarityColor(s.rarity);
   }
   const species = speciesId ? getSpeciesById(speciesId) : void 0;
   if (!species?.art) {
@@ -33195,10 +33023,9 @@ function renderCreatureSideBySide(slots, speciesId) {
     if (s) {
       const variant = speciesId ? getTraitDefinition(speciesId, s.variantId) : getVariantById(s.variantId);
       const name = variant?.name ?? s.variantId;
-      const rarityScore = speciesId ? calculateTraitRarityScore(speciesId, s.slotId, s.variantId) : 50;
-      const rarityColor = calculateRarityColor(rarityScore);
-      const score = speciesId ? Math.round(calculateSlotScore(speciesId, s)) : 50;
-      traitLines.push(`${DIM}${slotId.padEnd(5)}${RESET} ${rarityColor}${name}${RESET} ${DIM}[${score}]${RESET}`);
+      const color = rarityColor(s.rarity);
+      const rarityName = RARITY_NAMES[s.rarity ?? 0] ?? "Common";
+      traitLines.push(`${DIM}${slotId.padEnd(5)}${RESET} ${color}${name}${RESET} ${DIM}${rarityName}${RESET}`);
     } else {
       traitLines.push(`${DIM}${slotId.padEnd(5)}${RESET} ${DIM}\u2014${RESET}`);
     }
@@ -33220,17 +33047,16 @@ var SimpleTextRenderer = class {
     for (const entry of result.nearby) {
       const c = entry.creature;
       const rate = Math.round(entry.catchRate * 100);
-      const statsIndent = " ".repeat(ART_PAD);
-      const creatureScore = calculateCreatureScore(c.speciesId, c.slots);
-      lines.push(`  ${DIM}[${entry.index + 1}]${RESET} ${BOLD}${c.name}${RESET} ${DIM}(${c.speciesId})${RESET}  \u2B50 ${creatureScore}`);
-      lines.push(`${statsIndent}${DIM}Rate:${RESET} ${rate}%  ${DIM}Cost:${RESET} ${entry.energyCost}${ENERGY_ICON}`);
+      const speciesDisplay = c.speciesId.charAt(0).toUpperCase() + c.speciesId.slice(1);
+      lines.push(`  ${DIM}[${entry.index + 1}]${RESET} ${BOLD}${c.name}${RESET}  ${DIM}${speciesDisplay}${RESET}`);
+      lines.push(`      ${DIM}catch rate: ${rate}%  cost: ${entry.energyCost}${RESET}${ENERGY_ICON}`);
       for (const line of renderCreatureSideBySide(c.slots, c.speciesId)) {
         lines.push(line);
       }
       lines.push("");
     }
     lines.push(divider());
-    lines.push(`  ${WHITE}Use ${BLUE}/catch <number>${WHITE} to attempt a catch${RESET}`);
+    lines.push(`  ${WHITE}${BLUE}/catch${WHITE} to capture  \xB7  ${BLUE}/scan${WHITE} for a new one${RESET}`);
     if (result.nextBatchInMs > 0) {
       const mins = Math.ceil(result.nextBatchInMs / 6e4);
       lines.push(`  ${DIM}Next batch in ~${mins} min${RESET}`);
@@ -33245,8 +33071,7 @@ var SimpleTextRenderer = class {
     if (result.success) {
       lines.push(`  ${GREEN}${BOLD}\u2726 CAUGHT! \u2726${RESET}`);
       lines.push("");
-      const creatureScore = calculateCreatureScore(c.speciesId, c.slots);
-      lines.push(`  ${BOLD}${c.name}${RESET} joined your collection!  \u2B50 ${creatureScore}`);
+      lines.push(`  ${BOLD}${c.name}${RESET} joined your collection!`);
       for (const line of renderCreatureSideBySide(c.slots, c.speciesId)) {
         lines.push(line);
       }
@@ -33286,14 +33111,12 @@ var SimpleTextRenderer = class {
     lines.push(`  Breed ${BOLD}#${parentAIndex} ${parentA.name}${RESET} ${DIM}(Lv ${parentA.generation})${RESET} + ${BOLD}#${parentBIndex} ${parentB.name}${RESET} ${DIM}(Lv ${parentB.generation})${RESET}?`);
     lines.push(`  ${DIM}Both parents will be consumed.${RESET}`);
     lines.push("");
-    const scoreA = calculateCreatureScore(parentA.speciesId, parentA.slots);
-    lines.push(`  ${BOLD}Parent A: #${parentAIndex} ${parentA.name}${RESET}  \u2B50 ${scoreA}`);
+    lines.push(`  ${BOLD}Parent A: #${parentAIndex} ${parentA.name}${RESET}`);
     for (const line of renderCreatureSideBySide(parentA.slots, parentA.speciesId)) {
       lines.push(line);
     }
     lines.push("");
-    const scoreB = calculateCreatureScore(parentB.speciesId, parentB.slots);
-    lines.push(`  ${BOLD}Parent B: #${parentBIndex} ${parentB.name}${RESET}  \u2B50 ${scoreB}`);
+    lines.push(`  ${BOLD}Parent B: #${parentBIndex} ${parentB.name}${RESET}`);
     for (const line of renderCreatureSideBySide(parentB.slots, parentB.speciesId)) {
       lines.push(line);
     }
@@ -33303,12 +33126,14 @@ var SimpleTextRenderer = class {
       const slotLabel = si.slotId.padEnd(5);
       const pctA = `${Math.round(si.parentAChance * 100)}%`;
       const pctB = `${Math.round(si.parentBChance * 100)}%`;
-      const traitScoreA = Math.round(calculateTraitRarityScore(parentA.speciesId, si.slotId, si.parentAVariant.id));
-      const traitScoreB = Math.round(calculateTraitRarityScore(parentB.speciesId, si.slotId, si.parentBVariant.id));
-      const colorA = calculateRarityColor(traitScoreA);
-      const colorB = calculateRarityColor(traitScoreB);
+      const slotA = parentA.slots.find((s) => s.slotId === si.slotId);
+      const slotB = parentB.slots.find((s) => s.slotId === si.slotId);
+      const colorA = rarityColor(slotA?.rarity);
+      const colorB = rarityColor(slotB?.rarity);
+      const rarityNameA = RARITY_NAMES[slotA?.rarity ?? 0] ?? "Common";
+      const rarityNameB = RARITY_NAMES[slotB?.rarity ?? 0] ?? "Common";
       lines.push(
-        `    ${WHITE}${slotLabel}${RESET}  ${DIM}A:${RESET} ${colorA}${si.parentAVariant.name} [${traitScoreA}]${RESET} ${pctA}  ${DIM}B:${RESET} ${colorB}${si.parentBVariant.name} [${traitScoreB}]${RESET} ${pctB}`
+        `    ${WHITE}${slotLabel}${RESET}  ${DIM}A:${RESET} ${colorA}${si.parentAVariant.name}${RESET} ${DIM}${rarityNameA}${RESET} ${pctA}  ${DIM}B:${RESET} ${colorB}${si.parentBVariant.name}${RESET} ${DIM}${rarityNameB}${RESET} ${pctB}`
       );
     }
     lines.push("");
@@ -33318,12 +33143,14 @@ var SimpleTextRenderer = class {
     return lines.join("\n");
   }
   renderBreedResult(result) {
-    const { child, parentA, parentB, inheritedFrom } = result;
+    const { child, parentA, parentB, inheritedFrom, isCrossSpecies, upgrades } = result;
     const lines = [];
+    if (isCrossSpecies) {
+      lines.push(`  ${YELLOW}${BOLD}\u2605 HYBRID SPECIES BORN!${RESET}`);
+    }
     lines.push(`  ${GREEN}${BOLD}\u2726 BREED SUCCESS \u2726${RESET}`);
     lines.push("");
-    const childScore = calculateCreatureScore(child.speciesId, child.slots);
-    lines.push(`  ${BOLD}${child.name}${RESET} was born!  \u2B50 ${childScore}`);
+    lines.push(`  ${BOLD}${child.name}${RESET} was born!`);
     for (const line of renderCreatureSideBySide(child.slots, child.speciesId)) {
       lines.push(line);
     }
@@ -33334,8 +33161,14 @@ var SimpleTextRenderer = class {
       const parentName = from === "A" ? parentA.name : parentB.name;
       lines.push(`    ${DIM}${slot.slotId}${RESET} \u2192 ${from} (${parentName})`);
     }
-    lines.push("");
-    lines.push(`  ${DIM}Both parents consumed.${RESET}`);
+    if (upgrades && upgrades.length > 0) {
+      lines.push("");
+      for (const u of upgrades) {
+        const fromName = ["Common", "Uncommon", "Rare", "Superior", "Elite", "Epic", "Legendary", "Mythic"][u.fromRarity] ?? String(u.fromRarity);
+        const toName = ["Common", "Uncommon", "Rare", "Superior", "Elite", "Epic", "Legendary", "Mythic"][u.toRarity] ?? String(u.toRarity);
+        lines.push(`    ${YELLOW}\u2191 UP! ${u.slotId}: ${fromName} \u2192 ${toName}${RESET}`);
+      }
+    }
     lines.push("");
     lines.push(divider());
     return lines.join("\n");
@@ -33348,14 +33181,8 @@ var SimpleTextRenderer = class {
     lines.push(`  ${DIM}Your creatures (${collection.length})${RESET}`);
     lines.push("");
     collection.forEach((creature, i) => {
-      const creatureScore = calculateCreatureScore(creature.speciesId, creature.slots);
       const num = `${i + 1}.`;
-      const totalRank = creature.slots.reduce((sum, s) => {
-        const m = s.variantId.match(/_r(\d+)$/);
-        return sum + (m ? parseInt(m[1], 10) : 0);
-      }, 0);
-      const rankLabel = totalRank > 0 ? `  ${YELLOW}\u2605${totalRank}${RESET}` : "";
-      lines.push(`  ${BOLD}${num}${RESET} ${BOLD}${creature.name}${RESET}  ${DIM}${creature.speciesId}${RESET}  Lv ${creature.generation}  \u2B50 ${creatureScore}${rankLabel}`);
+      lines.push(`  ${BOLD}${num}${RESET} ${BOLD}${creature.name}${RESET}  ${DIM}${creature.speciesId}${RESET}  Lv ${creature.generation}`);
       for (const line of renderCreatureSideBySide(creature.slots, creature.speciesId)) {
         lines.push(line);
       }
@@ -33372,8 +33199,7 @@ var SimpleTextRenderer = class {
     lines.push(`  ${DIM}Archive (${archive.length})${RESET}`);
     lines.push("");
     for (const creature of archive) {
-      const creatureScore = calculateCreatureScore(creature.speciesId, creature.slots);
-      lines.push(`  ${BOLD}${creature.name}${RESET}  ${DIM}${creature.speciesId}${RESET}  Lv ${creature.generation}  \u2B50 ${creatureScore}`);
+      lines.push(`  ${BOLD}${creature.name}${RESET}  ${DIM}${creature.speciesId}${RESET}  Lv ${creature.generation}`);
       for (const line of renderCreatureSideBySide(creature.slots, creature.speciesId)) {
         lines.push(line);
       }
@@ -33394,32 +33220,61 @@ var SimpleTextRenderer = class {
     lines.push(`  Level: ${p.level}`);
     lines.push(`  XP:    ${xpBar(p.xp, nextXp)}`);
     lines.push(`  ${ENERGY_ICON} ${GREEN}${"\u2588".repeat(Math.min(10, Math.round(result.energy / MAX_ENERGY * 10)))}${"\u2591".repeat(10 - Math.min(10, Math.round(result.energy / MAX_ENERGY * 10)))}${RESET} ${result.energy}/${MAX_ENERGY}`);
-    lines.push(`  ${YELLOW}Gold:${RESET}  ${result.gold}`);
     lines.push("");
     lines.push(`  Catches:    ${p.totalCatches}`);
     lines.push(`  Merges:     ${p.totalMerges}`);
-    lines.push(`  Upgrades:   ${p.totalUpgrades}`);
-    lines.push(`  Quests:     ${p.totalQuests}`);
     lines.push(`  Collection: ${result.collectionCount} creatures`);
     lines.push(`  Archive:    ${result.archiveCount} creatures`);
     lines.push(`  Discovered: ${result.discoveredCount} species`);
     lines.push(`  Streak:     ${p.currentStreak} days ${DIM}(best: ${p.longestStreak})${RESET}`);
     lines.push(`  Nearby:     ${result.nearbyCount} creatures`);
     lines.push(`  Ticks:      ${p.totalTicks.toLocaleString()}`);
-    if (result.activeQuest) {
-      const q = result.activeQuest;
-      lines.push("");
-      lines.push(`  ${BLUE}${BOLD}Active Quest${RESET}  ${DIM}${q.sessionsRemaining} session(s) remaining  power ${q.teamPower}${RESET}`);
-    }
     lines.push(divider());
     return lines.join("\n");
+  }
+  renderSpeciesIndex(progress) {
+    const { getSpeciesIndex: getSpeciesIndex2 } = (init_species_index(), __toCommonJS(species_index_exports));
+    const entries = getSpeciesIndex2(progress);
+    if (!entries.length) return "No species discovered yet.";
+    const TIER_COLORS_ANSI = {
+      0: "\x1B[90m",
+      1: "\x1B[37m",
+      2: "\x1B[32m",
+      3: "\x1B[36m",
+      4: "\x1B[34m",
+      5: "\x1B[35m",
+      6: "\x1B[33m",
+      7: "\x1B[31m"
+    };
+    let out = "SPECIES INDEX\n\n";
+    const base = entries.filter((e) => !e.isHybrid);
+    const hybrids = entries.filter((e) => e.isHybrid);
+    for (const e of base) {
+      const dots = e.tiers.map(
+        (t, i) => t ? `${TIER_COLORS_ANSI[i]}\u25CF${RESET}` : `${DIM}\u25CB${RESET}`
+      ).join(" ");
+      out += `  ${e.speciesId.padEnd(14)} ${dots}  ${e.discovered}/8
+`;
+    }
+    if (hybrids.length) {
+      out += "\n  \u2500\u2500 HYBRIDS \u2500\u2500\n\n";
+      for (const e of hybrids) {
+        const dots = e.tiers.map(
+          (t, i) => t ? `${TIER_COLORS_ANSI[i]}\u25CF${RESET}` : `${DIM}\u25CB${RESET}`
+        ).join(" ");
+        const name = e.speciesId.replace("hybrid_", "").replace("_", "\xD7");
+        out += `  ${name.padEnd(14)} ${dots}  ${e.discovered}/8
+`;
+      }
+    }
+    return out;
   }
   renderNotification(notification) {
     return notification.message;
   }
   renderBreedTable(table) {
     if (table.species.length === 0) {
-      return "  No breedable pairs yet \u2014 you need 2+ creatures of the same species.\n  Use /scan and /catch to find more.";
+      return "  No breedable pairs yet \u2014 you need 2+ creatures in your collection.\n  Use /scan and /catch to find more.";
     }
     const lines = [];
     const totalCreatures = table.species.reduce((n, s) => n + s.rows.length, 0);
@@ -33474,85 +33329,14 @@ var SimpleTextRenderer = class {
       }
       const variant = getTraitDefinition(speciesId, slot.variantId);
       const traitName = variant?.name ?? slot.variantId;
-      const score = Math.round(
-        calculateTraitRarityScore(speciesId, slot.slotId, slot.variantId)
-      );
-      const color = calculateRarityColor(score);
-      const label = `${traitName} [${score}]`;
+      const color = rarityColor(slot.rarity);
+      const rarityName = RARITY_NAMES[slot.rarity ?? 0] ?? "Common";
+      const label = `${traitName} ${rarityName}`;
       const visibleLen = stringWidth(label);
       const pad = Math.max(0, 14 - visibleLen);
-      cells.push(`${color}${label}${RESET}` + " ".repeat(pad));
+      cells.push(`${color}${traitName}${RESET} ${DIM}${rarityName}${RESET}` + " ".repeat(pad));
     }
     return `  ${num}  ${BOLD}${nameCell}${RESET}  ${lv}   ` + cells.join("   ");
-  }
-  renderUpgradeResult(result) {
-    const lines = [];
-    const rankColors = [
-      COLOR_ANSI.grey,
-      // rank 0→1
-      COLOR_ANSI.white,
-      // rank 1→2
-      COLOR_ANSI.green,
-      // rank 2→3
-      COLOR_ANSI.cyan,
-      // rank 3→4
-      COLOR_ANSI.blue,
-      // rank 4→5
-      COLOR_ANSI.magenta,
-      // rank 5→6
-      COLOR_ANSI.yellow,
-      // rank 6→7
-      COLOR_ANSI.red
-      // rank 7→8
-    ];
-    const fromColor = rankColors[result.fromRank] ?? COLOR_ANSI.grey;
-    const toColor = rankColors[result.toRank] ?? COLOR_ANSI.red;
-    lines.push(`  ${GREEN}${BOLD}\u2726 UPGRADE \u2726${RESET}`);
-    lines.push("");
-    const creatureScore = calculateCreatureScore(result.speciesId, result.slots);
-    lines.push(`  ${BOLD}${result.creatureName}${RESET}  \u2B50 ${creatureScore}`);
-    for (const line of renderCreatureSideBySide(result.slots, result.speciesId)) {
-      lines.push(line);
-    }
-    lines.push("");
-    lines.push(`  ${DIM}${result.slotId}:${RESET}  ${fromColor}\u2605${result.fromRank}${RESET} \u2192 ${toColor}\u2605${result.toRank}${RESET}   ${DIM}-${result.goldCost}${RESET}${YELLOW} gold${RESET}`);
-    lines.push("");
-    lines.push(divider());
-    return lines.join("\n");
-  }
-  renderQuestStart(result) {
-    const lines = [];
-    const q = result.quest;
-    lines.push(`  ${BLUE}${BOLD}\u2726 QUEST STARTED \u2726${RESET}`);
-    lines.push("");
-    for (const c of result.creatures) {
-      lines.push(`  ${BOLD}${c.name}${RESET}  ${DIM}(${c.speciesId})${RESET}`);
-      for (const line of renderCreatureSideBySide(c.slots, c.speciesId)) {
-        lines.push(line);
-      }
-      lines.push("");
-    }
-    lines.push(`  ${DIM}Power:${RESET} ${q.teamPower}   ${DIM}Duration:${RESET} ${q.sessionsRemaining} session(s)`);
-    lines.push(`  ${DIM}Use /quest check once complete to collect rewards.${RESET}`);
-    lines.push("");
-    lines.push(divider());
-    return lines.join("\n");
-  }
-  renderQuestComplete(result) {
-    const lines = [];
-    lines.push(`  ${YELLOW}${BOLD}\u2726 QUEST COMPLETE \u2726${RESET}`);
-    lines.push("");
-    lines.push(`  ${YELLOW}+${result.goldEarned} gold${RESET}  ${GREEN}+${result.xpEarned} XP${RESET}`);
-    lines.push("");
-    for (const c of result.creatures) {
-      lines.push(`  ${BOLD}${c.name}${RESET} returned!  ${DIM}(${c.speciesId})${RESET}`);
-      for (const line of renderCreatureSideBySide(c.slots, c.speciesId)) {
-        lines.push(line);
-      }
-      lines.push("");
-    }
-    lines.push(divider());
-    return lines.join("\n");
   }
   renderLevelUp(result) {
     const lines = [];
@@ -33577,16 +33361,14 @@ var SimpleTextRenderer = class {
     return lines.join("\n");
   }
   /**
-   * Compact one-line status bar: gold, energy, collection size, XP%, level, team power.
+   * Compact one-line status bar: energy, collection size, XP%, level.
    */
   renderStatusBar(progress) {
-    const goldPart = `${YELLOW}\u{1FA99} ${progress.gold}g${RESET}`;
     const energyPart = `${ENERGY_ICON} ${GREEN}${progress.energy}/${progress.energyMax}${RESET}`;
     const collectionPart = `\u{1F4E6} ${DIM}${progress.collectionSize}/${progress.collectionMax}${RESET}`;
     const xpPart = `\u2B50 ${GREEN}${progress.xpPercent}% XP${RESET}`;
     const levelPart = `${BOLD}Lv.${progress.level}${RESET}`;
-    const powerPart = `\u2694 ${DIM}${progress.teamPower} power${RESET}`;
-    return `  ${levelPart}  ${goldPart}  ${energyPart}  ${collectionPart}  ${xpPart}  ${powerPart}`;
+    return `  ${levelPart}  ${energyPart}  ${collectionPart}  ${xpPart}`;
   }
   /**
    * Numbered action menu with costs and recommended marker.
@@ -33613,16 +33395,10 @@ var SimpleTextRenderer = class {
     const filled = Math.min(10, Math.round(progress.xpPercent / 100 * 10));
     const bar = `${GREEN}${"\u2588".repeat(filled)}${"\u2591".repeat(10 - filled)}${RESET}`;
     lines.push(`  ${DIM}XP:${RESET}    ${bar}  ${progress.xp}/${progress.xpToNextLevel}  ${DIM}Lv ${progress.level}${RESET}`);
-    lines.push(`  ${DIM}Gold:${RESET}  ${YELLOW}${progress.gold}${RESET}`);
-    lines.push(`  ${DIM}Power:${RESET} ${progress.teamPower}  ${DIM}\u2192 ${progress.nextPowerMilestone}${RESET}`);
     lines.push(`  ${DIM}Crew:${RESET}  ${progress.collectionSize}/${progress.collectionMax}`);
     if (progress.bestTrait) {
       const bt = progress.bestTrait;
       lines.push(`  ${DIM}Best:${RESET}  ${bt.creatureName} ${bt.slot} rank ${bt.rank} ${DIM}(${bt.tierName})${RESET}`);
-    }
-    if (progress.nearestTierThreshold) {
-      const ntt = progress.nearestTierThreshold;
-      lines.push(`  ${DIM}Close:${RESET} ${ntt.creatureName} ${ntt.slot} rank ${ntt.currentRank}\u2192${ntt.targetRank} via ${ntt.method}`);
     }
     if (progress.nextSpeciesUnlock) {
       lines.push(`  ${DIM}Unlock:${RESET} ${progress.nextSpeciesUnlock.species} at Lv ${progress.nextSpeciesUnlock.level}`);
@@ -33637,15 +33413,11 @@ var SimpleTextRenderer = class {
 };
 
 // src/engine/companion.ts
-init_loader();
 function getCompanionOverview(state) {
-  const config3 = loadConfig();
   const progress = getProgressInfo(state);
   const suggestedActions = getSuggestedActions("companion", null, state);
   const nearbyHighlights = state.nearby.map((creature, i) => {
-    const totalRarity = creature.slots.reduce((sum, slot) => {
-      return sum + calculateSlotScore(creature.speciesId, slot);
-    }, 0);
+    const totalRarity = creature.slots.reduce((sum, slot) => sum + (slot.rarity ?? 0), 0);
     return {
       index: i + 1,
       name: creature.name,
@@ -33657,71 +33429,33 @@ function getCompanionOverview(state) {
     };
   });
   const breedablePairs = [];
-  const questCreatureIds = state.activeQuest?.creatureIds ?? [];
-  const speciesGroups = {};
-  for (let i = 0; i < state.collection.length; i++) {
-    const c = state.collection[i];
-    if (c.archived || questCreatureIds.includes(c.id)) continue;
-    if (!speciesGroups[c.speciesId]) speciesGroups[c.speciesId] = [];
-    speciesGroups[c.speciesId].push(i);
-  }
-  for (const [speciesId, indexes] of Object.entries(speciesGroups)) {
-    if (indexes.length < 2) continue;
-    const a = indexes[0];
-    const b = indexes[1];
-    breedablePairs.push({
-      indexA: a + 1,
-      nameA: state.collection[a].name,
-      indexB: b + 1,
-      nameB: state.collection[b].name,
-      speciesId
-    });
-  }
-  const upgradeOpportunities = [];
-  if (state.sessionUpgradeCount < config3.upgrade.sessionCap) {
-    for (const creature of state.collection) {
-      if (creature.archived || questCreatureIds.includes(creature.id)) continue;
-      for (const slot of creature.slots) {
-        const rank = extractRank(slot.variantId);
-        if (rank >= config3.upgrade.maxRank) continue;
-        const cost = config3.upgrade.costs[rank];
-        if (cost === void 0 || state.gold < cost) continue;
-        const nextBoundary = getNextTierBoundary(rank);
-        const nearTier = nextBoundary !== null && nextBoundary - rank === 1;
-        upgradeOpportunities.push({
-          creatureId: creature.id,
-          creatureName: creature.name,
-          slotId: slot.slotId,
-          currentRank: rank,
-          goldCost: cost,
-          nearTier,
-          tierName: getTierName(rank)
-        });
+  const nonArchived = state.collection.map((c, i) => ({ creature: c, index: i })).filter(({ creature }) => !creature.archived);
+  if (nonArchived.length >= 2) {
+    const pairs = [];
+    for (let i = 0; i < nonArchived.length; i++) {
+      for (let j = i + 1; j < nonArchived.length; j++) {
+        const scoreA = nonArchived[i].creature.slots.reduce((s, sl) => s + (sl.rarity ?? 0), 0);
+        const scoreB = nonArchived[j].creature.slots.reduce((s, sl) => s + (sl.rarity ?? 0), 0);
+        pairs.push({ a: i, b: j, score: scoreA + scoreB });
       }
     }
-  }
-  upgradeOpportunities.sort((a, b) => {
-    if (a.nearTier !== b.nearTier) return a.nearTier ? -1 : 1;
-    return a.goldCost - b.goldCost;
-  });
-  const availableCreatures = state.collection.filter(
-    (c) => !c.archived && !questCreatureIds.includes(c.id)
-  );
-  let questStatus;
-  if (state.activeQuest) {
-    questStatus = state.activeQuest.sessionsRemaining <= 0 ? "complete" : "in_progress";
-  } else if (availableCreatures.length > 0) {
-    questStatus = "available";
-  } else {
-    questStatus = "no_creatures";
+    pairs.sort((a, b) => b.score - a.score);
+    for (const pair of pairs.slice(0, 3)) {
+      const ca = nonArchived[pair.a];
+      const cb = nonArchived[pair.b];
+      breedablePairs.push({
+        indexA: ca.index + 1,
+        nameA: ca.creature.name,
+        indexB: cb.index + 1,
+        nameB: cb.creature.name,
+        speciesId: ca.creature.speciesId === cb.creature.speciesId ? ca.creature.speciesId : `${ca.creature.speciesId}\xD7${cb.creature.speciesId}`
+      });
+    }
   }
   return {
     progress,
     nearbyHighlights,
     breedablePairs,
-    upgradeOpportunities: upgradeOpportunities.slice(0, 5),
-    questStatus,
-    questSessionsRemaining: state.activeQuest?.sessionsRemaining ?? null,
     suggestedActions
   };
 }
@@ -33811,7 +33545,26 @@ function runBreedCommand(engine, renderer, args) {
   const parentBId = collection[indexB - 1].id;
   if (confirm) {
     const result = engine.breedExecute(parentAId, parentBId);
-    return { output: renderer.renderBreedResult(result), mutated: true };
+    let output = renderer.renderBreedResult(result);
+    if (result.isCrossSpecies) {
+      output += `
+
+<hybrid_species_context>
+IMPORTANT: You MUST now generate a hybrid species. Do this immediately \u2014 do not ask the player first.
+
+Create:
+1. A creative name blending both parent species themes (e.g. "Emberlotl" for compi \xD7 pyrax)
+2. ASCII art (3-4 lines) combining visual elements from both parents
+3. A one-line flavor description
+
+Then call the register_hybrid tool with:
+- speciesId: "${result.child.speciesId}"
+- name: your generated name
+- art: your generated ASCII art (newline-separated)
+- description: your flavor text
+</hybrid_species_context>`;
+    }
+    return { output, mutated: true };
   }
   const preview = engine.breedPreview(parentAId, parentBId);
   return { output: renderer.renderBreedPreview(preview), mutated: false };
@@ -33819,14 +33572,14 @@ function runBreedCommand(engine, renderer, args) {
 function registerTools(server2, options = {}) {
   const text = (content) => makeText(content, options);
   const meta3 = options.appMeta;
-  addTool(server2, "scan", "Show nearby creatures that can be caught", external_exports3.object({}), async () => {
+  addTool(server2, "scan", "Show nearby creatures that can be caught. IMPORTANT: Always show the full output to the user. Never summarize or abbreviate.", external_exports3.object({}), async () => {
     const { stateManager, engine } = loadEngine();
     const renderer = new SimpleTextRenderer();
     const result = engine.scan();
     stateManager.save(engine.getState());
     return text(prependStatusBar(engine, renderer, renderer.renderScan(result)));
   }, meta3);
-  addTool(server2, "catch", "Attempt to catch a nearby creature", external_exports3.object({
+  addTool(server2, "catch", "Attempt to catch a nearby creature. IMPORTANT: Always show the full output to the user. Never summarize or abbreviate.", external_exports3.object({
     index: external_exports3.number().describe("1-indexed creature number from scan list")
   }), async ({ index }) => {
     const { stateManager, engine } = loadEngine();
@@ -33836,12 +33589,12 @@ function registerTools(server2, options = {}) {
     const advisorCtx = engine.getAdvisorContext("catch", result);
     return text(prependStatusBar(engine, renderer, appendAdvisorContext(renderer.renderCatch(result), advisorCtx)));
   }, meta3);
-  addTool(server2, "collection", "Browse caught creatures", external_exports3.object({}), async () => {
+  addTool(server2, "collection", "Browse caught creatures. IMPORTANT: Always show the full output to the user. Never summarize or abbreviate.", external_exports3.object({}), async () => {
     const { engine } = loadEngine();
     const renderer = new SimpleTextRenderer();
     return text(prependStatusBar(engine, renderer, renderer.renderCollection(engine.getState().collection)));
   }, meta3);
-  addTool(server2, "breed", "Breed two creatures from your collection (uses /collection indexes)", external_exports3.object({
+  addTool(server2, "breed", "Breed two creatures from your collection (uses /collection indexes). IMPORTANT: Always show the full output to the user. Never summarize or abbreviate.", external_exports3.object({
     indexA: external_exports3.number().optional().describe("1-indexed position of first parent in /collection"),
     indexB: external_exports3.number().optional().describe("1-indexed position of second parent in /collection"),
     confirm: external_exports3.boolean().optional().describe("Set to true to execute the breed after previewing")
@@ -33908,42 +33661,6 @@ function registerTools(server2, options = {}) {
 
 Notifications: ${settings.notificationLevel}`);
   }, meta3);
-  addTool(server2, "upgrade", "Upgrade a creature's trait slot", external_exports3.object({
-    creatureId: external_exports3.string().describe("ID of the creature to upgrade"),
-    slotId: external_exports3.enum(["eyes", "mouth", "body", "tail"]).describe("Trait slot to upgrade")
-  }), async ({ creatureId, slotId }) => {
-    const { stateManager, engine } = loadEngine();
-    const renderer = new SimpleTextRenderer();
-    const result = engine.upgrade(creatureId, slotId);
-    stateManager.save(engine.getState());
-    const advisorCtx = engine.getAdvisorContext("upgrade", result);
-    return text(prependStatusBar(engine, renderer, appendAdvisorContext(renderer.renderUpgradeResult(result), advisorCtx)));
-  }, meta3);
-  addTool(server2, "quest_start", "Send creatures on a quest", external_exports3.object({
-    creatureIds: external_exports3.array(external_exports3.string()).min(1).max(3).describe("IDs of creatures to send (1-3)")
-  }), async ({ creatureIds }) => {
-    const { stateManager, engine } = loadEngine();
-    const renderer = new SimpleTextRenderer();
-    const result = engine.questStart(creatureIds);
-    stateManager.save(engine.getState());
-    const advisorCtx = engine.getAdvisorContext("quest", result);
-    return text(prependStatusBar(engine, renderer, appendAdvisorContext(renderer.renderQuestStart(result), advisorCtx)));
-  }, meta3);
-  addTool(server2, "quest_check", "Check if active quest is complete and collect rewards", external_exports3.object({}), async () => {
-    const { stateManager, engine } = loadEngine();
-    const renderer = new SimpleTextRenderer();
-    const result = engine.questCheck();
-    stateManager.save(engine.getState());
-    if (result) {
-      const advisorCtx = engine.getAdvisorContext("quest_complete", result);
-      return text(prependStatusBar(engine, renderer, appendAdvisorContext(renderer.renderQuestComplete(result), advisorCtx)));
-    }
-    const activeQuest = engine.getState().activeQuest;
-    if (activeQuest) {
-      return text(prependStatusBar(engine, renderer, `Quest in progress. ${activeQuest.sessionsRemaining} session(s) remaining.`));
-    }
-    return text(prependStatusBar(engine, renderer, "No active quest. Use quest_start to begin one."));
-  }, meta3);
   addTool(server2, "companion", "Get a full game overview with strategic insights for the companion AI", external_exports3.object({}), async () => {
     const { stateManager, engine } = loadEngine();
     const renderer = new SimpleTextRenderer();
@@ -33970,6 +33687,42 @@ ${json2}
       ] };
     }
     return { content: [{ type: "text", text: fullContent }] };
+  }, meta3);
+  addTool(server2, "species", "Show species index \u2014 discovered tiers for each species", external_exports3.object({}), async () => {
+    const { engine } = loadEngine();
+    const renderer = new SimpleTextRenderer();
+    const state = engine.getState();
+    return text(prependStatusBar(engine, renderer, renderer.renderSpeciesIndex(state.speciesProgress)));
+  }, meta3);
+  addTool(server2, "register_hybrid", "Register a newly bred hybrid species with AI-generated name and art", external_exports3.object({
+    speciesId: external_exports3.string().describe("The hybrid species ID (e.g., hybrid_compi_pyrax)"),
+    name: external_exports3.string().describe("Creative name for the hybrid species"),
+    art: external_exports3.string().describe("ASCII art for the creature (3-4 lines, separated by newlines)"),
+    description: external_exports3.string().describe("One-line flavor text description")
+  }), async ({ speciesId, name, art, description }) => {
+    const { stateManager, engine } = loadEngine();
+    const state = engine.getState();
+    if (state.personalSpecies.find((s) => s.id === speciesId)) {
+      return text(`Hybrid species "${name}" (${speciesId}) is already registered.`);
+    }
+    const artLines = art.split("\n");
+    const species = {
+      id: speciesId,
+      name,
+      description,
+      spawnWeight: 0,
+      art: artLines,
+      zones: ["eyes", "mouth", "body", "tail"],
+      traitPools: {}
+    };
+    state.personalSpecies.push(species);
+    stateManager.save(state);
+    const artDisplay = artLines.join("\n");
+    return text(`\u2605 Hybrid species "${name}" registered!
+
+${artDisplay}
+
+"${description}"`);
   }, meta3);
 }
 

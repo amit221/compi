@@ -270,13 +270,15 @@ describe("previewBreed", () => {
     );
   });
 
-  it("throws if different species", () => {
+  it("allows different species (cross-species breeding)", () => {
     const a = makeCreature("a1", "compi", ALL_COMMON);
-    const b = makeCreature("b1", "other", ALL_COMMON);
+    const b = makeCreature("b1", "compi", ALL_COMMON); // use valid species for preview
+    b.speciesId = "pyrax";
     const state = makeState([a, b]);
-    expect(() => previewBreed(state, "a1", "b1")).toThrow(
-      "Cannot breed different species"
-    );
+    // Should NOT throw — cross-species is allowed now
+    const preview = previewBreed(state, "a1", "b1");
+    expect(preview.parentA.speciesId).toBe("compi");
+    expect(preview.parentB.speciesId).toBe("pyrax");
   });
 
   it("throws if parent is archived", () => {
