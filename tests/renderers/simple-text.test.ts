@@ -74,7 +74,7 @@ describe("renderScan", () => {
 
   test("contains energy costs", () => {
     const out = renderer.renderScan(result);
-    expect(out).toContain("Cost:");
+    expect(out).toContain("cost:");
     expect(out).toContain("⚡");
   });
 
@@ -91,7 +91,7 @@ describe("renderScan", () => {
 
   test("contains species name", () => {
     const out = renderer.renderScan(result);
-    expect(out).toContain("compi");
+    expect(out).toContain("Compi");
   });
 });
 

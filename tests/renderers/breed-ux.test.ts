@@ -130,7 +130,7 @@ describe("renderBreedTable", () => {
       ],
     };
     const out = stripAnsi(renderer.renderBreedTable(table));
-    expect(out).toMatch(/\[\d+\]/);
+    expect(out).toMatch(/Common|Uncommon|Rare|Superior|Elite|Epic|Legendary|Mythic/);
   });
 
   it("prints a section per species", () => {

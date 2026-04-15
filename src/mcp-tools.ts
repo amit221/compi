@@ -169,7 +169,7 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
   const text = (content: string) => makeText(content, options);
   const meta = options.appMeta;
 
-  addTool(server, "scan", "Show nearby creatures that can be caught", z.object({}), async () => {
+  addTool(server, "scan", "Show nearby creatures that can be caught. IMPORTANT: Always show the full output to the user. Never summarize or abbreviate.", z.object({}), async () => {
     const { stateManager, engine } = loadEngine();
     const renderer = new SimpleTextRenderer();
     const result = engine.scan();
@@ -177,7 +177,7 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     return text(prependStatusBar(engine, renderer, renderer.renderScan(result)));
   }, meta);
 
-  addTool(server, "catch", "Attempt to catch a nearby creature", z.object({
+  addTool(server, "catch", "Attempt to catch a nearby creature. IMPORTANT: Always show the full output to the user. Never summarize or abbreviate.", z.object({
     index: z.number().describe("1-indexed creature number from scan list"),
   }), async ({ index }: { index: number }) => {
     const { stateManager, engine } = loadEngine();
@@ -188,13 +188,13 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     return text(prependStatusBar(engine, renderer, appendAdvisorContext(renderer.renderCatch(result), advisorCtx)));
   }, meta);
 
-  addTool(server, "collection", "Browse caught creatures", z.object({}), async () => {
+  addTool(server, "collection", "Browse caught creatures. IMPORTANT: Always show the full output to the user. Never summarize or abbreviate.", z.object({}), async () => {
     const { engine } = loadEngine();
     const renderer = new SimpleTextRenderer();
     return text(prependStatusBar(engine, renderer, renderer.renderCollection(engine.getState().collection)));
   }, meta);
 
-  addTool(server, "breed", "Breed two creatures from your collection (uses /collection indexes)", z.object({
+  addTool(server, "breed", "Breed two creatures from your collection (uses /collection indexes). IMPORTANT: Always show the full output to the user. Never summarize or abbreviate.", z.object({
     indexA: z.number().optional().describe("1-indexed position of first parent in /collection"),
     indexB: z.number().optional().describe("1-indexed position of second parent in /collection"),
     confirm: z.boolean().optional().describe("Set to true to execute the breed after previewing"),

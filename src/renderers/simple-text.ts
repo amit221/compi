@@ -21,7 +21,6 @@ import {
 import { MAX_ENERGY } from "../engine/energy";
 import { getVariantById } from "../config/traits";
 import { getSpeciesById, getTraitDefinition } from "../config/species";
-import { calculateSlotScore, calculateCreatureScore, calculateTraitRarityScore } from "../engine/rarity";
 
 const stringWidth = require("string-width") as (str: string) => number;
 
@@ -50,16 +49,11 @@ const ENERGY_ICON = `${YELLOW}⚡${RESET}`;
 
 // --- Rarity to color mapping ---
 
-function calculateRarityColor(rarityScore: number): string {
-  // Maps 1-100 rarity score to 8 color tiers
-  if (rarityScore <= 12.5) return COLOR_ANSI.grey;
-  if (rarityScore <= 25) return COLOR_ANSI.white;
-  if (rarityScore <= 37.5) return COLOR_ANSI.green;
-  if (rarityScore <= 50) return COLOR_ANSI.cyan;
-  if (rarityScore <= 62.5) return COLOR_ANSI.blue;
-  if (rarityScore <= 75) return COLOR_ANSI.magenta;
-  if (rarityScore <= 87.5) return COLOR_ANSI.yellow;
-  return COLOR_ANSI.red;
+const RARITY_ANSI = ["\x1b[90m", "\x1b[97m", "\x1b[32m", "\x1b[36m", "\x1b[34m", "\x1b[35m", "\x1b[33m", "\x1b[31m"];
+const RARITY_NAMES = ["Common", "Uncommon", "Rare", "Superior", "Elite", "Epic", "Legendary", "Mythic"];
+
+function rarityColor(rarity: number | undefined): string {
+  return RARITY_ANSI[rarity ?? 0] || "\x1b[90m";
 }
 
 // --- Creature art ---
@@ -83,8 +77,7 @@ function renderCreatureLines(slots: CreatureSlot[], speciesId?: string): string[
 
   const slotColor: Record<string, string> = {};
   for (const s of slots) {
-    const rarityScore = speciesId ? calculateTraitRarityScore(speciesId, s.slotId, s.variantId) : 50;
-    slotColor[s.slotId] = calculateRarityColor(rarityScore);
+    slotColor[s.slotId] = rarityColor(s.rarity);
   }
 
   const species = speciesId ? getSpeciesById(speciesId) : undefined;
@@ -184,10 +177,9 @@ function renderCreatureSideBySide(slots: CreatureSlot[], speciesId?: string): st
     if (s) {
       const variant = speciesId ? getTraitDefinition(speciesId, s.variantId) : getVariantById(s.variantId);
       const name = variant?.name ?? s.variantId;
-      const rarityScore = speciesId ? calculateTraitRarityScore(speciesId, s.slotId, s.variantId) : 50;
-      const rarityColor = calculateRarityColor(rarityScore);
-      const score = speciesId ? Math.round(calculateSlotScore(speciesId, s)) : 50;
-      traitLines.push(`${DIM}${slotId.padEnd(5)}${RESET} ${rarityColor}${name}${RESET} ${DIM}[${score}]${RESET}`);
+      const color = rarityColor(s.rarity);
+      const rarityName = RARITY_NAMES[s.rarity ?? 0] ?? "Common";
+      traitLines.push(`${DIM}${slotId.padEnd(5)}${RESET} ${color}${name}${RESET} ${DIM}${rarityName}${RESET}`);
     } else {
       traitLines.push(`${DIM}${slotId.padEnd(5)}${RESET} ${DIM}—${RESET}`);
     }
@@ -233,10 +225,9 @@ export class SimpleTextRenderer implements Renderer {
     for (const entry of result.nearby) {
       const c = entry.creature;
       const rate = Math.round(entry.catchRate * 100);
-      const statsIndent = " ".repeat(ART_PAD);
-      const creatureScore = calculateCreatureScore(c.speciesId, c.slots);
-      lines.push(`  ${DIM}[${entry.index + 1}]${RESET} ${BOLD}${c.name}${RESET} ${DIM}(${c.speciesId})${RESET}  ⭐ ${creatureScore}`);
-      lines.push(`${statsIndent}${DIM}Rate:${RESET} ${rate}%  ${DIM}Cost:${RESET} ${entry.energyCost}${ENERGY_ICON}`);
+      const speciesDisplay = c.speciesId.charAt(0).toUpperCase() + c.speciesId.slice(1);
+      lines.push(`  ${DIM}[${entry.index + 1}]${RESET} ${BOLD}${c.name}${RESET}  ${DIM}${speciesDisplay}${RESET}`);
+      lines.push(`      ${DIM}catch rate: ${rate}%  cost: ${entry.energyCost}${RESET}${ENERGY_ICON}`);
       for (const line of renderCreatureSideBySide(c.slots, c.speciesId)) {
         lines.push(line);
       }
@@ -263,8 +254,7 @@ export class SimpleTextRenderer implements Renderer {
     if (result.success) {
       lines.push(`  ${GREEN}${BOLD}✦ CAUGHT! ✦${RESET}`);
       lines.push("");
-      const creatureScore = calculateCreatureScore(c.speciesId, c.slots);
-      lines.push(`  ${BOLD}${c.name}${RESET} joined your collection!  ⭐ ${creatureScore}`);
+      lines.push(`  ${BOLD}${c.name}${RESET} joined your collection!`);
       for (const line of renderCreatureSideBySide(c.slots, c.speciesId)) {
         lines.push(line);
       }
@@ -308,15 +298,13 @@ export class SimpleTextRenderer implements Renderer {
     lines.push(`  ${DIM}Both parents will be consumed.${RESET}`);
     lines.push("");
 
-    const scoreA = calculateCreatureScore(parentA.speciesId, parentA.slots);
-    lines.push(`  ${BOLD}Parent A: #${parentAIndex} ${parentA.name}${RESET}  ⭐ ${scoreA}`);
+    lines.push(`  ${BOLD}Parent A: #${parentAIndex} ${parentA.name}${RESET}`);
     for (const line of renderCreatureSideBySide(parentA.slots, parentA.speciesId)) {
       lines.push(line);
     }
     lines.push("");
 
-    const scoreB = calculateCreatureScore(parentB.speciesId, parentB.slots);
-    lines.push(`  ${BOLD}Parent B: #${parentBIndex} ${parentB.name}${RESET}  ⭐ ${scoreB}`);
+    lines.push(`  ${BOLD}Parent B: #${parentBIndex} ${parentB.name}${RESET}`);
     for (const line of renderCreatureSideBySide(parentB.slots, parentB.speciesId)) {
       lines.push(line);
     }
@@ -327,12 +315,14 @@ export class SimpleTextRenderer implements Renderer {
       const slotLabel = si.slotId.padEnd(5);
       const pctA = `${Math.round(si.parentAChance * 100)}%`;
       const pctB = `${Math.round(si.parentBChance * 100)}%`;
-      const traitScoreA = Math.round(calculateTraitRarityScore(parentA.speciesId, si.slotId, si.parentAVariant.id));
-      const traitScoreB = Math.round(calculateTraitRarityScore(parentB.speciesId, si.slotId, si.parentBVariant.id));
-      const colorA = calculateRarityColor(traitScoreA);
-      const colorB = calculateRarityColor(traitScoreB);
+      const slotA = parentA.slots.find((s) => s.slotId === si.slotId);
+      const slotB = parentB.slots.find((s) => s.slotId === si.slotId);
+      const colorA = rarityColor(slotA?.rarity);
+      const colorB = rarityColor(slotB?.rarity);
+      const rarityNameA = RARITY_NAMES[slotA?.rarity ?? 0] ?? "Common";
+      const rarityNameB = RARITY_NAMES[slotB?.rarity ?? 0] ?? "Common";
       lines.push(
-        `    ${WHITE}${slotLabel}${RESET}  ${DIM}A:${RESET} ${colorA}${si.parentAVariant.name} [${traitScoreA}]${RESET} ${pctA}  ${DIM}B:${RESET} ${colorB}${si.parentBVariant.name} [${traitScoreB}]${RESET} ${pctB}`
+        `    ${WHITE}${slotLabel}${RESET}  ${DIM}A:${RESET} ${colorA}${si.parentAVariant.name}${RESET} ${DIM}${rarityNameA}${RESET} ${pctA}  ${DIM}B:${RESET} ${colorB}${si.parentBVariant.name}${RESET} ${DIM}${rarityNameB}${RESET} ${pctB}`
       );
     }
     lines.push("");
@@ -354,8 +344,7 @@ export class SimpleTextRenderer implements Renderer {
     lines.push(`  ${GREEN}${BOLD}✦ BREED SUCCESS ✦${RESET}`);
     lines.push("");
 
-    const childScore = calculateCreatureScore(child.speciesId, child.slots);
-    lines.push(`  ${BOLD}${child.name}${RESET} was born!  ⭐ ${childScore}`);
+    lines.push(`  ${BOLD}${child.name}${RESET} was born!`);
     for (const line of renderCreatureSideBySide(child.slots, child.speciesId)) {
       lines.push(line);
     }
@@ -394,9 +383,8 @@ export class SimpleTextRenderer implements Renderer {
     lines.push("");
 
     collection.forEach((creature, i) => {
-      const creatureScore = calculateCreatureScore(creature.speciesId, creature.slots);
       const num = `${i + 1}.`;
-      lines.push(`  ${BOLD}${num}${RESET} ${BOLD}${creature.name}${RESET}  ${DIM}${creature.speciesId}${RESET}  Lv ${creature.generation}  ⭐ ${creatureScore}`);
+      lines.push(`  ${BOLD}${num}${RESET} ${BOLD}${creature.name}${RESET}  ${DIM}${creature.speciesId}${RESET}  Lv ${creature.generation}`);
       for (const line of renderCreatureSideBySide(creature.slots, creature.speciesId)) {
         lines.push(line);
       }
@@ -419,8 +407,7 @@ export class SimpleTextRenderer implements Renderer {
     lines.push("");
 
     for (const creature of archive) {
-      const creatureScore = calculateCreatureScore(creature.speciesId, creature.slots);
-      lines.push(`  ${BOLD}${creature.name}${RESET}  ${DIM}${creature.speciesId}${RESET}  Lv ${creature.generation}  ⭐ ${creatureScore}`);
+      lines.push(`  ${BOLD}${creature.name}${RESET}  ${DIM}${creature.speciesId}${RESET}  Lv ${creature.generation}`);
       for (const line of renderCreatureSideBySide(creature.slots, creature.speciesId)) {
         lines.push(line);
       }
@@ -575,14 +562,12 @@ export class SimpleTextRenderer implements Renderer {
       }
       const variant = getTraitDefinition(speciesId, slot.variantId);
       const traitName = variant?.name ?? slot.variantId;
-      const score = Math.round(
-        calculateTraitRarityScore(speciesId, slot.slotId, slot.variantId)
-      );
-      const color = calculateRarityColor(score);
-      const label = `${traitName} [${score}]`;
+      const color = rarityColor(slot.rarity);
+      const rarityName = RARITY_NAMES[slot.rarity ?? 0] ?? "Common";
+      const label = `${traitName} ${rarityName}`;
       const visibleLen = stringWidth(label);
       const pad = Math.max(0, 14 - visibleLen);
-      cells.push(`${color}${label}${RESET}` + " ".repeat(pad));
+      cells.push(`${color}${traitName}${RESET} ${DIM}${rarityName}${RESET}` + " ".repeat(pad));
     }
 
     return `  ${num}  ${BOLD}${nameCell}${RESET}  ${lv}   ` + cells.join("   ");

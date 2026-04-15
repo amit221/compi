@@ -9,6 +9,8 @@ description: Show nearby creatures that can be caught
    node scripts/cli.js scan
    ```
 
+Show the complete tool output to the user. Do not summarize.
+
 After the Bash output:
 - Narrate the scan result in 2-3 sentences with game personality. Comment on how many creatures appeared and name any species you can spot in the response. Suggest catching the most interesting one if relevant.
 - End with: "Press Ctrl+O to expand the output above and see them."

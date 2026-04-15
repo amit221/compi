@@ -13,6 +13,8 @@ Usage: `/catch [number]`
    node scripts/cli.js catch <number>
    ```
 
+Show the complete tool output to the user. Do not summarize.
+
 After the Bash output:
 - Narrate what happened in 2-3 sentences with game personality. Reference the specific creature name and any notable traits from the response. Suggest a next action when relevant.
 - End with: "Press Ctrl+O to expand the output above and see the result."

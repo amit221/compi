@@ -9,6 +9,8 @@ description: Browse your caught creatures and their traits
    node scripts/cli.js collection
    ```
 
+Show the complete tool output to the user. Do not summarize.
+
 After the Bash output:
 - Narrate the collection state in 2-3 sentences with game personality. Reference any standout creature names or trait tiers you can see in the response. Suggest a next action if relevant (e.g., breed a strong pair, make room if nearly full, or catch a new species).
 - End with: "Press Ctrl+O to expand the output above and see your collection."

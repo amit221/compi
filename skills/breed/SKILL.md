@@ -12,6 +12,8 @@ Parse the arguments. The command supports three shapes:
 
 Single-number `/breed N` is no longer supported; users pick two numbers directly from the table.
 
+Show the complete tool output to the user. Do not summarize.
+
 Flow:
 
 1. Run the appropriate Bash command (renders colors directly):
