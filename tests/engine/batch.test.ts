@@ -29,19 +29,20 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
 }
 
 describe("pickBatchSize", () => {
-  test("returns 3 for low roll", () => {
-    expect(pickBatchSize(() => 0.1)).toBe(3);
-    expect(pickBatchSize(() => 0.39)).toBe(3);
+  test("returns 4 for low roll", () => {
+    expect(pickBatchSize(() => 0.1)).toBe(4);
+    expect(pickBatchSize(() => 0.24)).toBe(4);
   });
 
-  test("returns 4 for mid roll", () => {
-    expect(pickBatchSize(() => 0.4)).toBe(4);
-    expect(pickBatchSize(() => 0.79)).toBe(4);
+  test("returns 5 for mid roll", () => {
+    expect(pickBatchSize(() => 0.25)).toBe(5);
+    expect(pickBatchSize(() => 0.54)).toBe(5);
   });
 
-  test("returns 5 for high roll", () => {
-    expect(pickBatchSize(() => 0.8)).toBe(5);
-    expect(pickBatchSize(() => 0.99)).toBe(5);
+  test("returns 6 or 7 for high roll", () => {
+    expect(pickBatchSize(() => 0.55)).toBe(6);
+    expect(pickBatchSize(() => 0.80)).toBe(7);
+    expect(pickBatchSize(() => 0.99)).toBe(7);
   });
 });
 
