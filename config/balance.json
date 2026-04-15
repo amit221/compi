@@ -52,6 +52,7 @@
     "rankDiffScale": 0.065,
     "maxAdvantage": 0.35,
     "synergyBonus": 0.05,
+    "downgradeChance": 0.30,
     "rarityTiers": [
       { "name": "common", "minSpawnRate": 0.08 },
       { "name": "uncommon", "minSpawnRate": 0.04 },
@@ -163,36 +164,14 @@
       "milestone": "Milestone reached! +{energy} energy"
     }
   },
-  "upgrade": {
-    "costs": [3, 5, 9, 15, 24, 38, 55],
-    "maxRank": 7,
-    "sessionCap": 2
-  },
-  "quest": {
-    "maxTeamSize": 3,
-    "lockDurationSessions": 2,
-    "rewardMultiplier": 0.6,
-    "rewardFloor": 10,
-    "xpReward": 15
-  },
-  "mergeGold": {
-    "baseCost": 10,
-    "rankMultiplier": 5,
-    "downgradeChance": 0.30
-  },
   "leveling": {
     "thresholds": [30, 50, 80, 120, 170, 240, 340, 480, 680, 960, 1350, 1900, 2700],
     "traitRankCaps": [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8],
     "xpPerCatch": 10,
-    "xpPerUpgrade": 8,
     "xpPerMerge": 25,
-    "xpPerQuest": 15,
     "xpDiscoveryBonus": 20
   },
   "discovery": {
     "speciesUnlockLevels": {}
-  },
-  "economy": {
-    "startingGold": 10
   }
 }

@@ -396,6 +396,7 @@ export interface BalanceConfig {
     rankDiffScale: number; // 0.065 — bonus per rank difference
     maxAdvantage: number; // 0.35 — cap on rank advantage
     synergyBonus: number; // 0.05 — max synergy boost from matching rarity tiers
+    downgradeChance: number; // 0.30 — chance to downgrade one trait during breed
     rarityTiers: Array<{ name: string; minSpawnRate: number }>;
   };
   progression: {
@@ -407,37 +408,15 @@ export interface BalanceConfig {
     milestones: MilestoneConfig[];
   };
   messages: Record<string, Record<string, string>>;
-  upgrade: {
-    costs: number[];
-    maxRank: number;
-    sessionCap: number;
-  };
-  quest: {
-    maxTeamSize: number;
-    lockDurationSessions: number;
-    rewardMultiplier: number;
-    rewardFloor: number;
-    xpReward: number;
-  };
-  mergeGold: {
-    baseCost: number;
-    rankMultiplier: number;
-    downgradeChance: number;
-  };
   leveling: {
     thresholds: number[];
     traitRankCaps: number[];
     xpPerCatch: number;
-    xpPerUpgrade: number;
     xpPerMerge: number;
-    xpPerQuest: number;
     xpDiscoveryBonus: number;
   };
   discovery: {
     speciesUnlockLevels: Record<string, number>;
-  };
-  economy: {
-    startingGold: number;
   };
 }
 

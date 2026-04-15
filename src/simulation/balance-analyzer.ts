@@ -46,13 +46,6 @@ export class BalanceAnalyzer {
     for (const result of results) {
       const state = result.finalState;
 
-      // goldAtLevel: map player level -> array of gold values at end of run
-      const level = state.profile.level;
-      if (!stats.goldAtLevel.has(level)) {
-        stats.goldAtLevel.set(level, []);
-      }
-      stats.goldAtLevel.get(level)!.push(state.gold);
-
       // collectionFullCount: count of runs where collection hit 15
       if (state.collection.length >= 15) {
         stats.collectionFullCount++;
@@ -66,7 +59,7 @@ export class BalanceAnalyzer {
         stats.catchRateByTier.set("all", { attempts: 0, successes: 0 });
       }
 
-      // Iterate over actions to collect xpSources, catchRateByTier, breedGenerations, questRewards, upgradeRankReached
+      // Iterate over actions to collect xpSources, catchRateByTier, breedGenerations
       for (const action of result.actions) {
         if (action.type === "catch") {
           const tier = stats.catchRateByTier.get("all")!;
@@ -77,24 +70,6 @@ export class BalanceAnalyzer {
           }
         }
 
-        if (action.type === "upgrade" && action.success) {
-          stats.xpSources.upgrades++;
-          // Parse rank from detail: "creature:X slot:Y rank:N->M"
-          const rankMatch = action.detail.match(/rank:\d+->(\d+)/);
-          if (rankMatch) {
-            const rank = parseInt(rankMatch[1], 10);
-            stats.upgradeRankReached.set(rank, (stats.upgradeRankReached.get(rank) ?? 0) + 1);
-          }
-        }
-
-        if (action.type === "quest_check" && action.success) {
-          stats.xpSources.quests++;
-          // Parse gold earned: "completed gold:N"
-          const goldMatch = action.detail.match(/gold:(\d+)/);
-          if (goldMatch) {
-            stats.questRewards.push(parseInt(goldMatch[1], 10));
-          }
-        }
       }
 
       // breedGenerations: push creature.generation for creatures with generation > 0

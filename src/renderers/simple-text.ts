@@ -12,9 +12,6 @@ import {
   BreedTable,
   BreedTableSpecies,
   BreedTableRow,
-  UpgradeResult,
-  QuestStartResult,
-  QuestCompleteResult,
   LevelUpResult,
   DiscoveryResult,
   ProgressInfo,
@@ -444,12 +441,9 @@ export class SimpleTextRenderer implements Renderer {
     lines.push(`  Level: ${p.level}`);
     lines.push(`  XP:    ${xpBar(p.xp, nextXp)}`);
     lines.push(`  ${ENERGY_ICON} ${GREEN}${"█".repeat(Math.min(10, Math.round((result.energy / MAX_ENERGY) * 10)))}${"░".repeat(10 - Math.min(10, Math.round((result.energy / MAX_ENERGY) * 10)))}${RESET} ${result.energy}/${MAX_ENERGY}`);
-    lines.push(`  ${YELLOW}Gold:${RESET}  ${result.gold}`);
     lines.push("");
     lines.push(`  Catches:    ${p.totalCatches}`);
     lines.push(`  Merges:     ${p.totalMerges}`);
-    lines.push(`  Upgrades:   ${p.totalUpgrades}`);
-    lines.push(`  Quests:     ${p.totalQuests}`);
     lines.push(`  Collection: ${result.collectionCount} creatures`);
     lines.push(`  Archive:    ${result.archiveCount} creatures`);
     lines.push(`  Discovered: ${result.discoveredCount} species`);
@@ -457,15 +451,13 @@ export class SimpleTextRenderer implements Renderer {
     lines.push(`  Nearby:     ${result.nearbyCount} creatures`);
     lines.push(`  Ticks:      ${p.totalTicks.toLocaleString()}`);
 
-    if (result.activeQuest) {
-      const q = result.activeQuest;
-      lines.push("");
-      lines.push(`  ${BLUE}${BOLD}Active Quest${RESET}  ${DIM}${q.sessionsRemaining} session(s) remaining  power ${q.teamPower}${RESET}`);
-    }
-
     lines.push(divider());
 
     return lines.join("\n");
+  }
+
+  renderSpeciesIndex(progress: Record<string, boolean[]>): string {
+    return "Species index: coming soon";
   }
 
   renderNotification(notification: Notification): string {
@@ -554,75 +546,6 @@ export class SimpleTextRenderer implements Renderer {
     return `  ${num}  ${BOLD}${nameCell}${RESET}  ${lv}   ` + cells.join("   ");
   }
 
-  renderUpgradeResult(result: UpgradeResult): string {
-    const lines: string[] = [];
-
-    // Rank-to-color: higher rank = rarer color
-    const rankColors = [
-      COLOR_ANSI.grey,   // rank 0→1
-      COLOR_ANSI.white,  // rank 1→2
-      COLOR_ANSI.green,  // rank 2→3
-      COLOR_ANSI.cyan,   // rank 3→4
-      COLOR_ANSI.blue,   // rank 4→5
-      COLOR_ANSI.magenta, // rank 5→6
-      COLOR_ANSI.yellow, // rank 6→7
-      COLOR_ANSI.red,    // rank 7→8
-    ];
-    const fromColor = rankColors[result.fromRank] ?? COLOR_ANSI.grey;
-    const toColor = rankColors[result.toRank] ?? COLOR_ANSI.red;
-
-    lines.push(`  ${GREEN}${BOLD}✦ UPGRADE ✦${RESET}`);
-    lines.push("");
-    const creatureScore = calculateCreatureScore(result.speciesId, result.slots);
-    lines.push(`  ${BOLD}${result.creatureName}${RESET}  ⭐ ${creatureScore}`);
-    for (const line of renderCreatureSideBySide(result.slots, result.speciesId)) {
-      lines.push(line);
-    }
-    lines.push("");
-    lines.push(`  ${DIM}${result.slotId}:${RESET}  ${fromColor}★${result.fromRank}${RESET} → ${toColor}★${result.toRank}${RESET}   ${DIM}-${result.goldCost}${RESET}${YELLOW} gold${RESET}`);
-    lines.push("");
-    lines.push(divider());
-    return lines.join("\n");
-  }
-
-  renderQuestStart(result: QuestStartResult): string {
-    const lines: string[] = [];
-    const q = result.quest;
-
-    lines.push(`  ${BLUE}${BOLD}✦ QUEST STARTED ✦${RESET}`);
-    lines.push("");
-    for (const c of result.creatures) {
-      lines.push(`  ${BOLD}${c.name}${RESET}  ${DIM}(${c.speciesId})${RESET}`);
-      for (const line of renderCreatureSideBySide(c.slots, c.speciesId)) {
-        lines.push(line);
-      }
-      lines.push("");
-    }
-    lines.push(`  ${DIM}Power:${RESET} ${q.teamPower}   ${DIM}Duration:${RESET} ${q.sessionsRemaining} session(s)`);
-    lines.push(`  ${DIM}Use /quest check once complete to collect rewards.${RESET}`);
-    lines.push("");
-    lines.push(divider());
-    return lines.join("\n");
-  }
-
-  renderQuestComplete(result: QuestCompleteResult): string {
-    const lines: string[] = [];
-
-    lines.push(`  ${YELLOW}${BOLD}✦ QUEST COMPLETE ✦${RESET}`);
-    lines.push("");
-    lines.push(`  ${YELLOW}+${result.goldEarned} gold${RESET}  ${GREEN}+${result.xpEarned} XP${RESET}`);
-    lines.push("");
-    for (const c of result.creatures) {
-      lines.push(`  ${BOLD}${c.name}${RESET} returned!  ${DIM}(${c.speciesId})${RESET}`);
-      for (const line of renderCreatureSideBySide(c.slots, c.speciesId)) {
-        lines.push(line);
-      }
-      lines.push("");
-    }
-    lines.push(divider());
-    return lines.join("\n");
-  }
-
   renderLevelUp(result: LevelUpResult): string {
     const lines: string[] = [];
 
@@ -650,16 +573,14 @@ export class SimpleTextRenderer implements Renderer {
   }
 
   /**
-   * Compact one-line status bar: gold, energy, collection size, XP%, level, team power.
+   * Compact one-line status bar: energy, collection size, XP%, level.
    */
   renderStatusBar(progress: ProgressInfo): string {
-    const goldPart = `${YELLOW}🪙 ${progress.gold}g${RESET}`;
     const energyPart = `${ENERGY_ICON} ${GREEN}${progress.energy}/${progress.energyMax}${RESET}`;
     const collectionPart = `📦 ${DIM}${progress.collectionSize}/${progress.collectionMax}${RESET}`;
     const xpPart = `⭐ ${GREEN}${progress.xpPercent}% XP${RESET}`;
     const levelPart = `${BOLD}Lv.${progress.level}${RESET}`;
-    const powerPart = `⚔ ${DIM}${progress.teamPower} power${RESET}`;
-    return `  ${levelPart}  ${goldPart}  ${energyPart}  ${collectionPart}  ${xpPart}  ${powerPart}`;
+    return `  ${levelPart}  ${energyPart}  ${collectionPart}  ${xpPart}`;
   }
 
   /**
@@ -691,12 +612,6 @@ export class SimpleTextRenderer implements Renderer {
     const bar = `${GREEN}${"█".repeat(filled)}${"░".repeat(10 - filled)}${RESET}`;
     lines.push(`  ${DIM}XP:${RESET}    ${bar}  ${progress.xp}/${progress.xpToNextLevel}  ${DIM}Lv ${progress.level}${RESET}`);
 
-    // Gold
-    lines.push(`  ${DIM}Gold:${RESET}  ${YELLOW}${progress.gold}${RESET}`);
-
-    // Team power
-    lines.push(`  ${DIM}Power:${RESET} ${progress.teamPower}  ${DIM}→ ${progress.nextPowerMilestone}${RESET}`);
-
     // Collection
     lines.push(`  ${DIM}Crew:${RESET}  ${progress.collectionSize}/${progress.collectionMax}`);
 
@@ -704,12 +619,6 @@ export class SimpleTextRenderer implements Renderer {
     if (progress.bestTrait) {
       const bt = progress.bestTrait;
       lines.push(`  ${DIM}Best:${RESET}  ${bt.creatureName} ${bt.slot} rank ${bt.rank} ${DIM}(${bt.tierName})${RESET}`);
-    }
-
-    // Nearest tier threshold
-    if (progress.nearestTierThreshold) {
-      const ntt = progress.nearestTierThreshold;
-      lines.push(`  ${DIM}Close:${RESET} ${ntt.creatureName} ${ntt.slot} rank ${ntt.currentRank}→${ntt.targetRank} via ${ntt.method}`);
     }
 
     // Next species unlock

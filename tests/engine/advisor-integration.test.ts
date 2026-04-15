@@ -11,7 +11,6 @@ import {
 import {
   GameState,
   CollectionCreature,
-  SlotId,
   SLOT_IDS,
   CatchResult,
   NearbyCreature,
@@ -23,27 +22,8 @@ jest.mock("../../src/config/loader", () => ({
       thresholds: [30, 50, 80, 120, 170, 240, 340, 480, 680, 960, 1350, 1900, 2700],
       traitRankCaps: [1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8],
       xpPerCatch: 10,
-      xpPerUpgrade: 8,
       xpPerMerge: 25,
-      xpPerQuest: 15,
       xpDiscoveryBonus: 20,
-    },
-    upgrade: {
-      costs: [3, 5, 9, 15, 24, 38, 55],
-      maxRank: 7,
-      sessionCap: 2,
-    },
-    quest: {
-      maxTeamSize: 3,
-      lockDurationSessions: 2,
-      rewardMultiplier: 0.6,
-      rewardFloor: 10,
-      xpReward: 15,
-    },
-    mergeGold: {
-      baseCost: 10,
-      rankMultiplier: 5,
-      downgradeChance: 0.3,
     },
     energy: {
       maxEnergy: 30,
@@ -80,11 +60,11 @@ jest.mock("../../src/config/loader", () => ({
       inheritanceMin: 0.45,
       inheritanceMax: 0.58,
       referenceSpawnRate: 0.12,
+      downgradeChance: 0.3,
     },
     progression: { xpPerLevel: 100, sessionGapMs: 7200000, tickPruneCount: 1000 },
     rewards: { milestones: [] },
     messages: {},
-    economy: { startingGold: 10 },
   }),
 }));
 
@@ -130,14 +110,12 @@ function makeNearby(id: string, speciesId: string): NearbyCreature {
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
-    version: 5,
+    version: 6,
     profile: {
       level: 3,
       xp: 40,
       totalCatches: 5,
       totalMerges: 1,
-      totalUpgrades: 2,
-      totalQuests: 0,
       totalTicks: 100,
       currentStreak: 2,
       longestStreak: 5,
@@ -153,25 +131,25 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     recentTicks: [],
     claimedMilestones: [],
     settings: { notificationLevel: "moderate" },
-    gold: 50,
     discoveredSpecies: ["compi", "flikk"],
-    activeQuest: null,
-    sessionUpgradeCount: 0,
     currentSessionId: "session-1",
+    speciesProgress: {},
+    personalSpecies: [],
+    sessionBreedCount: 0,
+    breedCooldowns: {},
     ...overrides,
   };
 }
 
 // ---------------------------------------------------------------------------
-// Scenario 1: Mid-game merge opportunity
+// Scenario 1: Mid-game breed opportunity
 // State has 2 same-species creatures; advisor mode should trigger on catch
 // ---------------------------------------------------------------------------
 
-describe("Scenario 1: Mid-game merge opportunity", () => {
+describe("Scenario 1: Mid-game breed opportunity", () => {
   const c1 = makeCreature("c1", "compi", [3, 3, 3, 3]);
   const c2 = makeCreature("c2", "compi", [2, 2, 2, 2]);
-  // After catching a third compi the collection now has c1 + c2 (sameSpeciesCount >= 2)
-  const state = makeState({ collection: [c1, c2], gold: 100 });
+  const state = makeState({ collection: [c1, c2] });
 
   const catchResult: CatchResult = {
     success: true,
@@ -183,28 +161,28 @@ describe("Scenario 1: Mid-game merge opportunity", () => {
     failPenalty: 0,
   };
 
-  test("getAdvisorMode returns advisor when merge is available after catch", () => {
+  test("getAdvisorMode returns advisor when breed is available after catch", () => {
     const mode = getAdvisorMode("catch", catchResult, state);
     expect(mode).toBe("advisor");
   });
 
-  test("merge action appears in suggested actions", () => {
+  test("breed action appears in suggested actions", () => {
     const actions = getSuggestedActions("catch", catchResult, state);
-    const mergeAction = actions.find((a) => a.type === "merge");
-    expect(mergeAction).toBeDefined();
+    const breedAction = actions.find((a) => a.type === "breed");
+    expect(breedAction).toBeDefined();
   });
 
-  test("merge action has high priority (≤ 2)", () => {
+  test("breed action has high priority (≤ 2)", () => {
     const actions = getSuggestedActions("catch", catchResult, state);
-    const mergeAction = actions.find((a) => a.type === "merge");
-    expect(mergeAction!.priority).toBeLessThanOrEqual(2);
+    const breedAction = actions.find((a) => a.type === "breed");
+    expect(breedAction!.priority).toBeLessThanOrEqual(2);
   });
 
-  test("buildAdvisorContext reflects the merge opportunity", () => {
+  test("buildAdvisorContext reflects the breed opportunity", () => {
     const ctx = buildAdvisorContext("catch", catchResult, state);
     expect(ctx.mode).toBe("advisor");
-    const mergeAction = ctx.suggestedActions.find((a) => a.type === "merge");
-    expect(mergeAction).toBeDefined();
+    const breedAction = ctx.suggestedActions.find((a) => a.type === "breed");
+    expect(breedAction).toBeDefined();
   });
 });
 
@@ -214,7 +192,6 @@ describe("Scenario 1: Mid-game merge opportunity", () => {
 // ---------------------------------------------------------------------------
 
 describe("Scenario 2: New species discovery", () => {
-  // Only "compi" and "flikk" have been seen before; "glich" is brand-new
   const state = makeState({ discoveredSpecies: ["compi", "flikk"] });
 
   const catchResult: CatchResult = {
@@ -222,7 +199,7 @@ describe("Scenario 2: New species discovery", () => {
     creature: makeNearby("n1", "glich"),
     energySpent: 1,
     fled: false,
-    xpEarned: 30, // includes discovery bonus
+    xpEarned: 30,
     attemptsRemaining: 2,
     failPenalty: 0,
   };
@@ -253,21 +230,17 @@ describe("Scenario 2: New species discovery", () => {
       attemptsRemaining: 2,
       failPenalty: 0,
     };
-    // No existing compis in collection, so no merge opportunity either
     const mode = getAdvisorMode("catch", knownCatchResult, state);
     expect(mode).toBe("autopilot");
   });
 });
 
 // ---------------------------------------------------------------------------
-// Scenario 3: Low energy quest suggestion
-// When energy ≤ 2, the advisor should trigger and suggest questing.
-// Use max-rank creatures (rank 7) so no upgrades are viable, ensuring
-// quest floats to the top of suggestions.
+// Scenario 3: Low energy state
+// When energy ≤ 2, the advisor should trigger.
 // ---------------------------------------------------------------------------
 
-describe("Scenario 3: Low energy quest suggestion", () => {
-  // Rank 7 = maxRank → no upgrades available; quest will be top suggestion
+describe("Scenario 3: Low energy state", () => {
   const creature = makeCreature("c1", "flikk", [7, 7, 7, 7]);
   const state = makeState({ energy: 2, collection: [creature] });
 
@@ -282,38 +255,21 @@ describe("Scenario 3: Low energy quest suggestion", () => {
     expect(mode).toBe("advisor");
   });
 
-  test("quest action appears in suggestions when energy is low", () => {
-    const actions = getSuggestedActions("scan", {}, state);
-    const questAction = actions.find((a) => a.type === "quest");
-    expect(questAction).toBeDefined();
-  });
-
-  test("quest action has high priority when energy is low (≤ 2)", () => {
-    const actions = getSuggestedActions("scan", {}, state);
-    const questAction = actions.find((a) => a.type === "quest");
-    // Low energy boosts quest priority to score=12 (vs 35 normally), so it should rank highly
-    expect(questAction!.priority).toBeLessThanOrEqual(3);
-  });
-
-  test("buildAdvisorContext surfaces advisor mode with quest suggestion", () => {
+  test("buildAdvisorContext surfaces advisor mode with low energy", () => {
     const ctx = buildAdvisorContext("scan", {}, state);
     expect(ctx.mode).toBe("advisor");
-    const questAction = ctx.suggestedActions.find((a) => a.type === "quest");
-    expect(questAction).toBeDefined();
   });
 });
 
 // ---------------------------------------------------------------------------
 // Scenario 4: Full collection
-// 12 non-archived creatures (below MAX 15) is not full;
-// but 15/15 triggers advisor + release suggestion
 // ---------------------------------------------------------------------------
 
 describe("Scenario 4: Full collection (15/15)", () => {
   const creatures = Array.from({ length: 15 }, (_, i) =>
     makeCreature(`c${i}`, i % 2 === 0 ? "compi" : "flikk", [1, 1, 1, 1])
   );
-  const state = makeState({ collection: creatures, gold: 100 });
+  const state = makeState({ collection: creatures });
 
   test("getAdvisorMode returns advisor when collection is full", () => {
     const mode = getAdvisorMode("catch", {}, state);
@@ -344,7 +300,6 @@ describe("Scenario 4: Full collection (15/15)", () => {
       makeCreature(`c${i}`, "compi", [1, 1, 1, 1])
     );
     const partialState = makeState({ collection: partialCreatures, energy: 10 });
-    // energy=10 so low-energy rule won't fire either
     const mode = getAdvisorMode("scan", {}, partialState);
     expect(mode).toBe("autopilot");
   });
@@ -352,12 +307,9 @@ describe("Scenario 4: Full collection (15/15)", () => {
 
 // ---------------------------------------------------------------------------
 // Scenario 5: Max 5 actions cap
-// State with many viable options — result must never exceed 5 items
 // ---------------------------------------------------------------------------
 
 describe("Scenario 5: Max 5 actions cap", () => {
-  // 6 creatures: 3 compi (merge pair available) + 3 flikk (merge pair available)
-  // All with upgradeable traits and enough gold → many upgrade options
   const creatures = Array.from({ length: 6 }, (_, i) =>
     makeCreature(`c${i}`, i < 3 ? "compi" : "flikk", [2, 2, 2, 2])
   );
@@ -366,9 +318,7 @@ describe("Scenario 5: Max 5 actions cap", () => {
     collection: creatures,
     nearby: [makeNearby("n1", "compi"), makeNearby("n2", "flikk")],
     batch: { attemptsRemaining: 3, failPenalty: 0, spawnedAt: Date.now() },
-    gold: 500,
     energy: 20,
-    sessionUpgradeCount: 0,
   });
 
   test("getSuggestedActions returns at most 5 actions even with many options", () => {
@@ -394,15 +344,12 @@ describe("Scenario 5: Max 5 actions cap", () => {
     expect(ctx.suggestedActions.length).toBeLessThanOrEqual(5);
   });
 
-  test("cap still applies after a merge action (post-merge is always advisor)", () => {
-    // Two compis in collection triggers merge suggestion
-    const mergeState = makeState({
+  test("cap still applies after a breed action (post-breed is always advisor)", () => {
+    const breedState = makeState({
       collection: creatures,
-      gold: 500,
       energy: 20,
-      sessionUpgradeCount: 0,
     });
-    const actions = getSuggestedActions("merge", {}, mergeState);
+    const actions = getSuggestedActions("breed", {}, breedState);
     expect(actions.length).toBeLessThanOrEqual(5);
   });
 });

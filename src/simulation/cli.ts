@@ -34,7 +34,7 @@ Usage: ts-node src/simulation/cli.ts <command> [flags]
 
 Commands:
   bugs      Run BugHunter to check game invariants
-  balance   Run BalanceAnalyzer to check economy balance
+  balance   Run BalanceAnalyzer to check game balance
   smoke     Run McpSmokeTester to verify MCP tool responses
   ux        Run UX scenarios interactively via claude -p
   all       Run bugs, balance, and smoke (not ux)

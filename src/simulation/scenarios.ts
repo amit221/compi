@@ -3,9 +3,7 @@ export type ScenarioId =
   | "energy-wall"
   | "first-breed"
   | "full-collection"
-  | "quest-flow"
   | "returning-player"
-  | "gold-decision"
   | "companion-mode";
 
 export interface Scenario {
@@ -73,7 +71,7 @@ Walk through the entire breeding process from discovery to completion:
 2. Look for a breed command, option, or table. Try to find it without external help.
 3. Before committing to a breed, attempt to preview or understand what you'll get. Is there a preview mechanic? Can you see the cost before confirming?
 4. Note the exact syntax you need to use to initiate a breed. Was it obvious? Did you have to guess indices or IDs?
-5. If a breed table or menu is shown, evaluate how understandable it is: Are trait inheritance probabilities shown? Are costs (gold, energy, time) visible upfront?
+5. If a breed table or menu is shown, evaluate how understandable it is: Are trait inheritance probabilities shown? Are energy costs visible upfront?
 6. Complete the breed if you can, or note exactly where you got stuck if you couldn't.
 7. After (or instead of) breeding, reflect on whether you felt confident about what you were doing or whether you were acting on guesswork.
 
@@ -98,58 +96,22 @@ Work through the space management problem:
 Focus on: How clear is the error when you're full? Does the game guide you toward a solution? Is the difference between archive and release adequately explained before you commit to an irreversible action?${REPORT_FORMAT}`,
   },
   {
-    id: "quest-flow",
-    name: "Quest Flow",
-    description:
-      "Player goes through the full quest lifecycle for the first time.",
-    prompt: `You are playing Compi and you've heard quests are a way to earn rewards. You've never done a quest before.
-
-Walk through the complete quest lifecycle:
-1. Check /status or the relevant command to see if any quests are available.
-2. Browse the quest options. Note how clearly requirements are communicated — which creatures are needed, what stats matter, how long it takes.
-3. Pick a quest and select creatures to send on it. Note how you choose which creatures and whether the selection process is intuitive.
-4. Observe the lock state: after sending creatures on a quest, try to use those same creatures for something else (catch, breed, upgrade). Note what happens and how clearly the locked state is communicated.
-5. Check quest progress. How do you find out how far along the quest is? Is there a timer or progress indicator?
-6. Wait for or simulate quest completion. Collect the rewards. Are the rewards clearly itemized?
-7. Reflect on whether you understood the full lifecycle before starting, and whether the lock mechanic felt fair or punishing.
-
-Focus on: quest discoverability, pre-commitment information, lock state clarity, and whether the reward felt worth the wait based on what was shown upfront.${REPORT_FORMAT}`,
-  },
-  {
     id: "returning-player",
     name: "Returning Player",
     description:
       "Player returning after a break tries to orient themselves and decide what to do next.",
-    prompt: `You are a Compi player returning after a week away. You don't remember exactly where you left off. You have an existing game state with creatures, some gold, and some progress, but you need to re-orient yourself before deciding what to do.
+    prompt: `You are a Compi player returning after a week away. You don't remember exactly where you left off. You have an existing game state with creatures and some progress, but you need to re-orient yourself before deciding what to do.
 
 Walk through your re-orientation process:
 1. Start with /status. What does it tell you? Does it give you a sense of what you were doing before and what you should do next?
 2. Check your /collection. Can you quickly understand the state of your creatures — their levels, traits, and readiness?
-3. Check your energy and gold levels. Do they give you context about what actions are currently available to you?
+3. Check your energy level. Does it give you context about what actions are currently available to you?
 4. Use /scan to see what's around. Does the scan output give you enough context to make a meaningful decision about whether to catch?
 5. Based on everything you've seen, what would you do next? Was that decision obvious, or did you have to piece it together from multiple screens?
 6. Note any information you wish had been surfaced more prominently to a returning player — things that would have helped you get back into flow faster.
 7. Consider: if a real player came back after a week, what's the chance they'd feel motivated to continue vs. overwhelmed or confused?
 
 Focus on: orientation speed, what-to-do-next clarity, whether the UI provides a natural "pick up where you left off" experience.${REPORT_FORMAT}`,
-  },
-  {
-    id: "gold-decision",
-    name: "Gold Decision",
-    description:
-      "Player has limited gold and must decide between upgrading a creature or breeding.",
-    prompt: `You are playing Compi and you've accumulated a modest amount of gold — enough for either one upgrade or one breed, but not both. You need to decide how to spend it wisely.
-
-Work through the decision-making process:
-1. Check your current gold balance. Is the amount shown clearly? Do you know what it represents?
-2. Review your collection and identify creatures that could benefit from an upgrade. Check the upgrade costs for each — are costs shown per slot, per rank, or as a total?
-3. Assess the breeding options. Which pairs could breed? What would a breed cost? What could you potentially get from the offspring?
-4. Try to compare these two options using only information the game provides in-context (no external calculations). Can you make a genuinely informed decision, or are you guessing?
-5. Look for any guidance or recommendation the game provides. Does it nudge you toward one option? Does it explain the long-term value of each?
-6. Make a decision and execute it. Did the information you gathered support your confidence in the choice?
-7. Reflect: did the game give you what you needed to make a rational decision, or did you have to rely on intuition and incomplete information?
-
-Focus on: information availability at the point of decision, comparative cost visibility, and whether the game provides enough economic context for players to make meaningful strategic choices.${REPORT_FORMAT}`,
   },
   {
     id: "companion-mode",
@@ -163,7 +125,7 @@ Walk through the companion experience:
 2. Try interacting conversationally — ask the companion what you should do, what's nearby, or how the game works. Does it respond naturally and use the actual game tools (scan, catch, etc.) on your behalf?
 3. Ask the companion to show you nearby creatures. Does it call /scan and display the real ASCII art and catch rates, or does it just describe things in text?
 4. Ask the companion to help you catch something. Does it guide you through the process step by step? Does it celebrate or react to the outcome?
-5. Try asking a strategic question like "which creature should I upgrade?" or "what should I do next?" — does the companion give useful, personalized advice based on your actual game state?
+5. Try asking a strategic question like "which creature should I breed?" or "what should I do next?" — does the companion give useful, personalized advice based on your actual game state?
 6. Try a vague or casual request like "yeah do it" or "the rare one" — does the companion parse your intent correctly?
 7. Test whether the companion keeps the session going with follow-up suggestions, or if it feels like a dead end after each action.
 8. Evaluate the overall experience: Is /play a better entry point for new players than using individual commands? Does it reduce friction and make the game more engaging?

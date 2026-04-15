@@ -19,7 +19,6 @@ import {
 } from "../types";
 import { loadConfig } from "../config/loader";
 import { getSpeciesById, getTraitDefinition } from "../config/species";
-import { spendGold } from "./gold";
 import { grantXp } from "./progression";
 
 function generateId(): string {
@@ -27,25 +26,40 @@ function generateId(): string {
 }
 
 /**
- * Calculate the raw inheritance pass chance for a trait based on its spawn rate.
- * Rarer traits (lower spawn rate) get a slightly higher chance.
+ * Extract rank from a variant id (e.g. "eye_c01_r3" → 3, "eye_c01" → 0).
  */
-function traitPassChance(spawnRate: number): number {
-  const cfg = loadConfig().breed;
-  const raw =
-    cfg.inheritanceBase +
-    (cfg.referenceSpawnRate - spawnRate) * cfg.inheritanceRarityScale;
-  return Math.max(cfg.inheritanceMin, Math.min(cfg.inheritanceMax, raw));
+function extractRank(variantId: string): number {
+  const m = variantId.match(/_r(\d+)$/);
+  return m ? parseInt(m[1], 10) : 0;
 }
 
 /**
- * Calculate normalized inheritance probabilities for one slot.
+ * Get the rarity tier name for a given spawnRate.
+ * Tiers are sorted descending by minSpawnRate in config.
+ */
+function getRarityTier(spawnRate: number): string {
+  const tiers = loadConfig().breed.rarityTiers;
+  for (const tier of tiers) {
+    if (spawnRate >= tier.minSpawnRate) {
+      return tier.name;
+    }
+  }
+  return tiers[tiers.length - 1].name;
+}
+
+/**
+ * Calculate rank-based inheritance probability for one slot.
+ * Higher-rank trait gets 60-85% chance. Equal ranks get 50/50.
  * Returns { chanceA, chanceB } where chanceA + chanceB = 1.
+ *
+ * Optional synergyBoost (0-1 fraction of max synergy bonus) adds
+ * to the higher-rank trait's advantage.
  */
 export function calculateInheritance(
   speciesId: string,
   variantIdA: string,
-  variantIdB: string
+  variantIdB: string,
+  synergyBoost: number = 0
 ): { chanceA: number; chanceB: number } {
   // If both parents have the same variant, it's 100% that variant
   if (variantIdA === variantIdB) {
@@ -61,14 +75,29 @@ export function calculateInheritance(
     );
   }
 
-  const rawA = traitPassChance(traitA.spawnRate);
-  const rawB = traitPassChance(traitB.spawnRate);
-  const total = rawA + rawB;
+  const cfg = loadConfig().breed;
+  const rankA = extractRank(variantIdA);
+  const rankB = extractRank(variantIdB);
+  const rankDiff = Math.abs(rankA - rankB);
 
-  return {
-    chanceA: rawA / total,
-    chanceB: rawB / total,
-  };
+  // Base advantage from rank difference, capped at maxAdvantage
+  const rankAdvantage = Math.min(rankDiff * cfg.rankDiffScale, cfg.maxAdvantage);
+  // Synergy adds up to synergyBonus on top
+  const synergy = synergyBoost * cfg.synergyBonus;
+  // Total advantage for the higher-rank trait
+  const totalAdvantage = Math.min(rankAdvantage + synergy, cfg.maxAdvantage);
+
+  if (rankA > rankB) {
+    return { chanceA: cfg.baseChance + totalAdvantage, chanceB: cfg.baseChance - totalAdvantage };
+  } else if (rankB > rankA) {
+    return { chanceA: cfg.baseChance - totalAdvantage, chanceB: cfg.baseChance + totalAdvantage };
+  } else {
+    // Same rank — apply synergy to trait A by default (arbitrary tiebreak)
+    if (synergy > 0) {
+      return { chanceA: cfg.baseChance + synergy, chanceB: cfg.baseChance - synergy };
+    }
+    return { chanceA: 0.5, chanceB: 0.5 };
+  }
 }
 
 /**
@@ -130,7 +159,40 @@ function validateBreedPair(
 }
 
 /**
- * Build slot inheritance data for all 4 slots.
+ * Calculate synergy boost for a given slot based on how many OTHER slots
+ * have both parents sharing the same rarity tier.
+ * Returns a 0-1 fraction (0 = no synergy, 1 = all other slots match).
+ */
+function calculateSynergyBoost(
+  speciesId: string,
+  currentSlotId: SlotId,
+  parentA: CollectionCreature,
+  parentB: CollectionCreature,
+  speciesSlots: SlotId[]
+): number {
+  const otherSlots = speciesSlots.filter((s) => s !== currentSlotId);
+  if (otherSlots.length === 0) return 0;
+
+  let matches = 0;
+  for (const slotId of otherSlots) {
+    const slotA = parentA.slots.find((s) => s.slotId === slotId);
+    const slotB = parentB.slots.find((s) => s.slotId === slotId);
+    if (!slotA || !slotB) continue;
+
+    const traitA = getTraitDefinition(speciesId, slotA.variantId);
+    const traitB = getTraitDefinition(speciesId, slotB.variantId);
+    if (!traitA || !traitB) continue;
+
+    if (getRarityTier(traitA.spawnRate) === getRarityTier(traitB.spawnRate)) {
+      matches++;
+    }
+  }
+
+  return matches / otherSlots.length;
+}
+
+/**
+ * Build slot inheritance data for all slots.
  */
 function buildSlotInheritance(
   speciesId: string,
@@ -159,10 +221,19 @@ function buildSlotInheritance(
       );
     }
 
+    const synergyBoost = calculateSynergyBoost(
+      speciesId,
+      slotId,
+      parentA,
+      parentB,
+      speciesSlots
+    );
+
     const { chanceA, chanceB } = calculateInheritance(
       speciesId,
       slotA.variantId,
-      slotB.variantId
+      slotB.variantId,
+      synergyBoost
     );
 
     return {
@@ -238,18 +309,7 @@ export function executeBreed(
     inheritedFrom[si.slotId] = fromA ? "A" : "B";
   }
 
-  // --- Gold cost based on child avg rank ---
   const config = loadConfig();
-  const childRanks = childSlots.map((s) => {
-    const m = s.variantId.match(/_r(\d+)$/);
-    return m ? parseInt(m[1], 10) : 0;
-  });
-  const childAvgRank =
-    childRanks.reduce((a, b) => a + b, 0) / childRanks.length;
-  const goldCost =
-    config.mergeGold.baseCost +
-    Math.floor(childAvgRank * config.mergeGold.rankMultiplier);
-  spendGold(state, goldCost);
 
   // --- Guaranteed +1 upgrade to one random trait ---
   const upgradeIndex = Math.floor(rng() * childSlots.length);
@@ -264,7 +324,7 @@ export function executeBreed(
   }
 
   // --- 30% chance to downgrade one other random trait ---
-  if (rng() < config.mergeGold.downgradeChance && childSlots.length > 1) {
+  if (rng() < config.breed.downgradeChance && childSlots.length > 1) {
     // Pick a different slot than the one just upgraded
     const otherIndices = childSlots
       .map((_, i) => i)
@@ -311,6 +371,8 @@ export function executeBreed(
     parentA,
     parentB,
     inheritedFrom: inheritedFrom as Record<SlotId, "A" | "B">,
+    isCrossSpecies: false,
+    upgrades: [],
   };
 }
 
