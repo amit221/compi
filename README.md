@@ -101,25 +101,30 @@ Just type **`/play`** and let the AI guide you. No commands to memorize — it r
 ```
 /play
 
-  ⚡ 28/30  |  🏆 Lv.4  |  💰 12g  |  📦 8/20
+  ⚡ 25/30 | Lv.3 | 📦 4/15
 
-  🔍 3 creatures nearby
-  🥚 Ivory + Blaze can breed
-  ⬆️ Drift's mouth → rank 2 for 3g
+  A Flikk appeared!
 
-  A Pyrax just showed up — you've never caught one before!
-  Discovery XP bonus if you grab it. What would you like to do?
+     \ _ /
+    ( •.• )
+    ( ^^^ )
+     ~░░~
+      \/
 
-> catch the pyrax
+  Blink (Rare) · Chatter (Superior)
+  Shiver (Common) · Whip (Uncommon)
 
-  [real catch output with ASCII art...]
+> catch it
 
-  Nice! First Pyrax in your collection — +20 discovery XP.
-  You now have a breeding pair (Ivory + Blaze).
-  Want to breed them, or keep scanning?
+  ✦ CAUGHT! +10 XP · New species! +20 XP
+
+> breed 1 2
+
+  ★ HYBRID SPECIES BORN!
+  ↑ UP! eyes: Common → Rare
 ```
 
-The companion shows real game output, adds strategic context to every option, and keeps going until you're done.
+Scan, catch, breed — the AI handles everything. Just tell it what you want.
 
 ### Other ways to play
 
