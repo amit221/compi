@@ -209,6 +209,173 @@ Implementation: `state.speciesProgress: Record<string, boolean[]>` — maps spec
 
 Removed: xpPerUpgrade (8), xpPerQuest (15).
 
+## UI/UX — Terminal Output
+
+### `/scan` — Show Nearby Creatures
+
+Show all nearby creatures at once (not one at a time). Each creature displays its ASCII art with trait colors, species name, and trait names with rarity colors.
+
+```
+╭──────────────────────────────────────╮
+│  3 creatures nearby     ⚡ 12 energy │
+╰──────────────────────────────────────╯
+
+ 1)    ·.·            2)   ✦~✦           3)    ○w○
+      ( ω  )              <( △  )>            ( ◡  )
+      /░░░░\               /▓▓\               /····\
+       ~~/                  ☄☄                 ∿∿
+
+    Compi                 Pyrax               Flikk
+    Pebble Gaze (cyan)    Ember Gaze (grey)   Owl Sight (green)
+    Omega (magenta)       Flame (cyan)        Smile (grey)
+    Dots (grey)           Crystal (green)     Light (cyan)
+    Curl (green)          Comet (magenta)     Drift (grey)
+
+    catch cost: 2⚡       catch cost: 3⚡      catch cost: 1⚡
+
+  /catch 1   /catch 2   /catch 3
+```
+
+Each trait name is rendered in its rarity color. The creature's ASCII art uses the color of its highest-rarity trait.
+
+### `/catch <n>` — Capture Result
+
+```
+╭──────────────────────────────────╮
+│  ✓ Caught Compi!          -2⚡   │
+│                                  │
+│       ·.·                        │
+│      ( ω  )                      │
+│      /░░░░\                      │
+│       ~~/                        │
+│                                  │
+│  Pebble Gaze ●  Omega ●         │
+│  Dots ●         Curl ●          │
+│                                  │
+│  Added to collection (4/15)      │
+╰──────────────────────────────────╯
+```
+
+Trait dots are colored by rarity. Brief, satisfying confirmation.
+
+### `/breed` — Breed Flow
+
+**Step 1: Selection** — show breedable pairs from collection.
+
+```
+╭──────────────────────────────────────╮
+│  BREED LAB                    ⚡ 9   │
+│  Breeds this session: 1/3            │
+╰──────────────────────────────────────╯
+
+  Select parent A (by number):
+
+  1) Compi    ·.· ω ░░ ~~/     (cyan, magenta, grey, green)
+  2) Pyrax    ✦~✦ △ ▓▓ ☄☄     (grey, cyan, green, magenta)
+  3) Flikk    ○w○ ◡ ·· ∿∿     (green, grey, cyan, grey)
+  4) Compi    -.– ~ -- _v_     (grey, grey, grey, grey)
+
+  /breed 1 2
+```
+
+Each creature shown as a compact one-liner: species + 4 trait visuals + 4 rarity colors.
+
+**Step 2: Result** — after `/breed 1 2`:
+
+Same species:
+```
+╭──────────────────────────────────────╮
+│  Compi × Compi                -5⚡   │
+│                                      │
+│       ·.·                            │
+│      ( ω  )                          │
+│      /░░░░\                          │
+│       ~~/                            │
+│                                      │
+│  Pebble Gaze (cyan)                  │
+│  Omega (magenta → yellow!)  ↑ UP!    │
+│  Dots (grey)                         │
+│  Curl (green)                        │
+│                                      │
+│  ✓ Born: Compi (Gen 1)               │
+│  Added to collection (5/15)          │
+│  +25 XP                              │
+╰──────────────────────────────────────╯
+```
+
+When a trait upgrades rarity, show `↑ UP!` with a color change callout. This is the exciting moment.
+
+Cross-species:
+```
+╭──────────────────────────────────────╮
+│  ★ HYBRID SPECIES BORN!      -7⚡   │
+│                                      │
+│  Compi × Pyrax                       │
+│                                      │
+│      ·✦·                             │
+│     <( ω )>                          │
+│      /▓░\                            │
+│       ~☄                             │
+│                                      │
+│  Emberlotl                           │
+│  "A smoldering axolotl with          │
+│   crystalline wings of flame"        │
+│                                      │
+│  Pebble Gaze (cyan)                  │
+│  Omega (magenta)                     │
+│  Crystal (green → cyan!)  ↑ UP!      │
+│  Comet (magenta)                     │
+│                                      │
+│  ✓ New species discovered!           │
+│  +50 XP  +20 Discovery XP           │
+╰──────────────────────────────────────╯
+```
+
+The hybrid reveal is the BIG moment — new name, new art (AI-generated), description, and the "★ HYBRID SPECIES BORN!" banner.
+
+### `/species` — Species Index (New Command)
+
+```
+╭──────────────────────────────────────╮
+│  SPECIES INDEX              7 + 2    │
+╰──────────────────────────────────────╯
+
+  Compi         ● ● ● ○ ○   3/5
+                C U R E L
+
+  Pyrax         ● ● ○ ○ ○   2/5
+                C U R E L
+
+  Flikk         ● ○ ○ ○ ○   1/5
+                C U R E L
+
+  ...
+
+  ── HYBRIDS ──
+
+  Emberlotl     ● ● ○ ○ ○   2/5
+  (Compi×Pyrax) C U R E L
+```
+
+Filled dots are colored by their rarity tier. Empty dots are dim. Shows base species first, then hybrids below a separator.
+
+### `/collection` — Updated Display
+
+Same as current but:
+- Each trait shows its rarity color (not rank number)
+- No gold display
+- No quest status
+- Creature overall color = highest trait rarity color
+
+### Removed from UI
+
+- Gold display (everywhere)
+- Quest status/prompts
+- Upgrade prompts
+- Trait rank numbers (`r0`..`r7`)
+- `/upgrade` command
+- `/quest` command
+
 ## State Migration (v5 → v6)
 
 ### New Fields
