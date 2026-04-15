@@ -508,7 +508,7 @@ export class SimpleTextRenderer implements Renderer {
 
   renderBreedTable(table: BreedTable): string {
     if (table.species.length === 0) {
-      return "  No breedable pairs yet — you need 2+ creatures of the same species.\n  Use /scan and /catch to find more.";
+      return "  No breedable pairs yet — you need 2+ creatures in your collection.\n  Use /scan and /catch to find more.";
     }
 
     const lines: string[] = [];
