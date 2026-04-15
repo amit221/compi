@@ -24,12 +24,19 @@ export interface CreatureSlot {
   slotId: SlotId;
   variantId: string;
   color: CreatureColor;
+  /** 0-7 rarity index. 0=common(grey), 7=mythic(red). Added in v6. */
+  rarity?: number;
 }
 
 // --- Colors ---
 
 export type CreatureColor = "grey" | "white" | "green" | "cyan" | "blue" | "magenta" | "yellow" | "red";
 export const CREATURE_COLORS: CreatureColor[] = ["grey", "white", "green", "cyan", "blue", "magenta", "yellow", "red"];
+
+/** Maps rarity index (0-7) to CreatureColor */
+export const RARITY_COLORS: CreatureColor[] = ["grey", "white", "green", "cyan", "blue", "magenta", "yellow", "red"];
+export const RARITY_NAMES = ["Common", "Uncommon", "Rare", "Superior", "Elite", "Epic", "Legendary", "Mythic"] as const;
+export type RarityName = typeof RARITY_NAMES[number];
 
 // --- Species ---
 
