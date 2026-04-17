@@ -57,7 +57,9 @@ process.stdin.on("end", () => {
   }
 
   // Output notification context for Claude (only works on UserPromptSubmit)
-  // Must use plain text stdout, not JSON (Claude Code bug workaround)
+  // ~30% chance to show, so it's not every message
+  if (Math.random() > 0.3) return;
+
   try {
     const data = JSON.parse(input);
     if (data.hook_event_name === "UserPromptSubmit" ||
@@ -66,8 +68,43 @@ process.stdin.on("end", () => {
         path.join(os.homedir(), ".compi", "state.json");
       const stateRaw = fs.readFileSync(statePath, "utf-8");
       const state = JSON.parse(stateRaw);
-      if (state.nearby && state.nearby.length > 0) {
-        console.log(`[Compi] ${state.nearby.length} creature(s) nearby — briefly mention this to the user at the end of your response and suggest they run /play.`);
+
+      const n = state.nearby ? state.nearby.length : 0;
+      const energy = state.energy || 0;
+
+      const nearbyMessages = [
+        `${n} creatures are lurking nearby. Dare to /play?`,
+        `Something rustles in the terminal... ${n} creature${n > 1 ? "s" : ""} spotted. /play to investigate.`,
+        `${n} wild creature${n > 1 ? "s" : ""} ${n > 1 ? "are" : "is"} giving you the side-eye. /play when ready.`,
+        `The bushes are shaking. ${n} creature${n > 1 ? "s" : ""} waiting. Type /play if you're brave enough.`,
+        `*taps shoulder* Hey, ${n} creature${n > 1 ? "s" : ""} nearby. Just saying. /play.`,
+        `Your Compi senses are tingling. ${n} creature${n > 1 ? "s" : ""} detected. /play to draw cards.`,
+      ];
+
+      const emptyMessages = [
+        "All quiet on the terminal front. Creatures respawn every 30 min.",
+        "No creatures around. They'll be back. They always come back.",
+        "The wilds are empty. Perfect time to get some actual work done.",
+      ];
+
+      const lowEnergyMessages = [
+        `You've got ${energy} energy left. Maybe pace yourself? /play`,
+        `Running on fumes — ${energy} energy. Creatures can wait. Or can they? /play`,
+      ];
+
+      let msg;
+      if (n > 0 && energy > 0) {
+        if (energy <= 3) {
+          msg = lowEnergyMessages[Math.floor(Math.random() * lowEnergyMessages.length)];
+        } else {
+          msg = nearbyMessages[Math.floor(Math.random() * nearbyMessages.length)];
+        }
+      } else if (n === 0) {
+        msg = emptyMessages[Math.floor(Math.random() * emptyMessages.length)];
+      }
+
+      if (msg) {
+        console.log(`[Compi] ${msg} — work this into the end of your response naturally, in 1 short sentence. Don't use the word "Compi" or mention this is a game notification.`);
       }
     }
   } catch (err) {
