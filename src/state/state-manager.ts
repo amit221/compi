@@ -7,7 +7,7 @@ import { logger } from "../logger";
 function defaultState(): GameState {
   const today = new Date().toISOString().split("T")[0];
   return {
-    version: 6,
+    version: 7,
     profile: {
       level: 1,
       xp: 0,
@@ -19,7 +19,6 @@ function defaultState(): GameState {
       lastActiveDate: today,
     },
     collection: [],
-    archive: [],
     energy: loadConfig().energy.startingEnergy,
     lastEnergyGainAt: Date.now(),
     nearby: [],
@@ -71,8 +70,8 @@ function migrateV3toV4(raw: Record<string, unknown>): GameState {
     }
   }
 
-  // Add archive if missing
-  if (!Array.isArray(state.archive)) {
+  // Add archive if missing (v4 intermediate field, removed in v7)
+  if (!Array.isArray((state as any).archive)) {
     (state as any).archive = [];
   }
 
@@ -159,6 +158,22 @@ function migrateV5toV6(raw: Record<string, unknown>): GameState {
   return state as GameState;
 }
 
+function migrateV6toV7(raw: Record<string, unknown>): GameState {
+  const state = raw as any;
+
+  // Move all archived creatures into collection with archived = false
+  if (Array.isArray(state.archive)) {
+    for (const creature of state.archive) {
+      creature.archived = false;
+      state.collection.push(creature);
+    }
+  }
+  delete state.archive;
+
+  state.version = 7;
+  return state as GameState;
+}
+
 export class StateManager {
   constructor(private filePath: string) {}
 
@@ -173,28 +188,38 @@ export class StateManager {
         logger.info("Migrating state from v4 to v5", { path: this.filePath });
         const v5 = migrateV4toV5(v4 as unknown as Record<string, unknown>);
         logger.info("Migrating state from v5 to v6", { path: this.filePath });
-        return migrateV5toV6(v5 as unknown as Record<string, unknown>);
+        const v6 = migrateV5toV6(v5 as unknown as Record<string, unknown>);
+        logger.info("Migrating state from v6 to v7", { path: this.filePath });
+        return migrateV6toV7(v6 as unknown as Record<string, unknown>);
       }
       if (version === 4) {
         logger.info("Migrating state from v4 to v5", { path: this.filePath });
         const v5 = migrateV4toV5(raw);
         logger.info("Migrating state from v5 to v6", { path: this.filePath });
-        return migrateV5toV6(v5 as unknown as Record<string, unknown>);
+        const v6 = migrateV5toV6(v5 as unknown as Record<string, unknown>);
+        logger.info("Migrating state from v6 to v7", { path: this.filePath });
+        return migrateV6toV7(v6 as unknown as Record<string, unknown>);
       }
       if (version === 5) {
         logger.info("Migrating state from v5 to v6", { path: this.filePath });
-        return migrateV5toV6(raw);
+        const v6 = migrateV5toV6(raw);
+        logger.info("Migrating state from v6 to v7", { path: this.filePath });
+        return migrateV6toV7(v6 as unknown as Record<string, unknown>);
       }
-      if (version !== 6) {
+      if (version === 6) {
+        logger.info("Migrating state from v6 to v7", { path: this.filePath });
+        return migrateV6toV7(raw);
+      }
+      if (version !== 7) {
         logger.info("Incompatible state version, creating fresh state", { path: this.filePath });
         return defaultState();
       }
-      // Backfill lastSpawnAt for existing v6 states
+      // Backfill lastSpawnAt for existing v7 states
       const state = raw as unknown as GameState;
       if (state.lastSpawnAt === undefined) {
         (state as any).lastSpawnAt = 0;
       }
-      // Ensure v6 fields are present (backfill for states that may be missing them)
+      // Ensure v7 fields are present (backfill for states that may be missing them)
       if (!state.speciesProgress) (state as any).speciesProgress = {};
       if (!state.personalSpecies) (state as any).personalSpecies = [];
       if (state.sessionBreedCount === undefined) (state as any).sessionBreedCount = 0;

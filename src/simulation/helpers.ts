@@ -32,7 +32,6 @@ export function makeDefaultState(sessionPrefix = "sim"): GameState {
       lastActiveDate: "",
     },
     collection: [],
-    archive: [],
     energy: config.energy.startingEnergy,
     lastEnergyGainAt: 0,
     nearby: [],

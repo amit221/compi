@@ -224,7 +224,7 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
       stateManager.save(engine.getState());
       return text(prependStatusBar(engine, renderer, `Archived ${result.creature.name}.`));
     } else {
-      return text(prependStatusBar(engine, renderer, renderer.renderArchive(engine.getState().archive)));
+      return text(prependStatusBar(engine, renderer, renderer.renderArchive((engine.getState() as any).archive ?? [])));
     }
   }, meta);
 

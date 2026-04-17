@@ -119,7 +119,7 @@ export class GameEngine {
     return {
       profile: this.state.profile,
       collectionCount: this.state.collection.length,
-      archiveCount: this.state.archive.length,
+      archiveCount: ((this.state as any).archive ?? []).length,
       energy: this.state.energy,
       nearbyCount: this.state.nearby.length,
       batchAttemptsRemaining: this.state.batch?.attemptsRemaining ?? 0,

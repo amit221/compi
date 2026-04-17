@@ -32,7 +32,6 @@ export function checkInvariants(result: SimulationResult): Violation[] {
       stateSnapshot: {
         energy: state.energy,
         collection: state.collection,
-        archive: state.archive,
         profile: state.profile,
         nearby: state.nearby,
         batch: state.batch,

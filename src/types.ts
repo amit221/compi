@@ -103,10 +103,9 @@ export interface GameSettings {
 }
 
 export interface GameState {
-  version: number; // 6
+  version: number; // 7
   profile: PlayerProfile;
   collection: CollectionCreature[];
-  archive: CollectionCreature[];
   energy: number;
   lastEnergyGainAt: number;
   nearby: NearbyCreature[];

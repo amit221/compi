@@ -21,9 +21,9 @@ export function archiveCreature(state: GameState, creatureId: string): ArchiveRe
   // Remove from collection
   state.collection.splice(index, 1);
 
-  // Mark archived and push to archive
+  // Mark archived and push to archive (archive field removed in v7; kept here until Task 10 cleanup)
   creature.archived = true;
-  state.archive.push(creature);
+  (state as any).archive.push(creature);
 
   return { creature };
 }

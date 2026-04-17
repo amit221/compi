@@ -143,7 +143,7 @@ try {
         save();
         output(result, `Archived ${result.creature.name}.`);
       } else {
-        const archive = engine.getState().archive;
+        const archive = (engine.getState() as any).archive ?? [];
         output(archive, renderer.renderArchive(archive));
       }
       break;
