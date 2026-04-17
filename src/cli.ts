@@ -7,6 +7,7 @@ import { SimpleTextRenderer } from "./renderers/simple-text";
 import { logger } from "./logger";
 import { MAX_ENERGY } from "./engine/energy";
 import { drawCards, playCard, skipHand } from "./engine/cards";
+import { registerPersonalSpecies } from "./config/species";
 
 const statePath =
   process.env.COMPI_STATE_PATH ||
@@ -18,6 +19,7 @@ const jsonMode = args.includes("--json");
 
 const stateManager = new StateManager(statePath);
 const state = stateManager.load();
+registerPersonalSpecies(state.personalSpecies);
 const engine = new GameEngine(state);
 const renderer = new SimpleTextRenderer();
 

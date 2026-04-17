@@ -54,6 +54,19 @@ export function getSpeciesById(id: string): SpeciesDefinition | undefined {
   return _speciesById.get(id);
 }
 
+/**
+ * Register personal/hybrid species into the lookup cache so renderers can find them.
+ * Call this after loading state, before rendering.
+ */
+export function registerPersonalSpecies(species: SpeciesDefinition[]): void {
+  ensureLoaded();
+  for (const s of species) {
+    if (!_speciesById.has(s.id)) {
+      _speciesById.set(s.id, s);
+    }
+  }
+}
+
 export function getAllSpecies(): SpeciesDefinition[] {
   ensureLoaded();
   return _speciesCache!;

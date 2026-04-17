@@ -149,8 +149,8 @@ function drawCardsFree(state: GameState, rng: () => number = Math.random): DrawR
 
   let drawn: Card[];
 
-  // Breed probability = breedPool.length / pool.length
-  const breedProb = breedPool.length / pool.length;
+  // Breed shows ~20% of the time (capped), so catches dominate
+  const breedProb = catchPool.length > 0 ? 0.2 : 1.0;
   if (breedPool.length > 0 && rng() < breedProb) {
     // Draw 1 breed card (big layout)
     shuffle(breedPool, rng);

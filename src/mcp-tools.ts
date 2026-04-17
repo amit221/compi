@@ -13,6 +13,7 @@ import { GameEngine } from "./engine/game-engine";
 import { SimpleTextRenderer } from "./renderers/simple-text";
 import { MAX_ENERGY } from "./engine/energy";
 import { SlotId, SpeciesDefinition } from "./types";
+import { registerPersonalSpecies } from "./config/species";
 import { drawCards, playCard, skipHand } from "./engine/cards";
 
 const statePath =
@@ -89,6 +90,9 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     const { stateManager, engine } = loadEngine();
     const state = engine.getState();
     const renderer = new SimpleTextRenderer();
+
+    // Register hybrid species so renderer can find their art
+    registerPersonalSpecies(state.personalSpecies);
 
     // Process ticks (energy/spawns)
     engine.processTick({ timestamp: Date.now(), sessionId: state.currentSessionId }, Math.random);

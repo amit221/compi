@@ -331,6 +331,22 @@ export function executeBreed(
     archived: false,
   };
 
+  // If cross-species, auto-register a placeholder hybrid species (if not already registered)
+  if (isCrossSpecies && !state.personalSpecies.find(s => s.id === childSpeciesId)) {
+    const parentASpecies = getSpeciesById(parentA.speciesId);
+    const parentBSpecies = getSpeciesById(parentB.speciesId);
+    const templateSpecies = parentASpecies || parentBSpecies;
+    state.personalSpecies.push({
+      id: childSpeciesId,
+      name: `${(parentASpecies?.name ?? parentA.speciesId)}${(parentBSpecies?.name ?? parentB.speciesId)}`,
+      description: `A hybrid of ${parentA.speciesId} and ${parentB.speciesId}`,
+      spawnWeight: 0,
+      art: templateSpecies?.art ?? ["  ???"],
+      zones: templateSpecies?.zones,
+      traitPools: {},
+    });
+  }
+
   // Mutate state — parents survive
   state.collection.push(child);
   spendEnergy(state, energyCost);
