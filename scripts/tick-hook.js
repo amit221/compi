@@ -62,18 +62,16 @@ process.stdin.on("end", () => {
     const data = JSON.parse(input);
     if (data.hook_event_name === "UserPromptSubmit" ||
         data.hook_event_name === "beforeSubmitPrompt") {
-      const cliPath = path.resolve(__dirname, "cli.js");
-      const result = execFileSync("node", [cliPath, "scan", "--json"], {
-        timeout: 5000,
-        encoding: "utf-8",
-      });
-      const scan = JSON.parse(result);
-      if (scan.nearby && scan.nearby.length > 0) {
-        console.log(`[Compi] ${scan.nearby.length} creature(s) nearby — briefly mention this to the user at the end of your response and suggest they run /scan.`);
+      const statePath = process.env.COMPI_STATE_PATH ||
+        path.join(os.homedir(), ".compi", "state.json");
+      const stateRaw = fs.readFileSync(statePath, "utf-8");
+      const state = JSON.parse(stateRaw);
+      if (state.nearby && state.nearby.length > 0) {
+        console.log(`[Compi] ${state.nearby.length} creature(s) nearby — briefly mention this to the user at the end of your response and suggest they run /play.`);
       }
     }
   } catch (err) {
-    log("ERROR", "tick-hook: scan notification failed", {
+    log("ERROR", "tick-hook: play notification failed", {
       error: err.message || String(err),
     });
   }
