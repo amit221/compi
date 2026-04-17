@@ -4,11 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Compi is a terminal creature collection game (Pokemon Go-inspired) that runs as a Claude Code plugin, Cursor extension, or standalone CLI. Hooks track user activity as "ticks", creatures spawn passively, and players interact via slash commands:
+Compi is a terminal creature collection game (Pokemon Go-inspired) that runs as a Claude Code plugin, Cursor extension, or standalone CLI. Hooks track user activity as "ticks", creatures spawn passively, and players interact via a single command:
 
-`/scan`, `/catch`, `/collection`, `/breed`, `/breedable`, `/archive`, `/energy`, `/status`, `/settings`, `/species`, `/create-species`, `/list`
+`/play`
 
-Game state persists to `~/.compi/state.json` (override with `COMPI_STATE_PATH` env var). Current state version is v6.
+The game presents randomized cards (catch or breed) each turn. Players pick a card by typing a letter (a/b/c) or skip (s). Each turn costs 1 energy; actions cost additional energy on top.
+
+Game state persists to `~/.compi/state.json` (override with `COMPI_STATE_PATH` env var). Current state version is v7.
 
 ## Commands
 
@@ -41,18 +43,17 @@ The codebase follows a strict layered architecture — each layer depends only o
    - `energy.ts` — Energy regeneration and spending (only resource)
    - `progression.ts` — XP, leveling, rarity breeding caps by level
    - `discovery.ts` — Species discovery tracking, XP bonuses
-   - `advisor.ts` — Strategic gameplay suggestions and progress tracking
+   - `cards.ts` — Card-based UX: pool building, card drawing, card execution
    - `rarity.ts` — Trait rarity scoring
-   - `archive.ts` — Creature archival when collection limit reached
-4. **State** — `src/state/state-manager.ts` handles JSON file persistence (includes v3→v4→v5→v6 migrations).
+4. **State** — `src/state/state-manager.ts` handles JSON file persistence (includes v3→v4→v5→v6→v7 migrations).
 5. **Config** — `src/config/` contains species definitions (`species.ts`), trait definitions (`traits.ts`), balance constants (`constants.ts`), and a config loader (`loader.ts`). Balance tuning lives in `config/balance.json`.
 
 Key design rules:
 - Engine modules are pure functions — they mutate the passed `GameState` object but perform no I/O, file access, or randomness (RNG is injected via `rng` parameter).
 - All TypeScript types live in `src/types.ts` — this is the single source of truth for interfaces.
 - `src/index.ts` is the public API barrel export.
-- `src/cli.ts` is the standalone CLI entry point (uses yargs-style subcommands).
-- `src/mcp-tools.ts` contains shared MCP tool registration used by both Claude Code and Cursor servers.
+- `src/cli.ts` is the standalone CLI entry point (single `play` command).
+- `src/mcp-tools.ts` contains two MCP tools: `play` (the game) and `register_hybrid` (for cross-species breeding).
 
 ## Plugin Structure
 
@@ -71,8 +72,16 @@ Key design rules:
 - **Species Index**: `/species` tracks rarity tier discovery per species (8 tiers). Fill all tiers for mastery.
 - **Progression**: XP from catches (10), breeds (25), hybrid creation (50), discoveries (20), tier discoveries (10). Leveling gates max breedable rarity (level 1-2 = Uncommon cap, level 13+ = Mythic).
 - **Energy**: Only resource. Max 30, regenerates 1 per 30 min, +5 session bonus. Catching costs 1-5 (by rarity), breeding costs 3-11 (by parent rarity).
-- **Scanning**: Shows one creature at a time. `/scan` again to see the next from the batch (previous one escapes). `/catch` to capture. Scan is free, catch costs energy.
-- **Species**: 7 base species defined in `config/species/` (compi, flikk, glich, jinx, monu, pyrax, whiski). New species created via `/create-species` or through cross-species breeding.
+- **Card System (v7)**: `/play` draws 1-3 cards randomly from available actions. Catch cards show creature art, traits, cost, catch rate. Breed cards show both parents with slot comparison and upgrade chances. Every turn costs 1 energy base; actions add their own cost on top. Skip costs 1 energy.
+- **Species**: 7 base species defined in `config/species/` (compi, flikk, glich, jinx, monu, pyrax, whiski). New species created through cross-species breeding.
+
+## Removed Systems (v7)
+
+The following were removed in the v6→v7 overhaul:
+- **Multiple commands** — replaced by single `/play` card-based UX
+- **Archive** — no collection limit, no archiving
+- **Advisor/Companion** — card system replaces action suggestions
+- **Scanning** — creatures appear as catch cards
 
 ## Removed Systems (v6)
 
