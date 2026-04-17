@@ -15,14 +15,13 @@ function makeRng(seed: number = 0): () => number {
 // Helper to create a fresh v5 state
 function freshState(): GameState {
   return {
-    version: 6,
+    version: 7,
     profile: {
       level: 1, xp: 0, totalCatches: 0, totalMerges: 0, totalTicks: 0,
       currentStreak: 0, longestStreak: 0, lastActiveDate: "2026-01-01",
-      
+
     },
     collection: [],
-    archive: [],
     energy: 30,
     lastEnergyGainAt: Date.now(),
     nearby: [],
@@ -62,7 +61,7 @@ function makeCreature(id: string, speciesId: string, traits: Record<string, stri
 }
 
 describe("gameplay loop integration", () => {
-  test("full loop: scan -> catch -> catch another -> breed -> archive", () => {
+  test("full loop: scan -> catch -> catch another -> breed", () => {
     const state = freshState();
     const engine = new GameEngine(state);
     const rng = makeRng(42);
@@ -111,63 +110,6 @@ describe("gameplay loop integration", () => {
     expect(state.collection).toHaveLength(3);
     expect(state.collection.find(c => c.id === breedResult.child.id)).toBeDefined();
 
-    // 5. Archive the child (parents still in collection, so archiving child leaves 2)
-    const archiveResult = engine.archive(breedResult.child.id);
-    expect(archiveResult.creature.archived).toBe(true);
-    expect(state.collection).toHaveLength(2);
-    expect(state.archive).toHaveLength(1);
-  });
-
-  test("collection cap enforcement: cannot catch at cap of 15", () => {
-    const state = freshState();
-    const engine = new GameEngine(state);
-    const rng = makeRng(100);
-
-    // Fill collection to 15
-    for (let i = 0; i < 15; i++) {
-      state.collection.push(
-        makeCreature(`cap-${i}`, "compi", {
-          eyes: "eye_c01", mouth: "mth_c01", body: "bod_c01", tail: "tal_c01",
-        })
-      );
-    }
-
-    // Ensure there are creatures nearby
-    engine.scan(rng);
-    expect(state.nearby.length).toBeGreaterThanOrEqual(3);
-
-    // Trying to catch should throw
-    expect(() => engine.catch(0, () => 0.01)).toThrow(
-      "Collection is full (15 creatures)"
-    );
-  });
-
-  test("archive frees slot: can catch again after archiving", () => {
-    const state = freshState();
-    const engine = new GameEngine(state);
-    const rng = makeRng(200);
-
-    // Fill collection to 15
-    for (let i = 0; i < 15; i++) {
-      state.collection.push(
-        makeCreature(`arc-${i}`, "compi", {
-          eyes: "eye_c01", mouth: "mth_c01", body: "bod_c01", tail: "tal_c01",
-        })
-      );
-    }
-
-    // Archive one creature to free a slot
-    engine.archive("arc-0");
-    expect(state.collection).toHaveLength(14);
-    expect(state.archive).toHaveLength(1);
-
-    // Ensure there are creatures nearby
-    engine.scan(rng);
-
-    // Now catch should work
-    const result = engine.catch(0, () => 0.01);
-    expect(result.success).toBe(true);
-    expect(state.collection).toHaveLength(15);
   });
 
   test("breed produces child with inherited traits from parents", () => {

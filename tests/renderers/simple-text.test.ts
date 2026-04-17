@@ -295,22 +295,6 @@ describe("renderBreedResult", () => {
   });
 });
 
-// --- renderArchive ---
-
-describe("renderArchive", () => {
-  test("empty archive returns message", () => {
-    const out = renderer.renderArchive([]);
-    expect(out).toContain("No creatures in your archive");
-  });
-
-  test("shows archived creatures", () => {
-    const archived = [{ ...makeCollection("c1", "Sparks", 3), archived: true }];
-    const out = renderer.renderArchive(archived);
-    expect(out).toContain("Sparks");
-    expect(out).toContain("Archive");
-  });
-});
-
 // --- renderEnergy ---
 
 describe("renderEnergy", () => {
@@ -329,23 +313,21 @@ describe("renderEnergy", () => {
 // --- renderStatus ---
 
 describe("renderStatus", () => {
-  test("contains archive count", () => {
+  test("contains collection count", () => {
     const out = renderer.renderStatus({
       profile: {
         level: 1, xp: 0, totalCatches: 0, totalMerges: 0, totalTicks: 0,
         currentStreak: 0, longestStreak: 0, lastActiveDate: "2026-04-01",
-        
+
       },
       collectionCount: 2,
-      archiveCount: 5,
       energy: 5,
       nearbyCount: 0,
       batchAttemptsRemaining: 0,
       discoveredCount: 0,
       speciesProgress: {},
     });
-    expect(out).toContain("Archive");
-    expect(out).toContain("5 creatures");
+    expect(out).toContain("Collection");
   });
 });
 

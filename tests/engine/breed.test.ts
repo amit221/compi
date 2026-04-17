@@ -45,7 +45,7 @@ function makeState(
   energy: number = 20
 ): GameState {
   return {
-    version: 6,
+    version: 7,
     profile: {
       level: 1,
       xp: 0,
@@ -55,11 +55,10 @@ function makeState(
       currentStreak: 0,
       longestStreak: 0,
       lastActiveDate: "",
-      
-      
+
+
     },
     collection,
-    archive: [],
     energy,
     lastEnergyGainAt: Date.now(),
     nearby: [],
@@ -636,7 +635,7 @@ describe("breed rarity upgrades and XP", () => {
     energy: number = 20
   ): GameState {
     return {
-      version: 6,
+      version: 7,
       profile: {
         level: 5, // level 5 so rarityBreedCap is higher (allows upgrades)
         xp: 0,
@@ -648,7 +647,6 @@ describe("breed rarity upgrades and XP", () => {
         lastActiveDate: "",
       },
       collection,
-      archive: [],
       energy,
       lastEnergyGainAt: Date.now(),
       nearby: [],

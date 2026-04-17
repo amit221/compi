@@ -13,7 +13,7 @@ function makeRng(seed: number = 0): () => number {
 
 function freshState(): GameState {
   return {
-    version: 6,
+    version: 7,
     profile: {
       level: 1,
       xp: 0,
@@ -25,7 +25,6 @@ function freshState(): GameState {
       lastActiveDate: "2026-01-01",
     },
     collection: [],
-    archive: [],
     energy: 20,
     lastEnergyGainAt: Date.now(),
     nearby: [],

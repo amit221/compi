@@ -13,9 +13,9 @@ jest.mock("../../src/config/loader", () => ({
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
-    version: 6,
+    version: 7,
     profile: { level: 1, xp: 0, totalCatches: 0, totalMerges: 0, totalTicks: 0, currentStreak: 0, longestStreak: 0, lastActiveDate: "" },
-    collection: [], archive: [], energy: 10, lastEnergyGainAt: Date.now(), nearby: [], batch: null, lastSpawnAt: 0, recentTicks: [], claimedMilestones: [], settings: { notificationLevel: "moderate" },
+    collection: [], energy: 10, lastEnergyGainAt: Date.now(), nearby: [], batch: null, lastSpawnAt: 0, recentTicks: [], claimedMilestones: [], settings: { notificationLevel: "moderate" },
     discoveredSpecies: [], currentSessionId: "",
     speciesProgress: {},
     personalSpecies: [],
