@@ -70,9 +70,16 @@ try {
           console.error("Usage: compi play [a|b|c|s]");
           process.exit(1);
         }
-        const result = playCard(gameState, index);
-        save();
-        output(result, renderer.renderPlayResult(result, gameState.energy, MAX_ENERGY, profile));
+        // Handle breed pass (choice "b" on a single breed card)
+        if (gameState.currentHand?.length === 1 && gameState.currentHand[0].type === "breed" && choice === "b") {
+          const draw = skipHand(gameState);
+          save();
+          output(draw, renderer.renderCardDraw(draw, gameState.energy, MAX_ENERGY, profile));
+        } else {
+          const result = playCard(gameState, index);
+          save();
+          output(result, renderer.renderPlayResult(result, gameState.energy, MAX_ENERGY, profile));
+        }
       }
       break;
     }
