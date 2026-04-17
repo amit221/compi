@@ -17,10 +17,17 @@ import {
   ProgressInfo,
   ActionMenuEntry,
   CompanionOverview,
+  DrawResult,
+  PlayResult,
+  Card,
+  CatchCardData,
+  BreedCardData,
+  PlayerProfile,
 } from "../types";
 import { MAX_ENERGY } from "../engine/energy";
 import { getVariantById } from "../config/traits";
 import { getSpeciesById, getTraitDefinition } from "../config/species";
+import { getXpForNextLevel } from "../engine/progression";
 
 const stringWidth = require("string-width") as (str: string) => number;
 
@@ -664,5 +671,295 @@ export class SimpleTextRenderer implements Renderer {
     // The companion agent decides what to show — we just provide the status bar
     // (prepended by the MCP tool) and the raw JSON data for the agent to interpret.
     return "";
+  }
+
+  renderCardDraw(draw: DrawResult, energy: number, maxEnergy: number, profile: PlayerProfile): string {
+    const lines: string[] = [];
+    lines.push(this.renderStatusHeader(energy, maxEnergy, profile));
+    lines.push("");
+
+    if (draw.noEnergy) {
+      lines.push(`  ${DIM}Out of energy. Come back later!${RESET}`);
+      return lines.join("\n");
+    }
+
+    if (draw.empty) {
+      lines.push(`  ${DIM}Nothing happening right now. New creatures spawn every 30 min.${RESET}`);
+      return lines.join("\n");
+    }
+
+    // Single breed card — render big
+    if (draw.cards.length === 1 && draw.cards[0].type === "breed") {
+      const bigLines = this.renderBreedCardBig(draw.cards[0]);
+      for (const l of bigLines) lines.push(l);
+      lines.push("");
+      lines.push(`  ${DIM}Reply ${RESET}${BOLD}a${RESET}${DIM} or ${RESET}${BOLD}b${RESET}`);
+      return lines.join("\n");
+    }
+
+    // Catch cards side-by-side
+    const letters = ["A", "B", "C", "D", "E", "F"];
+    const cardLineArrays: string[][] = [];
+    for (let i = 0; i < draw.cards.length; i++) {
+      cardLineArrays.push(this.renderCatchCardLines(draw.cards[i], letters[i]));
+    }
+
+    // Pad all to same height
+    const maxHeight = Math.max(...cardLineArrays.map((a) => a.length));
+    for (const arr of cardLineArrays) {
+      while (arr.length < maxHeight) arr.push(" ".repeat(22));
+    }
+
+    // Join side-by-side
+    for (let row = 0; row < maxHeight; row++) {
+      const parts: string[] = [];
+      for (const arr of cardLineArrays) {
+        parts.push(arr[row]);
+      }
+      lines.push("  " + parts.join("  "));
+    }
+
+    lines.push("");
+    lines.push(`  ${DIM}[S] Skip${RESET} ${ENERGY_ICON}${DIM}1${RESET}`);
+
+    return lines.join("\n");
+  }
+
+  renderPlayResult(result: PlayResult, energy: number, maxEnergy: number, profile: PlayerProfile): string {
+    const lines: string[] = [];
+    lines.push(this.renderStatusHeader(energy, maxEnergy, profile));
+    lines.push("");
+
+    if (result.action === "catch" && result.catchResult) {
+      const cr = result.catchResult;
+      if (cr.success) {
+        lines.push(`  ${GREEN}${BOLD}✦ CAUGHT! ✦${RESET}  ${BOLD}${cr.creature.name}${RESET} added to collection`);
+        if (cr.discovery?.isNew) {
+          lines.push(`  ${YELLOW}${BOLD}✦ NEW SPECIES: ${cr.discovery.speciesId} ✦${RESET}  ${GREEN}+${cr.discovery.bonusXp} bonus XP${RESET}`);
+        }
+        lines.push(`  ${DIM}+${cr.xpEarned} XP   -${cr.energySpent}${RESET}${ENERGY_ICON}`);
+      } else if (cr.fled) {
+        lines.push(`  ${RED}${BOLD}✦ FLED ✦${RESET}  ${BOLD}${cr.creature.name}${RESET} is gone`);
+      } else {
+        lines.push(`  ${YELLOW}${BOLD}✦ ESCAPED ✦${RESET}  ${BOLD}${cr.creature.name}${RESET} got away`);
+        lines.push(`  ${DIM}${cr.attemptsRemaining} attempts remaining${RESET}`);
+      }
+    }
+
+    if (result.action === "breed" && result.breedResult) {
+      const br = result.breedResult;
+      lines.push(`  ${GREEN}${BOLD}✦ BRED! ✦${RESET}  Baby ${BOLD}${br.child.name}${RESET} born!`);
+      if (br.upgrades && br.upgrades.length > 0) {
+        for (const u of br.upgrades) {
+          const fromName = RARITY_NAMES[u.fromRarity] ?? String(u.fromRarity);
+          const toName = RARITY_NAMES[u.toRarity] ?? String(u.toRarity);
+          lines.push(`  ${YELLOW}↑ UP! ${u.slotId}: ${fromName} → ${toName}${RESET}`);
+        }
+      }
+      if (br.isCrossSpecies) {
+        lines.push(`  ${YELLOW}${BOLD}★ HYBRID SPECIES!${RESET}`);
+      }
+    }
+
+    lines.push("");
+
+    // Render next draw cards (without duplicate status header)
+    const nextDraw = result.nextDraw;
+    if (nextDraw.noEnergy) {
+      lines.push(`  ${DIM}Out of energy. Come back later!${RESET}`);
+    } else if (nextDraw.empty) {
+      lines.push(`  ${DIM}Nothing happening right now. New creatures spawn every 30 min.${RESET}`);
+    } else if (nextDraw.cards.length === 1 && nextDraw.cards[0].type === "breed") {
+      const bigLines = this.renderBreedCardBig(nextDraw.cards[0]);
+      for (const l of bigLines) lines.push(l);
+      lines.push("");
+      lines.push(`  ${DIM}Reply ${RESET}${BOLD}a${RESET}${DIM} or ${RESET}${BOLD}b${RESET}`);
+    } else {
+      const letters = ["A", "B", "C", "D", "E", "F"];
+      const cardLineArrays: string[][] = [];
+      for (let i = 0; i < nextDraw.cards.length; i++) {
+        cardLineArrays.push(this.renderCatchCardLines(nextDraw.cards[i], letters[i]));
+      }
+      const maxHeight = Math.max(...cardLineArrays.map((a) => a.length));
+      for (const arr of cardLineArrays) {
+        while (arr.length < maxHeight) arr.push(" ".repeat(22));
+      }
+      for (let row = 0; row < maxHeight; row++) {
+        const parts: string[] = [];
+        for (const arr of cardLineArrays) {
+          parts.push(arr[row]);
+        }
+        lines.push("  " + parts.join("  "));
+      }
+      lines.push("");
+      lines.push(`  ${DIM}[S] Skip${RESET} ${ENERGY_ICON}${DIM}1${RESET}`);
+    }
+
+    return lines.join("\n");
+  }
+
+  private renderStatusHeader(energy: number, maxEnergy: number, profile: PlayerProfile): string {
+    const filled = Math.min(10, Math.round((energy / maxEnergy) * 10));
+    const bar = `${GREEN}${"█".repeat(filled)}${"░".repeat(10 - filled)}${RESET}`;
+    const nextXp = getXpForNextLevel(profile.level);
+    return `  ${ENERGY_ICON} ${bar} ${energy}/${maxEnergy}  ${BOLD}Lv.${profile.level}${RESET}  ${DIM}${profile.xp}/${nextXp} XP${RESET}`;
+  }
+
+  private renderCatchCardLines(card: Card, letter: string): string[] {
+    const CARD_WIDTH = 22;
+    const INNER = CARD_WIDTH - 2; // 20
+    const data = card.data as CatchCardData;
+    const creature = data.creature;
+    const lines: string[] = [];
+
+    const topBot = "+" + "-".repeat(INNER) + "+";
+    lines.push(topBot);
+
+    // Header
+    const headerText = `[${letter}] CATCH`;
+    const headerPad = INNER - stringWidth(headerText);
+    lines.push("|" + headerText + " ".repeat(Math.max(0, headerPad)) + "|");
+
+    // Separator
+    lines.push("|" + "-".repeat(INNER) + "|");
+
+    // Creature art (4 lines)
+    const artLines = renderCreatureLines(creature.slots, creature.speciesId);
+    for (let i = 0; i < 4; i++) {
+      const artLine = artLines[i] ?? "";
+      const visW = stringWidth(artLine);
+      const pad = Math.max(0, INNER - visW);
+      lines.push("|" + artLine + " ".repeat(pad) + "|");
+    }
+
+    // Species name (bold)
+    const speciesDisplay = creature.speciesId.charAt(0).toUpperCase() + creature.speciesId.slice(1);
+    const nameStr = `${BOLD}${speciesDisplay}${RESET}`;
+    const nameVisW = stringWidth(speciesDisplay);
+    const namePad = Math.max(0, INNER - nameVisW);
+    lines.push("|" + nameStr + " ".repeat(namePad) + "|");
+
+    // Separator
+    lines.push("|" + "-".repeat(INNER) + "|");
+
+    // 4 trait slots with rarity color
+    const order: SlotId[] = ["eyes", "mouth", "body", "tail"];
+    for (const slotId of order) {
+      const slot = creature.slots.find((s) => s.slotId === slotId);
+      if (slot) {
+        const color = rarityColor(slot.rarity);
+        const variant = creature.speciesId
+          ? getTraitDefinition(creature.speciesId, slot.variantId)
+          : getVariantById(slot.variantId);
+        const traitName = variant?.name ?? slot.variantId;
+        const traitStr = `${color}■${RESET} ${traitName}`;
+        const traitVisW = stringWidth("■ " + traitName);
+        const traitPad = Math.max(0, INNER - traitVisW);
+        lines.push("|" + traitStr + " ".repeat(traitPad) + "|");
+      } else {
+        const emptyStr = `${DIM}—${RESET}`;
+        const pad = Math.max(0, INNER - 1);
+        lines.push("|" + emptyStr + " ".repeat(pad) + "|");
+      }
+    }
+
+    // Separator
+    lines.push("|" + "-".repeat(INNER) + "|");
+
+    // Energy cost + catch rate
+    const rate = Math.round(data.catchRate * 100);
+    const costStr = `${ENERGY_ICON}${data.energyCost}  ${rate}%`;
+    const costVisW = stringWidth(`⚡${data.energyCost}  ${rate}%`);
+    const costPad = Math.max(0, INNER - costVisW);
+    lines.push("|" + costStr + " ".repeat(costPad) + "|");
+
+    lines.push(topBot);
+
+    return lines;
+  }
+
+  private renderBreedCardBig(card: Card): string[] {
+    const CARD_WIDTH = 60;
+    const INNER = CARD_WIDTH - 2;
+    const data = card.data as BreedCardData;
+    const lines: string[] = [];
+
+    const topBot = "+" + "-".repeat(INNER) + "+";
+    lines.push(topBot);
+
+    // Title
+    const title = "♥ BREEDING MATCH ♥";
+    const titleVisW = stringWidth(title);
+    const titleLeftPad = Math.floor((INNER - titleVisW) / 2);
+    const titleRightPad = INNER - titleVisW - titleLeftPad;
+    lines.push("|" + " ".repeat(titleLeftPad) + title + " ".repeat(titleRightPad) + "|");
+
+    lines.push("|" + "-".repeat(INNER) + "|");
+
+    // Both parents' art side-by-side with heart in middle
+    const artA = renderCreatureLines(data.parentA.creature.slots, data.parentA.creature.speciesId);
+    const artB = renderCreatureLines(data.parentB.creature.slots, data.parentB.creature.speciesId);
+    const artHeight = Math.max(artA.length, artB.length);
+    const ART_COL = 22;
+    const HEART_COL = INNER - ART_COL * 2;
+
+    for (let i = 0; i < artHeight; i++) {
+      const leftArt = artA[i] ?? "";
+      const rightArt = artB[i] ?? "";
+      const leftPadded = padArtLine(leftArt, ART_COL);
+      const heartStr = i === Math.floor(artHeight / 2) ? "♥" : " ";
+      const heartVisW = stringWidth(heartStr);
+      const heartPad = Math.max(0, HEART_COL - heartVisW);
+      const heartPadLeft = Math.floor(heartPad / 2);
+      const heartPadRight = heartPad - heartPadLeft;
+      const rightPadded = padArtLine(rightArt, ART_COL);
+      // Compute total visual width and pad to INNER
+      const combined = leftPadded + " ".repeat(heartPadLeft) + heartStr + " ".repeat(heartPadRight) + rightPadded;
+      const combinedW = stringWidth(combined);
+      const finalPad = Math.max(0, INNER - combinedW);
+      lines.push("|" + combined + " ".repeat(finalPad) + "|");
+    }
+
+    // Parent names
+    const nameA = data.parentA.creature.name;
+    const nameB = data.parentB.creature.name;
+    const nameAPadded = nameA + " ".repeat(Math.max(0, ART_COL - stringWidth(nameA)));
+    const nameCenterPad = " ".repeat(HEART_COL);
+    const nameBStr = nameB;
+    const nameLineContent = nameAPadded + nameCenterPad + nameBStr;
+    const nameLineW = stringWidth(nameLineContent);
+    const nameLinePad = Math.max(0, INNER - nameLineW);
+    lines.push("|" + nameLineContent + " ".repeat(nameLinePad) + "|");
+
+    lines.push("|" + "-".repeat(INNER) + "|");
+
+    // Slot comparison table
+    const order: SlotId[] = ["eyes", "mouth", "body", "tail"];
+    for (const slotId of order) {
+      const upgrade = data.upgradeChances.find((u) => u.slotId === slotId);
+      const matchStr = upgrade?.match ? `${GREEN}↑${Math.round(upgrade.upgradeChance * 100)}%${RESET}` : `${DIM}—${RESET}`;
+      const matchVisW = upgrade?.match ? stringWidth(`↑${Math.round(upgrade.upgradeChance * 100)}%`) : 1;
+      const slotLabel = slotId.padEnd(6);
+      const content = `  ${slotLabel} ${matchStr}`;
+      const contentVisW = 2 + 6 + 1 + matchVisW;
+      const pad = Math.max(0, INNER - contentVisW);
+      lines.push("|" + content + " ".repeat(pad) + "|");
+    }
+
+    lines.push("|" + "-".repeat(INNER) + "|");
+
+    // Breed / Pass options
+    const breedOpt = `[A] Breed ${ENERGY_ICON}${data.energyCost}`;
+    const breedVisW = stringWidth(`[A] Breed ⚡${data.energyCost}`);
+    const breedPad = Math.max(0, INNER - breedVisW);
+    lines.push("|" + breedOpt + " ".repeat(breedPad) + "|");
+
+    const passOpt = `[B] Pass`;
+    const passPad = Math.max(0, INNER - stringWidth(passOpt));
+    lines.push("|" + passOpt + " ".repeat(passPad) + "|");
+
+    lines.push(topBot);
+
+    return lines;
   }
 }
