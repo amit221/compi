@@ -747,17 +747,72 @@ export class SimpleTextRenderer implements Renderer {
 
     if (result.action === "breed" && result.breedResult) {
       const br = result.breedResult;
-      lines.push(`  ${GREEN}${BOLD}✦ BRED! ✦${RESET}  Baby ${BOLD}${br.child.name}${RESET} born!`);
-      if (br.upgrades && br.upgrades.length > 0) {
-        for (const u of br.upgrades) {
-          const fromName = RARITY_NAMES[u.fromRarity] ?? String(u.fromRarity);
-          const toName = RARITY_NAMES[u.toRarity] ?? String(u.toRarity);
-          lines.push(`  ${YELLOW}↑ UP! ${u.slotId}: ${fromName} → ${toName}${RESET}`);
+      const child = br.child;
+      const W = 40;
+      const IW = W - 2;
+      const border = "  +" + "-".repeat(IW) + "+";
+      const pad = (s: string, rawLen: number) => s + " ".repeat(Math.max(0, IW - rawLen));
+
+      lines.push("");
+      lines.push(border);
+
+      // Title
+      if (br.isCrossSpecies) {
+        const title = "★ NEW HYBRID BORN! ★";
+        const titlePad = Math.floor((IW - title.length) / 2);
+        lines.push(`  |${" ".repeat(titlePad)}${YELLOW}${BOLD}${title}${RESET}${" ".repeat(IW - titlePad - title.length)}|`);
+      } else {
+        const title = "★ BABY BORN! ★";
+        const titlePad = Math.floor((IW - title.length) / 2);
+        lines.push(`  |${" ".repeat(titlePad)}${GREEN}${BOLD}${title}${RESET}${" ".repeat(IW - titlePad - title.length)}|`);
+      }
+      lines.push(`  |${" ".repeat(IW)}|`);
+
+      // Baby creature art
+      const artLines = renderCreatureLines(child.slots, child.speciesId);
+      for (const artLine of artLines) {
+        const stripped = artLine.replace(/\x1b\[[0-9;]*m/g, "");
+        const artPad = Math.max(0, IW - stringWidth(stripped));
+        lines.push(`  |${artLine}${" ".repeat(artPad)}|`);
+      }
+      lines.push(`  |${" ".repeat(IW)}|`);
+
+      // Baby name
+      const nameStr = ` ${BOLD}${child.name}${RESET}`;
+      lines.push(`  |${pad(nameStr, 1 + child.name.length)}|`);
+
+      // Baby traits (4 slots)
+      const order: ("eyes" | "mouth" | "body" | "tail")[] = ["eyes", "mouth", "body", "tail"];
+      for (const slotId of order) {
+        const slot = child.slots.find(s => s.slotId === slotId);
+        if (slot) {
+          const rColor = rarityColor(slot.rarity);
+          const rName = RARITY_NAMES[slot.rarity] ?? "Common";
+          const label = ` ${rName} ${slotId.charAt(0).toUpperCase() + slotId.slice(1)}`;
+          // Check if this slot was upgraded
+          const upgrade = br.upgrades?.find(u => u.slotId === slotId);
+          let display: string;
+          let rawLen: number;
+          if (upgrade) {
+            const arrow = ` ${YELLOW}↑${RESET}`;
+            display = ` ${rColor}■${RESET}${label}${arrow}`;
+            rawLen = 1 + 1 + label.length + 2;
+          } else {
+            display = ` ${rColor}■${RESET}${label}`;
+            rawLen = 1 + 1 + label.length;
+          }
+          lines.push(`  |${pad(display, rawLen)}|`);
         }
       }
-      if (br.isCrossSpecies) {
-        lines.push(`  ${YELLOW}${BOLD}★ HYBRID SPECIES!${RESET}`);
-      }
+
+      // Parents info
+      lines.push(`  |${" ".repeat(IW)}|`);
+      const parentLine = ` ${DIM}${br.parentA.name} × ${br.parentB.name}${RESET}`;
+      const parentRaw = 1 + br.parentA.name.length + 3 + br.parentB.name.length;
+      lines.push(`  |${pad(parentLine, parentRaw)}|`);
+
+      lines.push(border);
+      lines.push("");
     }
 
     lines.push("");
