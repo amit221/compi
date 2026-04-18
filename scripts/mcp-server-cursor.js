@@ -32344,8 +32344,9 @@ function executeBreed(state, parentAId, parentBId, rng = Math.random) {
   const maxRarity = rarityBreedCaps[levelIndex] ?? 7;
   const slotIds = [];
   const speciesA = getSpeciesById(parentA.speciesId);
-  if (speciesA) {
-    slotIds.push(...Object.keys(speciesA.traitPools));
+  const poolKeys = speciesA ? Object.keys(speciesA.traitPools) : [];
+  if (poolKeys.length > 0) {
+    slotIds.push(...poolKeys);
   } else {
     slotIds.push(...SLOT_IDS);
   }
@@ -33741,6 +33742,7 @@ function registerTools(server2, options = {}) {
         if (htmlRenderer) htmlOutput = htmlRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
       } else {
         const result = playCard(state, choiceIndex, Math.random);
+        registerPersonalSpecies(state.personalSpecies);
         ansiOutput = ansiRenderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
         if (htmlRenderer) htmlOutput = htmlRenderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
       }
@@ -34649,7 +34651,48 @@ var RESULT_AUTO_DISMISS_SCRIPT = `
   }
 })();
 </script>`;
-function wrapPage(bodyContent, _options) {
+function sidecarScript(port) {
+  return `
+<script>
+const SIDECAR_PORT = ${port};
+const SIDECAR_URL = "http://127.0.0.1:" + SIDECAR_PORT;
+
+async function pickCard(choice) {
+  document.querySelectorAll('.game-card,.breed-card-big').forEach(function(c) {
+    if (c.dataset.choice !== choice) c.classList.add('dimmed');
+  });
+  try {
+    var res = await fetch(SIDECAR_URL + "/action?choice=" + choice);
+    if (res.ok) {
+      var html = await res.text();
+      document.open();
+      document.write(html);
+      document.close();
+    }
+  } catch (e) {
+    console.warn("Sidecar unreachable:", e);
+    // Remove dimming so user can still see cards and reply in chat
+    document.querySelectorAll('.dimmed').forEach(function(c) { c.classList.remove('dimmed'); });
+  }
+}
+
+async function skipTurn() {
+  try {
+    var res = await fetch(SIDECAR_URL + "/action?choice=s");
+    if (res.ok) {
+      var html = await res.text();
+      document.open();
+      document.write(html);
+      document.close();
+    }
+  } catch (e) {
+    console.warn("Sidecar unreachable:", e);
+  }
+}
+</script>`;
+}
+function wrapPage(bodyContent, options) {
+  const sidecar = options.sidecarPort != null ? sidecarScript(options.sidecarPort) : "";
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -34659,6 +34702,7 @@ function wrapPage(bodyContent, _options) {
 </head>
 <body>
 ${bodyContent}
+${sidecar}
 </body>
 </html>`;
 }
@@ -34737,13 +34781,14 @@ function renderTraitsHtml(slots, speciesId) {
   }
   return rows.join("\n");
 }
-function renderCatchCardHtml(card, letter) {
+function renderCatchCardHtml(card, letter, sidecarPort) {
   const data = card.data;
   const creature = data.creature;
   const rate = Math.round(data.catchRate * 100);
   const speciesDisplay = creature.speciesId.charAt(0).toUpperCase() + creature.speciesId.slice(1);
   const rateClass = rate >= 70 ? "card-rate-high" : rate < 40 ? "card-rate-low" : "card-rate";
-  return `<div class="game-card" data-choice="${letter.toLowerCase()}">
+  const click = sidecarPort != null ? ` onclick="pickCard('${letter.toLowerCase()}')"` : "";
+  return `<div class="game-card" data-choice="${letter.toLowerCase()}"${click} style="cursor:pointer">
   <div class="card-badge">${letter.toUpperCase()}</div>
   <div class="card-type-banner">catch</div>
   <div class="card-art">${renderCreatureArtHtml(creature.slots, creature.speciesId)}</div>
@@ -34755,11 +34800,13 @@ function renderCatchCardHtml(card, letter) {
   </div>
 </div>`;
 }
-function renderBreedCardHtml(card) {
+function renderBreedCardHtml(card, sidecarPort) {
   const data = card.data;
   const pA = data.parentA.creature;
   const pB = data.parentB.creature;
   const order = ["eyes", "mouth", "body", "tail"];
+  const clickBreed = sidecarPort != null ? ` onclick="pickCard('a')"` : "";
+  const clickPass = sidecarPort != null ? ` onclick="pickCard('b')"` : "";
   const slotsHtml = order.map((slotId) => {
     const info = data.upgradeChances.find((u) => u.slotId === slotId);
     const matchHtml = info?.match ? `<span class="breed-slot-match">&uarr; ${Math.round(info.upgradeChance * 100)}%</span>` : `<span class="breed-slot-nomatch">&mdash;</span>`;
@@ -34783,8 +34830,8 @@ function renderBreedCardHtml(card) {
   </div>
   <div class="breed-slots">${slotsHtml}</div>
   <div class="breed-actions">
-    <div class="breed-btn primary">[A] Breed &#9889;${data.energyCost}</div>
-    <div class="breed-btn">[B] Pass</div>
+    <div class="breed-btn primary" style="cursor:pointer"${clickBreed}>[A] Breed &#9889;${data.energyCost}</div>
+    <div class="breed-btn" style="cursor:pointer"${clickPass}>[B] Pass</div>
   </div>
 </div>`;
 }
@@ -34793,7 +34840,7 @@ function promptHint(letters, hasSkip) {
   const skip = hasSkip ? ` or <kbd>s</kbd> skip` : "";
   return `<div class="prompt-hint">reply ${keys}${skip} in chat</div>`;
 }
-function renderDrawCardsOnly(draw) {
+function renderDrawCardsOnly(draw, sidecarPort) {
   if (draw.noEnergy) {
     return `<div class="empty-state">
   <div class="empty-state-icon">&#9889;</div>
@@ -34807,13 +34854,14 @@ function renderDrawCardsOnly(draw) {
 </div>`;
   }
   if (draw.cards.length === 1 && draw.cards[0].type === "breed") {
-    return renderBreedCardHtml(draw.cards[0]) + promptHint(["a", "b"], false);
+    return renderBreedCardHtml(draw.cards[0], sidecarPort) + promptHint(["a", "b"], false);
   }
   const letters = ["a", "b", "c"];
   const usedLetters = letters.slice(0, draw.cards.length);
   const cardsHtml = draw.cards.map(
-    (card, i) => renderCatchCardHtml(card, usedLetters[i])
+    (card, i) => renderCatchCardHtml(card, usedLetters[i], sidecarPort)
   ).join("\n");
+  const skipClick = sidecarPort != null ? ` onclick="skipTurn()"` : "";
   return `<div class="card-row">${cardsHtml}</div>` + promptHint(usedLetters, true);
 }
 function renderCatchResultOverlay(cr) {
@@ -34877,7 +34925,7 @@ var HtmlAppRenderer = class {
   // --- Primary HTML methods ---
   renderCardDraw(draw, energy, maxEnergy, profile) {
     const hud = renderHud(energy, maxEnergy, profile);
-    const cards = renderDrawCardsOnly(draw);
+    const cards = renderDrawCardsOnly(draw, this.sidecarPort);
     return wrapPage(`${hud}
 ${cards}`, { sidecarPort: this.sidecarPort });
   }
@@ -34890,7 +34938,7 @@ ${cards}`, { sidecarPort: this.sidecarPort });
     if (result.action === "breed" && result.breedResult) {
       overlay = renderBreedResultOverlay(result.breedResult);
     }
-    const nextCards = renderDrawCardsOnly(result.nextDraw);
+    const nextCards = renderDrawCardsOnly(result.nextDraw, this.sidecarPort);
     return wrapPage(
       `${hud}
 ${overlay}

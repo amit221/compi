@@ -59,11 +59,11 @@ describe("html-templates", () => {
       expect(html).not.toContain("pickCard");
     });
 
-    it("ignores sidecar port (sidecar removed)", () => {
+    it("includes sidecar script with correct port when provided", () => {
       const html = wrapPage("", { sidecarPort: 9123 });
-      // Sidecar was removed — port is accepted but not embedded
-      expect(html).not.toContain("SIDECAR_PORT");
-      expect(html).toContain("<!DOCTYPE html>");
+      expect(html).toContain("SIDECAR_PORT = 9123");
+      expect(html).toContain("pickCard");
+      expect(html).toContain("skipTurn");
     });
   });
 

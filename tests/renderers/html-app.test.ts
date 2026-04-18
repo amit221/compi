@@ -127,6 +127,17 @@ describe("HtmlAppRenderer", () => {
       expect(html).toContain("<kbd>s</kbd>");
     });
 
+    it("includes onclick handlers when sidecar port provided", () => {
+      const renderer = new HtmlAppRenderer(8765);
+      const draw: DrawResult = {
+        cards: [makeCatchCard("1", "Flikk", "flikk")],
+        empty: false, noEnergy: false,
+      };
+      const html = renderer.renderCardDraw(draw, 16, 30, makeProfile());
+      expect(html).toContain("pickCard");
+      expect(html).toContain("SIDECAR_PORT = 8765");
+    });
+
     it("renders HUD with energy and level", () => {
       const renderer = new HtmlAppRenderer(null);
       const draw: DrawResult = {

@@ -139,14 +139,15 @@ function renderTraitsHtml(slots: CreatureSlot[], speciesId: string): string {
 /**
  * Render a single catch card as HTML.
  */
-function renderCatchCardHtml(card: Card, letter: string): string {
+function renderCatchCardHtml(card: Card, letter: string, sidecarPort: number | null): string {
   const data = card.data as CatchCardData;
   const creature = data.creature;
   const rate = Math.round(data.catchRate * 100);
   const speciesDisplay = creature.speciesId.charAt(0).toUpperCase() + creature.speciesId.slice(1);
   const rateClass = rate >= 70 ? "card-rate-high" : rate < 40 ? "card-rate-low" : "card-rate";
+  const click = sidecarPort != null ? ` onclick="pickCard('${letter.toLowerCase()}')"` : "";
 
-  return `<div class="game-card" data-choice="${letter.toLowerCase()}">
+  return `<div class="game-card" data-choice="${letter.toLowerCase()}"${click} style="cursor:pointer">
   <div class="card-badge">${letter.toUpperCase()}</div>
   <div class="card-type-banner">catch</div>
   <div class="card-art">${renderCreatureArtHtml(creature.slots, creature.speciesId)}</div>
@@ -162,11 +163,13 @@ function renderCatchCardHtml(card: Card, letter: string): string {
 /**
  * Render a breed card (big) as HTML.
  */
-function renderBreedCardHtml(card: Card): string {
+function renderBreedCardHtml(card: Card, sidecarPort: number | null): string {
   const data = card.data as BreedCardData;
   const pA = data.parentA.creature;
   const pB = data.parentB.creature;
   const order: SlotId[] = ["eyes", "mouth", "body", "tail"];
+  const clickBreed = sidecarPort != null ? ` onclick="pickCard('a')"` : "";
+  const clickPass = sidecarPort != null ? ` onclick="pickCard('b')"` : "";
 
   const slotsHtml = order.map(slotId => {
     const info = data.upgradeChances.find(u => u.slotId === slotId);
@@ -194,8 +197,8 @@ function renderBreedCardHtml(card: Card): string {
   </div>
   <div class="breed-slots">${slotsHtml}</div>
   <div class="breed-actions">
-    <div class="breed-btn primary">[A] Breed &#9889;${data.energyCost}</div>
-    <div class="breed-btn">[B] Pass</div>
+    <div class="breed-btn primary" style="cursor:pointer"${clickBreed}>[A] Breed &#9889;${data.energyCost}</div>
+    <div class="breed-btn" style="cursor:pointer"${clickPass}>[B] Pass</div>
   </div>
 </div>`;
 }
@@ -212,7 +215,7 @@ function promptHint(letters: string[], hasSkip: boolean): string {
 /**
  * Render the "next draw" cards section (no HUD, used inside PlayResult).
  */
-function renderDrawCardsOnly(draw: DrawResult): string {
+function renderDrawCardsOnly(draw: DrawResult, sidecarPort: number | null): string {
   if (draw.noEnergy) {
     return `<div class="empty-state">
   <div class="empty-state-icon">&#9889;</div>
@@ -229,16 +232,17 @@ function renderDrawCardsOnly(draw: DrawResult): string {
 
   // Single breed card
   if (draw.cards.length === 1 && draw.cards[0].type === "breed") {
-    return renderBreedCardHtml(draw.cards[0]) + promptHint(["a", "b"], false);
+    return renderBreedCardHtml(draw.cards[0], sidecarPort) + promptHint(["a", "b"], false);
   }
 
   // Catch cards
   const letters = ["a", "b", "c"];
   const usedLetters = letters.slice(0, draw.cards.length);
   const cardsHtml = draw.cards.map((card, i) =>
-    renderCatchCardHtml(card, usedLetters[i])
+    renderCatchCardHtml(card, usedLetters[i], sidecarPort)
   ).join("\n");
 
+  const skipClick = sidecarPort != null ? ` onclick="skipTurn()"` : "";
   return `<div class="card-row">${cardsHtml}</div>` + promptHint(usedLetters, true);
 }
 
@@ -316,7 +320,7 @@ export class HtmlAppRenderer implements Renderer {
 
   renderCardDraw(draw: DrawResult, energy: number, maxEnergy: number, profile: PlayerProfile): string {
     const hud = renderHud(energy, maxEnergy, profile);
-    const cards = renderDrawCardsOnly(draw);
+    const cards = renderDrawCardsOnly(draw, this.sidecarPort);
     return wrapPage(`${hud}\n${cards}`, { sidecarPort: this.sidecarPort });
   }
 
@@ -331,7 +335,7 @@ export class HtmlAppRenderer implements Renderer {
       overlay = renderBreedResultOverlay(result.breedResult);
     }
 
-    const nextCards = renderDrawCardsOnly(result.nextDraw);
+    const nextCards = renderDrawCardsOnly(result.nextDraw, this.sidecarPort);
 
     return wrapPage(
       `${hud}\n${overlay}\n<div class="next-draw-content">${nextCards}</div>\n${RESULT_AUTO_DISMISS_SCRIPT}`,

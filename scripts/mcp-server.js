@@ -32344,8 +32344,9 @@ function executeBreed(state, parentAId, parentBId, rng = Math.random) {
   const maxRarity = rarityBreedCaps[levelIndex] ?? 7;
   const slotIds = [];
   const speciesA = getSpeciesById(parentA.speciesId);
-  if (speciesA) {
-    slotIds.push(...Object.keys(speciesA.traitPools));
+  const poolKeys = speciesA ? Object.keys(speciesA.traitPools) : [];
+  if (poolKeys.length > 0) {
+    slotIds.push(...poolKeys);
   } else {
     slotIds.push(...SLOT_IDS);
   }
@@ -33741,6 +33742,7 @@ function registerTools(server2, options = {}) {
         if (htmlRenderer) htmlOutput = htmlRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
       } else {
         const result = playCard(state, choiceIndex, Math.random);
+        registerPersonalSpecies(state.personalSpecies);
         ansiOutput = ansiRenderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
         if (htmlRenderer) htmlOutput = htmlRenderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
       }

@@ -780,13 +780,57 @@ export const RESULT_AUTO_DISMISS_SCRIPT = `
 })();
 </script>`;
 
+// --- Sidecar JS (enables click-to-play when sidecar is running) ---
+
+function sidecarScript(port: number): string {
+  return `
+<script>
+const SIDECAR_PORT = ${port};
+const SIDECAR_URL = "http://127.0.0.1:" + SIDECAR_PORT;
+
+async function pickCard(choice) {
+  document.querySelectorAll('.game-card,.breed-card-big').forEach(function(c) {
+    if (c.dataset.choice !== choice) c.classList.add('dimmed');
+  });
+  try {
+    var res = await fetch(SIDECAR_URL + "/action?choice=" + choice);
+    if (res.ok) {
+      var html = await res.text();
+      document.open();
+      document.write(html);
+      document.close();
+    }
+  } catch (e) {
+    console.warn("Sidecar unreachable:", e);
+    // Remove dimming so user can still see cards and reply in chat
+    document.querySelectorAll('.dimmed').forEach(function(c) { c.classList.remove('dimmed'); });
+  }
+}
+
+async function skipTurn() {
+  try {
+    var res = await fetch(SIDECAR_URL + "/action?choice=s");
+    if (res.ok) {
+      var html = await res.text();
+      document.open();
+      document.write(html);
+      document.close();
+    }
+  } catch (e) {
+    console.warn("Sidecar unreachable:", e);
+  }
+}
+</script>`;
+}
+
 // --- Page wrapper ---
 
 export interface WrapPageOptions {
   sidecarPort: number | null;
 }
 
-export function wrapPage(bodyContent: string, _options: WrapPageOptions): string {
+export function wrapPage(bodyContent: string, options: WrapPageOptions): string {
+  const sidecar = options.sidecarPort != null ? sidecarScript(options.sidecarPort) : "";
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -796,6 +840,7 @@ export function wrapPage(bodyContent: string, _options: WrapPageOptions): string
 </head>
 <body>
 ${bodyContent}
+${sidecar}
 </body>
 </html>`;
 }
