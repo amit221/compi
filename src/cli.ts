@@ -79,6 +79,8 @@ try {
           output(draw, renderer.renderCardDraw(draw, gameState.energy, MAX_ENERGY, profile));
         } else {
           const result = playCard(gameState, index);
+          // Re-register in case breed created a new hybrid species
+          registerPersonalSpecies(gameState.personalSpecies);
           save();
           output(result, renderer.renderPlayResult(result, gameState.energy, MAX_ENERGY, profile));
         }

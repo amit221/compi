@@ -276,9 +276,11 @@ export function executeBreed(
   // Determine which slots to resolve (union of slots from both parents)
   const slotIds: SlotId[] = [];
   const speciesA = getSpeciesById(parentA.speciesId);
-  if (speciesA) {
-    slotIds.push(...(Object.keys(speciesA.traitPools) as SlotId[]));
+  const poolKeys = speciesA ? Object.keys(speciesA.traitPools) as SlotId[] : [];
+  if (poolKeys.length > 0) {
+    slotIds.push(...poolKeys);
   } else {
+    // Hybrid species have empty traitPools — use all standard slots
     slotIds.push(...SLOT_IDS);
   }
 

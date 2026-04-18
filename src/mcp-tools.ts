@@ -127,6 +127,8 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
         if (htmlRenderer) htmlOutput = htmlRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
       } else {
         const result = playCard(state, choiceIndex, Math.random);
+        // Re-register in case breed created a new hybrid species
+        registerPersonalSpecies(state.personalSpecies);
         ansiOutput = ansiRenderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
         if (htmlRenderer) htmlOutput = htmlRenderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
       }
