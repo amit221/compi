@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file. This file is maintained automatically by [release-please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.3.0](https://github.com/amit221/compi/compare/v1.2.0...v1.3.0) (2026-04-18)
+
+
+### Features
+
+* force AI to create unique art before showing hybrid baby ([6963a81](https://github.com/amit221/compi/commit/6963a8191cccd94d57716e79e42714adabb0d216))
+
+
+### Bug Fixes
+
+* re-enable sidecar click handlers for Cursor iframe ([9bfeb93](https://github.com/amit221/compi/commit/9bfeb93ada98ece04bb9812361085b0a2a9b93f6))
+
 ## [1.2.0](https://github.com/amit221/compi/compare/v1.1.0...v1.2.0) (2026-04-18)
 
 
