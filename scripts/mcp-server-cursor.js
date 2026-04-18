@@ -3227,8 +3227,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path4) {
-      let input = path4;
+    function removeDotSegments(path5) {
+      let input = path5;
       const output = [];
       let nextSlash = -1;
       let len = 0;
@@ -3302,8 +3302,8 @@ var require_utils = __commonJS({
       }
       return output.join("");
     }
-    function normalizeComponentEncoding(component, esc2) {
-      const func = esc2 !== true ? escape : unescape;
+    function normalizeComponentEncoding(component, esc3) {
+      const func = esc3 !== true ? escape : unescape;
       if (component.scheme !== void 0) {
         component.scheme = func(component.scheme);
       }
@@ -3427,8 +3427,8 @@ var require_schemes = __commonJS({
         wsComponent.secure = void 0;
       }
       if (wsComponent.resourceName) {
-        const [path4, query] = wsComponent.resourceName.split("?");
-        wsComponent.path = path4 && path4 !== "/" ? path4 : void 0;
+        const [path5, query] = wsComponent.resourceName.split("?");
+        wsComponent.path = path5 && path5 !== "/" ? path5 : void 0;
         wsComponent.query = query;
         wsComponent.resourceName = void 0;
       }
@@ -3487,7 +3487,7 @@ var require_schemes = __commonJS({
       urnComponent.nss = (uuidComponent.uuid || "").toLowerCase();
       return urnComponent;
     }
-    var http = (
+    var http2 = (
       /** @type {SchemeHandler} */
       {
         scheme: "http",
@@ -3500,7 +3500,7 @@ var require_schemes = __commonJS({
       /** @type {SchemeHandler} */
       {
         scheme: "https",
-        domainHost: http.domainHost,
+        domainHost: http2.domainHost,
         parse: httpParse,
         serialize: httpSerialize
       }
@@ -3544,7 +3544,7 @@ var require_schemes = __commonJS({
     var SCHEMES = (
       /** @type {Record<SchemeName, SchemeHandler>} */
       {
-        http,
+        http: http2,
         https,
         ws,
         wss,
@@ -6790,12 +6790,12 @@ var require_dist = __commonJS({
         throw new Error(`Unknown format "${name}"`);
       return f;
     };
-    function addFormats(ajv, list, fs4, exportName) {
+    function addFormats(ajv, list, fs5, exportName) {
       var _a2;
       var _b;
       (_a2 = (_b = ajv.opts.code).formats) !== null && _a2 !== void 0 ? _a2 : _b.formats = (0, codegen_1._)`require("ajv-formats/dist/formats").${exportName}`;
       for (const f of list)
-        ajv.addFormat(f, fs4[f]);
+        ajv.addFormat(f, fs5[f]);
     }
     module2.exports = exports2 = formatsPlugin;
     Object.defineProperty(exports2, "__esModule", { value: true });
@@ -7542,8 +7542,8 @@ function getErrorMap() {
 
 // node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path4, errorMaps, issueData } = params;
-  const fullPath = [...path4, ...issueData.path || []];
+  const { data, path: path5, errorMaps, issueData } = params;
+  const fullPath = [...path5, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -7658,11 +7658,11 @@ var errorUtil;
 
 // node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path4, key) {
+  constructor(parent, value, path5, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path4;
+    this._path = path5;
     this._key = key;
   }
   get path() {
@@ -11586,10 +11586,10 @@ function mergeDefs(...defs) {
 function cloneDef(schema) {
   return mergeDefs(schema._zod.def);
 }
-function getElementAtPath(obj, path4) {
-  if (!path4)
+function getElementAtPath(obj, path5) {
+  if (!path5)
     return obj;
-  return path4.reduce((acc, key) => acc?.[key], obj);
+  return path5.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -11972,11 +11972,11 @@ function aborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path4, issues) {
+function prefixIssues(path5, issues) {
   return issues.map((iss) => {
     var _a2;
     (_a2 = iss).path ?? (_a2.path = []);
-    iss.path.unshift(path4);
+    iss.path.unshift(path5);
     return iss;
   });
 }
@@ -12159,7 +12159,7 @@ function formatError(error48, mapper = (issue2) => issue2.message) {
 }
 function treeifyError(error48, mapper = (issue2) => issue2.message) {
   const result = { errors: [] };
-  const processError = (error49, path4 = []) => {
+  const processError = (error49, path5 = []) => {
     var _a2, _b;
     for (const issue2 of error49.issues) {
       if (issue2.code === "invalid_union" && issue2.errors.length) {
@@ -12169,7 +12169,7 @@ function treeifyError(error48, mapper = (issue2) => issue2.message) {
       } else if (issue2.code === "invalid_element") {
         processError({ issues: issue2.issues }, issue2.path);
       } else {
-        const fullpath = [...path4, ...issue2.path];
+        const fullpath = [...path5, ...issue2.path];
         if (fullpath.length === 0) {
           result.errors.push(mapper(issue2));
           continue;
@@ -12201,8 +12201,8 @@ function treeifyError(error48, mapper = (issue2) => issue2.message) {
 }
 function toDotPath(_path) {
   const segs = [];
-  const path4 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
-  for (const seg of path4) {
+  const path5 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
+  for (const seg of path5) {
     if (typeof seg === "number")
       segs.push(`[${seg}]`);
     else if (typeof seg === "symbol")
@@ -24608,13 +24608,13 @@ function resolveRef(ref, ctx) {
   if (!ref.startsWith("#")) {
     throw new Error("External $ref is not supported, only local refs (#/...) are allowed");
   }
-  const path4 = ref.slice(1).split("/").filter(Boolean);
-  if (path4.length === 0) {
+  const path5 = ref.slice(1).split("/").filter(Boolean);
+  if (path5.length === 0) {
     return ctx.rootSchema;
   }
   const defsKey = ctx.version === "draft-2020-12" ? "$defs" : "definitions";
-  if (path4[0] === defsKey) {
-    const key = path4[1];
+  if (path5[0] === defsKey) {
+    const key = path5[1];
     if (!key || !ctx.defs[key]) {
       throw new Error(`Reference not found: ${ref}`);
     }
@@ -33682,15 +33682,17 @@ function loadEngine() {
   return { stateManager, engine };
 }
 var displayPath = path3.join(os2.tmpdir(), "compi_display.txt");
-function makeText(content, options) {
+function makeText(content, options, htmlContent) {
   if (options.writeDisplayFile) {
     fs3.writeFileSync(displayPath, content);
   }
-  if (options.onOutput) {
+  const html = htmlContent ?? (options.renderHtml ? options.renderHtml(content) : null);
+  if (options.onOutput && html) {
+    options.onOutput(html);
+  } else if (options.onOutput) {
     options.onOutput(content);
   }
-  if (options.renderHtml) {
-    const html = options.renderHtml(content);
+  if (html) {
     return { content: [
       { type: "text", text: content },
       { type: "resource", resource: { uri: `ui://compi/result-${Date.now()}.html`, mimeType: "text/html;profile=mcp-app", text: html } }
@@ -33717,37 +33719,45 @@ function registerTools(server2, options = {}) {
   }), async (args) => {
     const { stateManager, engine } = loadEngine();
     const state = engine.getState();
-    const renderer = new SimpleTextRenderer();
+    const ansiRenderer = new SimpleTextRenderer();
+    const htmlRenderer = options.renderer;
     registerPersonalSpecies(state.personalSpecies);
     engine.processTick({ timestamp: Date.now(), sessionId: state.currentSessionId }, Math.random);
-    let output;
+    let ansiOutput;
+    let htmlOutput;
     if (!args.choice) {
       const draw = drawCards(state, Math.random);
-      output = renderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+      ansiOutput = ansiRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+      if (htmlRenderer) htmlOutput = htmlRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
     } else if (args.choice === "s") {
       const draw = drawCards(state, Math.random);
-      output = renderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+      ansiOutput = ansiRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+      if (htmlRenderer) htmlOutput = htmlRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
     } else {
       const choiceIndex = args.choice.charCodeAt(0) - 97;
       if (state.currentHand?.length === 1 && state.currentHand[0].type === "breed" && args.choice === "b") {
         const draw = skipHand(state, Math.random);
-        output = renderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+        ansiOutput = ansiRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+        if (htmlRenderer) htmlOutput = htmlRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
       } else {
         const result = playCard(state, choiceIndex, Math.random);
-        output = renderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
+        ansiOutput = ansiRenderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
+        if (htmlRenderer) htmlOutput = htmlRenderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
       }
     }
     stateManager.save(state);
-    return makeText(output, options);
+    return makeText(ansiOutput, options, htmlOutput);
   }, meta3);
   addTool(server2, "collection", "View your creature collection (free, no energy cost)", external_exports3.object({}), async () => {
     const { engine } = loadEngine();
     const state = engine.getState();
     registerPersonalSpecies(state.personalSpecies);
-    const renderer = new SimpleTextRenderer();
+    const ansiRenderer = new SimpleTextRenderer();
+    const htmlRenderer = options.renderer;
     const active = state.collection.filter((c) => !c.archived);
-    const output = renderer.renderCollection(active);
-    return makeText(output, options);
+    const ansiOutput = ansiRenderer.renderCollection(active);
+    const htmlOutput = htmlRenderer ? htmlRenderer.renderCollection(active) : void 0;
+    return makeText(ansiOutput, options, htmlOutput);
   }, meta3);
   addTool(server2, "register_hybrid", "Register a newly bred hybrid species with AI-generated name and art", external_exports3.object({
     speciesId: external_exports3.string().describe("The hybrid species ID (e.g., hybrid_compi_pyrax)"),
@@ -33857,6 +33867,1025 @@ pre{white-space:pre-wrap;word-wrap:break-word}
 </style></head><body><pre>${ansiToHtml(ansiContent)}</pre></body></html>`;
 }
 
+// src/renderers/html-templates.ts
+var RARITY_HEX = [
+  "#9e9e9e",
+  // 0 Common (grey)
+  "#ffffff",
+  // 1 Uncommon (white)
+  "#00e676",
+  // 2 Rare (green)
+  "#00e5ff",
+  // 3 Superior (cyan)
+  "#448aff",
+  // 4 Elite (blue)
+  "#d500f9",
+  // 5 Epic (magenta)
+  "#ffea00",
+  // 6 Legendary (yellow)
+  "#ff1744"
+  // 7 Mythic (red)
+];
+var RARITY_NAMES2 = [
+  "Common",
+  "Uncommon",
+  "Rare",
+  "Superior",
+  "Elite",
+  "Epic",
+  "Legendary",
+  "Mythic"
+];
+function rarityHex(rarity) {
+  return RARITY_HEX[rarity] ?? RARITY_HEX[0];
+}
+var BASE_CSS = `
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #10101a;
+  --bg-card: #14141f;
+  --bg-card-hover: #1a1a2e;
+  --border-card: #2a2a3e;
+  --border-card-hover: #3a3a5e;
+  --text-primary: #e0e0e8;
+  --text-secondary: #8888a0;
+  --text-dim: #55556a;
+  --accent: #7c5cff;
+  --accent-glow: rgba(124, 92, 255, 0.3);
+  --success: #00e676;
+  --danger: #ff1744;
+  --warning: #ffea00;
+  --energy-color: #ffea00;
+  --font-mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+}
+
+html, body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body { padding: 16px 20px; }
+
+/* --- Status HUD --- */
+.status-hud {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 12px;
+}
+
+.hud-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-label {
+  color: var(--text-dim);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+
+.hud-value {
+  color: var(--text-primary);
+  font-weight: bold;
+}
+
+/* Progress bars */
+.bar-track {
+  width: 80px;
+  height: 6px;
+  background: #1a1a2e;
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.bar-fill.energy { background: linear-gradient(90deg, #e6b800, #ffea00); }
+.bar-fill.xp { background: linear-gradient(90deg, #5c3cff, #7c5cff); }
+
+/* --- Card container --- */
+.card-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+
+/* --- Game card (catch) --- */
+.game-card {
+  width: 220px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  animation: slideUp 0.4s ease forwards;
+  opacity: 0;
+}
+
+.game-card:nth-child(1) { animation-delay: 0.05s; }
+.game-card:nth-child(2) { animation-delay: 0.15s; }
+.game-card:nth-child(3) { animation-delay: 0.25s; }
+
+.game-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--border-card-hover);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px var(--accent-glow);
+  background: var(--bg-card-hover);
+}
+
+.game-card:active {
+  transform: translateY(-2px) scale(0.98);
+}
+
+.game-card.dimmed {
+  opacity: 0.25;
+  pointer-events: none;
+  filter: grayscale(0.5);
+  transform: scale(0.96);
+}
+
+.card-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 13px;
+  z-index: 2;
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+.card-type-banner {
+  padding: 6px 12px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border-card);
+}
+
+.card-art {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.card-art pre {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  line-height: 1.3;
+  white-space: pre;
+}
+
+.card-name {
+  padding: 4px 12px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.card-traits {
+  padding: 8px 12px;
+  border-top: 1px solid var(--border-card);
+}
+
+.trait-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  font-size: 12px;
+}
+
+.trait-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.trait-name { color: var(--text-primary); }
+.trait-rarity { color: var(--text-secondary); font-size: 11px; }
+
+.card-footer {
+  padding: 8px 12px;
+  border-top: 1px solid var(--border-card);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.card-energy {
+  color: var(--energy-color);
+  font-weight: bold;
+}
+
+.card-rate {
+  color: var(--text-secondary);
+}
+
+/* --- Breed card (big) --- */
+.breed-card-big {
+  width: 100%;
+  max-width: 520px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 0 auto;
+  animation: slideUp 0.4s ease forwards;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.breed-card-big:hover {
+  border-color: var(--border-card-hover);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px var(--accent-glow);
+}
+
+.breed-card-big.dimmed {
+  opacity: 0.25;
+  pointer-events: none;
+  filter: grayscale(0.5);
+}
+
+.breed-title {
+  text-align: center;
+  padding: 10px;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #ff6b9d;
+  border-bottom: 1px solid var(--border-card);
+}
+
+.breed-parents {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 16px;
+}
+
+.breed-parent {
+  text-align: center;
+}
+
+.breed-parent pre {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.3;
+  white-space: pre;
+}
+
+.breed-parent-name {
+  font-weight: bold;
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.breed-heart {
+  font-size: 24px;
+  color: #ff6b9d;
+  animation: heartbeat 1.5s ease infinite;
+}
+
+.breed-slots {
+  padding: 8px 16px;
+  border-top: 1px solid var(--border-card);
+}
+
+.breed-slot-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+  font-size: 12px;
+}
+
+.breed-slot-label { color: var(--text-secondary); width: 60px; }
+.breed-slot-match { color: var(--success); font-weight: bold; }
+.breed-slot-nomatch { color: var(--text-dim); }
+
+.breed-actions {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-card);
+}
+
+.breed-btn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.breed-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+}
+
+.breed-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.breed-btn.primary:hover {
+  background: #6a4ae0;
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+
+/* --- Skip button --- */
+.skip-btn {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 20px;
+  border: 1px solid var(--border-card);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.skip-btn:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+  background: var(--bg-card);
+}
+
+/* --- Result overlay --- */
+.result-overlay {
+  position: relative;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  text-align: center;
+  animation: slideUp 0.3s ease forwards;
+  transition: opacity 0.5s ease;
+}
+
+.result-overlay.catch-success {
+  background: linear-gradient(135deg, rgba(0, 230, 118, 0.1), rgba(0, 230, 118, 0.02));
+  border: 1px solid rgba(0, 230, 118, 0.3);
+}
+
+.result-overlay.catch-fail {
+  background: linear-gradient(135deg, rgba(255, 23, 68, 0.1), rgba(255, 23, 68, 0.02));
+  border: 1px solid rgba(255, 23, 68, 0.3);
+}
+
+.result-overlay.catch-escaped {
+  background: linear-gradient(135deg, rgba(255, 234, 0, 0.1), rgba(255, 234, 0, 0.02));
+  border: 1px solid rgba(255, 234, 0, 0.3);
+}
+
+.result-overlay.breed-success {
+  background: linear-gradient(135deg, rgba(124, 92, 255, 0.1), rgba(124, 92, 255, 0.02));
+  border: 1px solid rgba(124, 92, 255, 0.3);
+}
+
+.result-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.result-subtitle {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.result-xp {
+  color: var(--success);
+  font-size: 12px;
+}
+
+.result-creature-name {
+  font-weight: bold;
+  font-size: 15px;
+  margin: 8px 0;
+}
+
+/* Upgrade arrow in breed results */
+.upgrade-arrow {
+  color: var(--warning);
+  font-weight: bold;
+}
+
+/* --- Collection grid --- */
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.collection-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 10px;
+  padding: 12px;
+  transition: all 0.2s;
+}
+
+.collection-card:hover {
+  border-color: var(--border-card-hover);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.collection-card pre {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.3;
+  white-space: pre;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.collection-name {
+  font-weight: bold;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.collection-species {
+  color: var(--text-dim);
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+
+.collection-traits {
+  font-size: 11px;
+}
+
+/* --- Empty / no energy states --- */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-state-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  opacity: 0.4;
+}
+
+.empty-state-text {
+  font-size: 13px;
+}
+
+/* --- Animations --- */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.15); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.1); }
+}
+
+@keyframes burst {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 230, 118, 0.2); }
+  50% { box-shadow: 0 0 24px rgba(0, 230, 118, 0.5); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; transform: translateY(-10px); }
+}
+
+.anim-burst { animation: burst 0.4s ease; }
+.anim-shake { animation: shake 0.4s ease; }
+`;
+function sidecarScript(port) {
+  return `
+<script>
+const SIDECAR_PORT = ${port};
+const SIDECAR_URL = "http://127.0.0.1:" + SIDECAR_PORT;
+
+async function pickCard(choice) {
+  document.querySelectorAll('.game-card,.breed-card-big').forEach(c => {
+    if (c.dataset.choice !== choice) c.classList.add('dimmed');
+  });
+  try {
+    const res = await fetch(SIDECAR_URL + "/action?choice=" + choice);
+    if (res.ok) {
+      const html = await res.text();
+      document.documentElement.innerHTML = html;
+    }
+  } catch (e) { console.warn("Sidecar unreachable:", e); }
+}
+
+async function skipTurn() {
+  try {
+    const res = await fetch(SIDECAR_URL + "/action?choice=s");
+    if (res.ok) {
+      const html = await res.text();
+      document.documentElement.innerHTML = html;
+    }
+  } catch (e) { console.warn("Sidecar unreachable:", e); }
+}
+</script>`;
+}
+var RESULT_AUTO_DISMISS_SCRIPT = `
+<script>
+(function() {
+  var overlay = document.querySelector('.result-overlay');
+  var nextContent = document.querySelector('.next-draw-content');
+  if (overlay && nextContent) {
+    nextContent.style.opacity = '0.3';
+    setTimeout(function() {
+      overlay.style.animation = 'fadeOut 0.5s ease forwards';
+      nextContent.style.transition = 'opacity 0.5s ease';
+      nextContent.style.opacity = '1';
+      setTimeout(function() {
+        overlay.style.display = 'none';
+      }, 500);
+    }, 2500);
+  }
+})();
+</script>`;
+function wrapPage(bodyContent, options) {
+  const sidecar = options.sidecarPort != null ? sidecarScript(options.sidecarPort) : "";
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>${BASE_CSS}</style>
+</head>
+<body>
+${bodyContent}
+${sidecar}
+</body>
+</html>`;
+}
+
+// src/renderers/html-app.ts
+init_progression();
+function esc2(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function renderCreatureArtHtml(slots, speciesId) {
+  const species = getSpeciesById(speciesId);
+  if (!species?.art) return `<pre style="color:#9e9e9e">???</pre>`;
+  const slotArt = {};
+  for (const s of slots) {
+    const trait = getTraitDefinition(speciesId, s.variantId);
+    slotArt[s.slotId] = trait?.art ?? "???";
+  }
+  const slotRarity = {};
+  for (const s of slots) {
+    slotRarity[s.slotId] = s.rarity ?? 0;
+  }
+  const lines = species.art.map((line, lineIndex) => {
+    let result = line;
+    const replacements = [
+      ["EE", slotArt["eyes"] ?? ""],
+      ["MM", slotArt["mouth"] ?? ""],
+      ["BB", slotArt["body"] ?? ""],
+      ["TT", slotArt["tail"] ?? ""]
+    ];
+    for (const [placeholder, art] of replacements) {
+      result = result.replace(placeholder, art);
+    }
+    const zoneSlot = species.zones?.[lineIndex];
+    const color = zoneSlot ? rarityHex(slotRarity[zoneSlot] ?? 0) : "#ffffff";
+    return `<span style="color:${color}">${esc2(result)}</span>`;
+  });
+  return `<pre>${lines.join("\n")}</pre>`;
+}
+function renderHud(energy, maxEnergy, profile) {
+  const energyPct = Math.round(energy / maxEnergy * 100);
+  const nextXp = getXpForNextLevel(profile.level);
+  const xpPct = nextXp > 0 ? Math.round(profile.xp / nextXp * 100) : 100;
+  return `<div class="status-hud">
+  <div class="hud-item">
+    <span class="hud-label">Lv</span>
+    <span class="hud-value">${profile.level}</span>
+  </div>
+  <div class="hud-item">
+    <span style="color:var(--energy-color)">&#9889;</span>
+    <div class="bar-track"><div class="bar-fill energy" style="width:${energyPct}%"></div></div>
+    <span class="hud-value">${energy}/${maxEnergy}</span>
+  </div>
+  <div class="hud-item">
+    <span class="hud-label">XP</span>
+    <div class="bar-track"><div class="bar-fill xp" style="width:${xpPct}%"></div></div>
+    <span style="color:var(--text-secondary)">${profile.xp}/${nextXp}</span>
+  </div>
+</div>`;
+}
+function renderTraitsHtml(slots, speciesId) {
+  const order = ["eyes", "mouth", "body", "tail"];
+  const rows = [];
+  for (const slotId of order) {
+    const slot = slots.find((s) => s.slotId === slotId);
+    if (slot) {
+      const variant = getTraitDefinition(speciesId, slot.variantId) ?? getVariantById(slot.variantId);
+      const name = variant?.name ?? slot.variantId;
+      const color = rarityHex(slot.rarity);
+      const rName = RARITY_NAMES2[slot.rarity] ?? "Common";
+      rows.push(`<div class="trait-row">
+  <span class="trait-dot" style="color:${color};background:${color}"></span>
+  <span class="trait-name">${esc2(name)}</span>
+  <span class="trait-rarity">${rName}</span>
+</div>`);
+    }
+  }
+  return rows.join("\n");
+}
+function renderCatchCardHtml(card, letter, sidecarPort) {
+  const data = card.data;
+  const creature = data.creature;
+  const rate = Math.round(data.catchRate * 100);
+  const speciesDisplay = creature.speciesId.charAt(0).toUpperCase() + creature.speciesId.slice(1);
+  const clickAttr = sidecarPort != null ? ` onclick="pickCard('${letter.toLowerCase()}')" ` : "";
+  return `<div class="game-card" data-choice="${letter.toLowerCase()}" ${clickAttr}>
+  <div class="card-badge">${letter.toUpperCase()}</div>
+  <div class="card-type-banner">catch</div>
+  <div class="card-art">${renderCreatureArtHtml(creature.slots, creature.speciesId)}</div>
+  <div class="card-name">${esc2(speciesDisplay)}</div>
+  <div class="card-traits">${renderTraitsHtml(creature.slots, creature.speciesId)}</div>
+  <div class="card-footer">
+    <span class="card-energy">&#9889; ${data.energyCost}</span>
+    <span class="card-rate">${rate}%</span>
+  </div>
+</div>`;
+}
+function renderBreedCardHtml(card, sidecarPort) {
+  const data = card.data;
+  const pA = data.parentA.creature;
+  const pB = data.parentB.creature;
+  const order = ["eyes", "mouth", "body", "tail"];
+  const clickBreed = sidecarPort != null ? ` onclick="pickCard('a')"` : "";
+  const clickPass = sidecarPort != null ? ` onclick="pickCard('b')"` : "";
+  const slotsHtml = order.map((slotId) => {
+    const info = data.upgradeChances.find((u) => u.slotId === slotId);
+    const matchHtml = info?.match ? `<span class="breed-slot-match">&uarr; ${Math.round(info.upgradeChance * 100)}%</span>` : `<span class="breed-slot-nomatch">&mdash;</span>`;
+    return `<div class="breed-slot-row">
+  <span class="breed-slot-label">${slotId}</span>
+  ${matchHtml}
+</div>`;
+  }).join("\n");
+  return `<div class="breed-card-big" data-choice="a">
+  <div class="breed-title">&#9829; BREEDING MATCH &#9829;</div>
+  <div class="breed-parents">
+    <div class="breed-parent">
+      ${renderCreatureArtHtml(pA.slots, pA.speciesId)}
+      <div class="breed-parent-name">${esc2(pA.name)}</div>
+    </div>
+    <div class="breed-heart">&#9829;</div>
+    <div class="breed-parent">
+      ${renderCreatureArtHtml(pB.slots, pB.speciesId)}
+      <div class="breed-parent-name">${esc2(pB.name)}</div>
+    </div>
+  </div>
+  <div class="breed-slots">${slotsHtml}</div>
+  <div class="breed-actions">
+    <button class="breed-btn primary" ${clickBreed}>[A] Breed &#9889;${data.energyCost}</button>
+    <button class="breed-btn" ${clickPass}>[B] Pass</button>
+  </div>
+</div>`;
+}
+function renderDrawCardsOnly(draw, sidecarPort) {
+  if (draw.noEnergy) {
+    return `<div class="empty-state">
+  <div class="empty-state-icon">&#9889;</div>
+  <div class="empty-state-text">Out of energy. Come back later!</div>
+</div>`;
+  }
+  if (draw.empty) {
+    return `<div class="empty-state">
+  <div class="empty-state-icon">&#8987;</div>
+  <div class="empty-state-text">Nothing happening right now. New creatures spawn every 30 min.</div>
+</div>`;
+  }
+  if (draw.cards.length === 1 && draw.cards[0].type === "breed") {
+    return renderBreedCardHtml(draw.cards[0], sidecarPort);
+  }
+  const letters = ["a", "b", "c", "d", "e", "f"];
+  const cardsHtml = draw.cards.map(
+    (card, i) => renderCatchCardHtml(card, letters[i], sidecarPort)
+  ).join("\n");
+  const skipClick = sidecarPort != null ? ` onclick="skipTurn()"` : "";
+  return `<div class="card-row">${cardsHtml}</div>
+<div style="text-align:center">
+  <button class="skip-btn"${skipClick}>[S] Skip &#9889;1</button>
+</div>`;
+}
+function renderCatchResultOverlay(cr) {
+  const c = cr.creature;
+  if (cr.success) {
+    return `<div class="result-overlay catch-success anim-burst">
+  <div class="result-title" style="color:var(--success)">&#10022; CAUGHT! &#10022;</div>
+  <div class="result-creature-name">${esc2(c.name)}</div>
+  ${renderCreatureArtHtml(c.slots, c.speciesId)}
+  ${cr.discovery?.isNew ? `<div style="color:var(--warning);margin:8px 0;font-weight:bold">&#10022; NEW SPECIES: ${esc2(cr.discovery.speciesId)} &#10022;</div>` : ""}
+  <div class="result-xp">+${cr.xpEarned} XP &nbsp; -${cr.energySpent} &#9889;</div>
+</div>`;
+  } else if (cr.fled) {
+    return `<div class="result-overlay catch-fail anim-shake">
+  <div class="result-title" style="color:var(--danger)">&#10022; FLED &#10022;</div>
+  <div class="result-creature-name">${esc2(c.name)}</div>
+  <div class="result-subtitle">The creature is gone.</div>
+  <div style="color:var(--text-dim)">-${cr.energySpent} &#9889;</div>
+</div>`;
+  } else {
+    return `<div class="result-overlay catch-escaped anim-shake">
+  <div class="result-title" style="color:var(--warning)">&#10022; ESCAPED &#10022;</div>
+  <div class="result-creature-name">${esc2(c.name)}</div>
+  <div class="result-subtitle">${cr.attemptsRemaining} attempts remaining</div>
+  <div style="color:var(--text-dim)">-${cr.energySpent} &#9889;</div>
+</div>`;
+  }
+}
+function renderBreedResultOverlay(br) {
+  const child = br.child;
+  const order = ["eyes", "mouth", "body", "tail"];
+  const titleText = br.isCrossSpecies ? "&#9733; NEW HYBRID BORN! &#9733;" : "&#9733; BABY BORN! &#9733;";
+  const titleColor = br.isCrossSpecies ? "var(--warning)" : "var(--success)";
+  const traitsHtml = order.map((slotId) => {
+    const slot = child.slots.find((s) => s.slotId === slotId);
+    if (!slot) return "";
+    const color = rarityHex(slot.rarity);
+    const rName = RARITY_NAMES2[slot.rarity] ?? "Common";
+    const upgrade = br.upgrades?.find((u) => u.slotId === slotId);
+    const arrow = upgrade ? ` <span class="upgrade-arrow">&uarr;</span>` : "";
+    return `<div class="trait-row" style="justify-content:center">
+  <span class="trait-dot" style="color:${color};background:${color}"></span>
+  <span>${rName} ${slotId}</span>${arrow}
+</div>`;
+  }).join("\n");
+  return `<div class="result-overlay breed-success anim-burst">
+  <div class="result-title" style="color:${titleColor}">${titleText}</div>
+  <div class="result-creature-name">${esc2(child.name)}</div>
+  ${renderCreatureArtHtml(child.slots, child.speciesId)}
+  <div style="margin:8px 0">${traitsHtml}</div>
+  <div class="result-subtitle">${esc2(br.parentA.name)} &times; ${esc2(br.parentB.name)}</div>
+</div>`;
+}
+var HtmlAppRenderer = class {
+  fallback;
+  sidecarPort;
+  constructor(sidecarPort) {
+    this.sidecarPort = sidecarPort;
+    this.fallback = new SimpleTextRenderer();
+  }
+  // --- Primary HTML methods ---
+  renderCardDraw(draw, energy, maxEnergy, profile) {
+    const hud = renderHud(energy, maxEnergy, profile);
+    const cards = renderDrawCardsOnly(draw, this.sidecarPort);
+    return wrapPage(`${hud}
+${cards}`, { sidecarPort: this.sidecarPort });
+  }
+  renderPlayResult(result, energy, maxEnergy, profile) {
+    const hud = renderHud(energy, maxEnergy, profile);
+    let overlay = "";
+    if (result.action === "catch" && result.catchResult) {
+      overlay = renderCatchResultOverlay(result.catchResult);
+    }
+    if (result.action === "breed" && result.breedResult) {
+      overlay = renderBreedResultOverlay(result.breedResult);
+    }
+    const nextCards = renderDrawCardsOnly(result.nextDraw, this.sidecarPort);
+    return wrapPage(
+      `${hud}
+${overlay}
+<div class="next-draw-content">${nextCards}</div>
+${RESULT_AUTO_DISMISS_SCRIPT}`,
+      { sidecarPort: this.sidecarPort }
+    );
+  }
+  renderCollection(collection) {
+    if (collection.length === 0) {
+      return wrapPage(
+        `<div class="empty-state">
+  <div class="empty-state-icon">&#128230;</div>
+  <div class="empty-state-text">No creatures in your collection yet.</div>
+</div>`,
+        { sidecarPort: this.sidecarPort }
+      );
+    }
+    const cards = collection.map((c, i) => {
+      const speciesDisplay = c.speciesId.charAt(0).toUpperCase() + c.speciesId.slice(1);
+      return `<div class="collection-card">
+  ${renderCreatureArtHtml(c.slots, c.speciesId)}
+  <div class="collection-name">${i + 1}. ${esc2(c.name)}</div>
+  <div class="collection-species">${esc2(speciesDisplay)} &middot; Gen ${c.generation}</div>
+  <div class="collection-traits">${renderTraitsHtml(c.slots, c.speciesId)}</div>
+</div>`;
+    }).join("\n");
+    return wrapPage(
+      `<div style="color:var(--text-secondary);margin-bottom:12px">Collection (${collection.length})</div>
+<div class="collection-grid">${cards}</div>`,
+      { sidecarPort: this.sidecarPort }
+    );
+  }
+  renderCompanionOverview(_overview) {
+    return "";
+  }
+  // --- Delegated methods ---
+  renderScan(result) {
+    return buildAppHtml(this.fallback.renderScan(result));
+  }
+  renderCatch(result) {
+    return buildAppHtml(this.fallback.renderCatch(result));
+  }
+  renderBreedPreview(preview) {
+    return buildAppHtml(this.fallback.renderBreedPreview(preview));
+  }
+  renderBreedResult(result) {
+    return buildAppHtml(this.fallback.renderBreedResult(result));
+  }
+  renderEnergy(energy, maxEnergy) {
+    return buildAppHtml(this.fallback.renderEnergy(energy, maxEnergy));
+  }
+  renderStatus(result) {
+    return buildAppHtml(this.fallback.renderStatus(result));
+  }
+  renderNotification(notification) {
+    return buildAppHtml(this.fallback.renderNotification(notification));
+  }
+  renderBreedTable(table) {
+    return buildAppHtml(this.fallback.renderBreedTable(table));
+  }
+  renderSpeciesIndex(progress) {
+    return buildAppHtml(this.fallback.renderSpeciesIndex(progress));
+  }
+  renderLevelUp(result) {
+    return buildAppHtml(this.fallback.renderLevelUp(result));
+  }
+  renderDiscovery(result) {
+    return buildAppHtml(this.fallback.renderDiscovery(result));
+  }
+  renderStatusBar(progress) {
+    return buildAppHtml(this.fallback.renderStatusBar(progress));
+  }
+  renderActionMenu(entries) {
+    return buildAppHtml(this.fallback.renderActionMenu(entries));
+  }
+  renderProgressPanel(progress) {
+    return buildAppHtml(this.fallback.renderProgressPanel(progress));
+  }
+};
+
+// src/cursor-sidecar.ts
+var http = __toESM(require("http"));
+var path4 = __toESM(require("path"));
+var os3 = __toESM(require("os"));
+var fs4 = __toESM(require("fs"));
+var PORT_FILE = path4.join(os3.homedir(), ".compi", "cursor-port");
+function createSidecar() {
+  return new Promise((resolve, reject) => {
+    const server2 = http.createServer((req, res) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      const reqUrl = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
+      const pathname = reqUrl.pathname;
+      if (req.method === "OPTIONS") {
+        res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+        res.setHeader("Access-Control-Allow-Headers", "*");
+        res.writeHead(204);
+        res.end();
+        return;
+      }
+      if (pathname === "/health") {
+        res.writeHead(200, { "Content-Type": "text/plain" });
+        res.end("OK");
+        return;
+      }
+      if (pathname === "/action") {
+        handleAction(reqUrl.searchParams, res, server2);
+        return;
+      }
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("Not Found");
+    });
+    server2.listen(0, "127.0.0.1", () => {
+      const addr = server2.address();
+      if (!addr || typeof addr === "string") {
+        reject(new Error("Failed to get server address"));
+        return;
+      }
+      const port = addr.port;
+      try {
+        const dir = path4.dirname(PORT_FILE);
+        fs4.mkdirSync(dir, { recursive: true });
+        fs4.writeFileSync(PORT_FILE, String(port), "utf-8");
+      } catch {
+      }
+      resolve({ server: server2, port });
+    });
+    server2.on("error", reject);
+  });
+}
+function handleAction(params, res, server2) {
+  try {
+    const choice = (params.get("choice") ?? "").toLowerCase();
+    if (!["a", "b", "c", "s"].includes(choice)) {
+      res.writeHead(400, { "Content-Type": "text/plain" });
+      res.end("Bad Request: choice must be a, b, c, or s");
+      return;
+    }
+    const statePath2 = process.env.COMPI_STATE_PATH ?? path4.join(os3.homedir(), ".compi", "state.json");
+    const sm = new StateManager(statePath2);
+    const state = sm.load();
+    const engine = new GameEngine(state);
+    engine.processTick({ timestamp: Date.now() }, Math.random);
+    registerPersonalSpecies(state.personalSpecies);
+    const addr = server2.address();
+    const sidecarPort = addr && typeof addr !== "string" ? addr.port : null;
+    const renderer = new HtmlAppRenderer(sidecarPort);
+    let html;
+    if (choice === "s") {
+      const draw = drawCards(state, Math.random);
+      html = renderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+    } else if (choice === "b" && state.currentHand && state.currentHand.length === 1 && state.currentHand[0].type === "breed") {
+      const draw = skipHand(state, Math.random);
+      html = renderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+    } else {
+      const choiceIndex = choice.charCodeAt(0) - "a".charCodeAt(0);
+      const result = playCard(state, choiceIndex, Math.random);
+      html = renderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
+    }
+    sm.save(state);
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(html);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    res.writeHead(500, { "Content-Type": "text/plain" });
+    res.end(`Internal Server Error: ${msg}`);
+  }
+}
+function cleanupPortFile() {
+  try {
+    fs4.unlinkSync(PORT_FILE);
+  } catch {
+  }
+}
+
 // src/mcp-server-cursor.ts
 var APP_URI = "ui://compi/display.html";
 var APP_MIME = "text/html;profile=mcp-app";
@@ -33880,7 +34909,7 @@ function createOutputWaiter() {
 }
 var server = new McpServer({
   name: "compi",
-  version: "0.3.0"
+  version: "0.4.0"
 });
 server.registerResource(
   APP_URI,
@@ -33889,7 +34918,7 @@ server.registerResource(
   async () => {
     const content = await createOutputWaiter();
     return {
-      contents: [{ uri: APP_URI, mimeType: APP_MIME, text: buildAppHtml(content) }]
+      contents: [{ uri: APP_URI, mimeType: APP_MIME, text: content }]
     };
   }
 );
@@ -33897,24 +34926,36 @@ var appMeta = {
   ui: { resourceUri: APP_URI },
   "ui/resourceUri": APP_URI
 };
-registerTools(server, {
-  appMeta,
-  renderHtml: buildAppHtml,
-  onOutput: (content) => {
-    latestOutput = content;
-    outputVersion++;
+async function main() {
+  let sidecarPort = null;
+  try {
+    const sidecar = await createSidecar();
+    sidecarPort = sidecar.port;
+    process.on("exit", () => {
+      cleanupPortFile();
+      sidecar.server.close();
+    });
+    process.on("SIGTERM", () => process.exit(0));
+    process.on("SIGINT", () => process.exit(0));
+  } catch (err) {
+    console.error("Sidecar failed:", err);
   }
-});
-(() => {
+  const renderer = new HtmlAppRenderer(sidecarPort);
+  registerTools(server, {
+    appMeta,
+    renderer,
+    onOutput: (content) => {
+      latestOutput = content;
+      outputVersion++;
+    }
+  });
   try {
     const { engine } = loadEngine();
-    const renderer = new SimpleTextRenderer();
-    latestOutput = renderer.renderScan(engine.scan());
+    const warmup = renderer.renderScan(engine.scan());
+    latestOutput = warmup;
     outputVersion++;
-  } catch (err) {
+  } catch {
   }
-})();
-async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }

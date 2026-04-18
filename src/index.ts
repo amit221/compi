@@ -1,6 +1,7 @@
 export { GameEngine } from "./engine/game-engine";
 export { StateManager } from "./state/state-manager";
 export { SimpleTextRenderer } from "./renderers/simple-text";
+export { HtmlAppRenderer } from "./renderers/html-app";
 export { getVariantById, loadCreatureName } from "./config/traits";
 export { loadConfig, formatMessage } from "./config/loader";
 export { loadSpecies, getSpeciesById, getAllSpecies, pickSpecies, pickTraitForSlot, getTraitDefinition, getTraitRank } from "./config/species";

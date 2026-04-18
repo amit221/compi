@@ -12,7 +12,7 @@ import { StateManager } from "./state/state-manager";
 import { GameEngine } from "./engine/game-engine";
 import { SimpleTextRenderer } from "./renderers/simple-text";
 import { MAX_ENERGY } from "./engine/energy";
-import { SlotId, SpeciesDefinition } from "./types";
+import { SlotId, SpeciesDefinition, Renderer } from "./types";
 import { registerPersonalSpecies } from "./config/species";
 import { drawCards, playCard, skipHand } from "./engine/cards";
 
@@ -36,20 +36,26 @@ export interface RegisterToolsOptions {
   onOutput?: (content: string) => void;
   /** If provided, render ANSI to HTML and include as embedded resource in result */
   renderHtml?: (ansiContent: string) => string;
+  /** Custom renderer (used by Cursor server for HTML output) */
+  renderer?: Renderer;
 }
 
 const displayPath = path.join(os.tmpdir(), "compi_display.txt");
 
-function makeText(content: string, options: RegisterToolsOptions) {
+function makeText(content: string, options: RegisterToolsOptions, htmlContent?: string) {
   if (options.writeDisplayFile) {
     fs.writeFileSync(displayPath, content);
   }
-  if (options.onOutput) {
+
+  const html = htmlContent ?? (options.renderHtml ? options.renderHtml(content) : null);
+
+  if (options.onOutput && html) {
+    options.onOutput(html);
+  } else if (options.onOutput) {
     options.onOutput(content);
   }
-  // If renderHtml is provided, return HTML for the iframe instead of raw ANSI
-  if (options.renderHtml) {
-    const html = options.renderHtml(content);
+
+  if (html) {
     return { content: [
       { type: "text" as const, text: content },
       { type: "resource" as any, resource: { uri: `ui://compi/result-${Date.now()}.html`, mimeType: "text/html;profile=mcp-app", text: html } },
@@ -89,7 +95,8 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
   }), async (args) => {
     const { stateManager, engine } = loadEngine();
     const state = engine.getState();
-    const renderer = new SimpleTextRenderer();
+    const ansiRenderer = new SimpleTextRenderer();
+    const htmlRenderer = options.renderer;
 
     // Register hybrid species so renderer can find their art
     registerPersonalSpecies(state.personalSpecies);
@@ -97,41 +104,48 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
     // Process ticks (energy/spawns)
     engine.processTick({ timestamp: Date.now(), sessionId: state.currentSessionId }, Math.random);
 
-    let output: string;
+    let ansiOutput: string;
+    let htmlOutput: string | undefined;
 
     if (!args.choice) {
       // Initial draw
       const draw = drawCards(state, Math.random);
-      output = renderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+      ansiOutput = ansiRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+      if (htmlRenderer) htmlOutput = htmlRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
     } else if (args.choice === "s") {
       // Skip — new turn costs 1 energy
       const draw = drawCards(state, Math.random);
-      output = renderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+      ansiOutput = ansiRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+      if (htmlRenderer) htmlOutput = htmlRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
     } else {
       const choiceIndex = args.choice.charCodeAt(0) - 97; // 'a'=0, 'b'=1, 'c'=2
 
       // Handle breed pass (choice "b" on a single breed card)
       if (state.currentHand?.length === 1 && state.currentHand[0].type === "breed" && args.choice === "b") {
         const draw = skipHand(state, Math.random);
-        output = renderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+        ansiOutput = ansiRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+        if (htmlRenderer) htmlOutput = htmlRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
       } else {
         const result = playCard(state, choiceIndex, Math.random);
-        output = renderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
+        ansiOutput = ansiRenderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
+        if (htmlRenderer) htmlOutput = htmlRenderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
       }
     }
 
     stateManager.save(state);
-    return makeText(output, options);
+    return makeText(ansiOutput, options, htmlOutput);
   }, meta);
 
   addTool(server, "collection", "View your creature collection (free, no energy cost)", z.object({}), async () => {
     const { engine } = loadEngine();
     const state = engine.getState();
     registerPersonalSpecies(state.personalSpecies);
-    const renderer = new SimpleTextRenderer();
+    const ansiRenderer = new SimpleTextRenderer();
+    const htmlRenderer = options.renderer;
     const active = state.collection.filter((c: any) => !c.archived);
-    const output = renderer.renderCollection(active);
-    return makeText(output, options);
+    const ansiOutput = ansiRenderer.renderCollection(active);
+    const htmlOutput = htmlRenderer ? htmlRenderer.renderCollection(active) : undefined;
+    return makeText(ansiOutput, options, htmlOutput);
   }, meta);
 
   addTool(server, "register_hybrid", "Register a newly bred hybrid species with AI-generated name and art", z.object({

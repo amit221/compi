@@ -33682,15 +33682,17 @@ function loadEngine() {
   return { stateManager, engine };
 }
 var displayPath = path3.join(os2.tmpdir(), "compi_display.txt");
-function makeText(content, options) {
+function makeText(content, options, htmlContent) {
   if (options.writeDisplayFile) {
     fs3.writeFileSync(displayPath, content);
   }
-  if (options.onOutput) {
+  const html = htmlContent ?? (options.renderHtml ? options.renderHtml(content) : null);
+  if (options.onOutput && html) {
+    options.onOutput(html);
+  } else if (options.onOutput) {
     options.onOutput(content);
   }
-  if (options.renderHtml) {
-    const html = options.renderHtml(content);
+  if (html) {
     return { content: [
       { type: "text", text: content },
       { type: "resource", resource: { uri: `ui://compi/result-${Date.now()}.html`, mimeType: "text/html;profile=mcp-app", text: html } }
@@ -33717,37 +33719,45 @@ function registerTools(server2, options = {}) {
   }), async (args) => {
     const { stateManager, engine } = loadEngine();
     const state = engine.getState();
-    const renderer = new SimpleTextRenderer();
+    const ansiRenderer = new SimpleTextRenderer();
+    const htmlRenderer = options.renderer;
     registerPersonalSpecies(state.personalSpecies);
     engine.processTick({ timestamp: Date.now(), sessionId: state.currentSessionId }, Math.random);
-    let output;
+    let ansiOutput;
+    let htmlOutput;
     if (!args.choice) {
       const draw = drawCards(state, Math.random);
-      output = renderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+      ansiOutput = ansiRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+      if (htmlRenderer) htmlOutput = htmlRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
     } else if (args.choice === "s") {
       const draw = drawCards(state, Math.random);
-      output = renderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+      ansiOutput = ansiRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+      if (htmlRenderer) htmlOutput = htmlRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
     } else {
       const choiceIndex = args.choice.charCodeAt(0) - 97;
       if (state.currentHand?.length === 1 && state.currentHand[0].type === "breed" && args.choice === "b") {
         const draw = skipHand(state, Math.random);
-        output = renderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+        ansiOutput = ansiRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
+        if (htmlRenderer) htmlOutput = htmlRenderer.renderCardDraw(draw, state.energy, MAX_ENERGY, state.profile);
       } else {
         const result = playCard(state, choiceIndex, Math.random);
-        output = renderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
+        ansiOutput = ansiRenderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
+        if (htmlRenderer) htmlOutput = htmlRenderer.renderPlayResult(result, state.energy, MAX_ENERGY, state.profile);
       }
     }
     stateManager.save(state);
-    return makeText(output, options);
+    return makeText(ansiOutput, options, htmlOutput);
   }, meta3);
   addTool(server2, "collection", "View your creature collection (free, no energy cost)", external_exports3.object({}), async () => {
     const { engine } = loadEngine();
     const state = engine.getState();
     registerPersonalSpecies(state.personalSpecies);
-    const renderer = new SimpleTextRenderer();
+    const ansiRenderer = new SimpleTextRenderer();
+    const htmlRenderer = options.renderer;
     const active = state.collection.filter((c) => !c.archived);
-    const output = renderer.renderCollection(active);
-    return makeText(output, options);
+    const ansiOutput = ansiRenderer.renderCollection(active);
+    const htmlOutput = htmlRenderer ? htmlRenderer.renderCollection(active) : void 0;
+    return makeText(ansiOutput, options, htmlOutput);
   }, meta3);
   addTool(server2, "register_hybrid", "Register a newly bred hybrid species with AI-generated name and art", external_exports3.object({
     speciesId: external_exports3.string().describe("The hybrid species ID (e.g., hybrid_compi_pyrax)"),
