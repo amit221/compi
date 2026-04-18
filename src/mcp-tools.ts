@@ -137,15 +137,11 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
   addTool(server, "register_hybrid", "Register a newly bred hybrid species with AI-generated name and art", z.object({
     speciesId: z.string().describe("The hybrid species ID (e.g., hybrid_compi_pyrax)"),
     name: z.string().describe("Creative name for the hybrid species"),
-    art: z.string().describe("ASCII art for the creature (3-4 lines, separated by newlines)"),
+    art: z.string().describe("ASCII art template (4-5 lines separated by newlines). Use EE=eyes, MM=mouth, BB=body, TT=tail as placeholders"),
     description: z.string().describe("One-line flavor text description"),
   }), async ({ speciesId, name, art, description }: { speciesId: string; name: string; art: string; description: string }) => {
     const { stateManager, engine } = loadEngine();
     const state = engine.getState();
-
-    if (state.personalSpecies.find((s: SpeciesDefinition) => s.id === speciesId)) {
-      return makeText(`Hybrid species "${name}" (${speciesId}) is already registered.`, options);
-    }
 
     const artLines = art.split("\n");
     const species: SpeciesDefinition = {
@@ -158,7 +154,13 @@ export function registerTools(server: McpServer, options: RegisterToolsOptions =
       traitPools: {},
     };
 
-    state.personalSpecies.push(species);
+    // Update existing placeholder or add new
+    const existingIdx = state.personalSpecies.findIndex((s: SpeciesDefinition) => s.id === speciesId);
+    if (existingIdx >= 0) {
+      state.personalSpecies[existingIdx] = species;
+    } else {
+      state.personalSpecies.push(species);
+    }
     stateManager.save(state);
 
     const artDisplay = artLines.join("\n");
