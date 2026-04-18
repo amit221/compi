@@ -1,6 +1,6 @@
 {
   "name": "compi",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A terminal creature collection game — catch digital beings as you work",
   "main": "scripts/cli.js",
   "bin": {

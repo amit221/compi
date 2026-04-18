@@ -2,6 +2,31 @@
 
 All notable changes to this project are documented in this file. This file is maintained automatically by [release-please](https://github.com/googleapis/release-please) based on [Conventional Commits](https://www.conventionalcommits.org/).
 
+## [1.1.0](https://github.com/amit221/compi/compare/v1.0.0...v1.1.0) (2026-04-18)
+
+
+### Features
+
+* add /collection command back as free view alongside /play ([bdcb8f8](https://github.com/amit221/compi/commit/bdcb8f8a9d46e1107913af4e2830ba110d3de746))
+* add breed result screen showing baby creature with art and traits ([bb2b116](https://github.com/amit221/compi/commit/bb2b116e2031f55f44fffd699f8195e4bc59ab51))
+* add card rendering to SimpleTextRenderer ([88ede8b](https://github.com/amit221/compi/commit/88ede8b558d960182ae5abaf3c6a83349fad2b7c))
+* add card rendering to SimpleTextRenderer ([564aa90](https://github.com/amit221/compi/commit/564aa903df44d4169af225d9d2b94aa6f6748fb6))
+* add cards engine module — buildPool, drawCards, playCard ([ef16ccc](https://github.com/amit221/compi/commit/ef16ccc9ee97e60a9ffe6336ec43ebe7c562cb08))
+* add cards engine module — buildPool, drawCards, playCard ([c7c354e](https://github.com/amit221/compi/commit/c7c354ecc57b9d78436dc41bd7864c958185b1ad))
+* add v6→v7 state migration moving archive to collection ([ae6c1cf](https://github.com/amit221/compi/commit/ae6c1cff162e7cf419f7bc2f825069ca2942b618))
+* add v7 card types to types.ts and remove archive system ([4ead562](https://github.com/amit221/compi/commit/4ead5626513bcd29b65ae6f7a96ec3ec62444aeb))
+* AI generates unique art for hybrid species via register_hybrid ([3ae6ca4](https://github.com/amit221/compi/commit/3ae6ca409edab7666cc3c87390335005d60920e6))
+* replace all MCP tools with single play tool ([cfcf803](https://github.com/amit221/compi/commit/cfcf8035176ce16689d7f48ddbac8d65dbef5be0))
+
+
+### Bug Fixes
+
+* add breed pass handling to CLI play command ([90d065e](https://github.com/amit221/compi/commit/90d065e3bb50cb75a349a8de6df0822c5066d595))
+* improve hook notifications — 30% chance, humor, context-aware ([c8a3339](https://github.com/amit221/compi/commit/c8a33399813d5d8f359014dab967a865eadfa977))
+* reduce breed card frequency to 20%, auto-register hybrid species art ([c11e35e](https://github.com/amit221/compi/commit/c11e35e633a019f948ea47763874556ba1ae7dea))
+* resolve hybrid species art by falling back to parent trait pools ([9e33a6d](https://github.com/amit221/compi/commit/9e33a6d525a5de80000342c022b81269904a9fc0))
+* update hook notification to suggest /play instead of /scan ([8db88db](https://github.com/amit221/compi/commit/8db88db72178880e1dd3a8df481e92dacde848ff))
+
 ## [1.0.0](https://github.com/amit221/compi/compare/v0.5.0...v1.0.0) (2026-04-15)
 
 
