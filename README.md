@@ -2,48 +2,78 @@
 
 <img src="assets/logo.svg" alt="COMPI" width="420" />
 
-### Collect compis while you code — without ever leaving your agent.
+### Collect creatures while you code — without ever leaving your agent.
 
-Your coding activity spawns unique ASCII creatures with randomized traits across 6 rarity tiers.
-Scan to discover them. Catch the ones you want. Breed pairs to pass rare traits to the next generation. **Hundreds of millions of possible combinations.**
+Your coding activity spawns unique ASCII creatures with randomized traits across 8 rarity tiers.
+One command to play. Pick a card to catch or breed. **Hundreds of millions of possible combinations.**
 
 Works with **Claude Code** | **Cursor** | and more coming soon
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org)
-[![Tests](https://img.shields.io/badge/Tests-381_passing-brightgreen.svg)]()
 
 </div>
 
 ---
 
-<div align="center">
-<img src="assets/compi-demo.gif" alt="Compi gameplay — scan, catch, and collect compis in your terminal" width="680" />
-</div>
-
 ## How It Works
 
 ```
 1. Code normally        Your prompts, tool calls, and commits generate "ticks"
-2. Compis spawn         Every ~30 minutes a batch of 3-5 compis appears nearby
-3. Scan & catch         Run /scan to see them, /catch to grab the ones you want
-4. Breed next-gen       Pair two compis to produce a child that inherits their best traits
+2. Creatures spawn      Every ~30 minutes a batch of creatures appears nearby
+3. Type /play           Draw 3 cards — pick one to catch, skip, or breed
+4. Build your crew      Breed pairs to upgrade rarity and discover hybrid species
 ```
 
-Each compi belongs to one of **7 species** and is built from a handful of trait slots (typically eyes, mouth, body, tail) — each with its own rarity and unique ASCII art. Rarer traits glow in different colors, from gray commons to red mythics.
+Every creature has **4 trait slots** (eyes, mouth, body, tail), each with its own rarity color — from gray commons to red mythics. Breed matching traits for a chance to upgrade.
+
+## `/play` — One Command, Cards on the Table
+
+Type **`/play`** and the game deals you cards. Pick one. That's it.
 
 <div align="center">
-<img src="assets/banner.svg" alt="compis across rarity tiers" width="700" />
+<img src="docs/images/play-catch-cards.png" alt="Three catch cards showing creatures with traits and catch rates" width="680" />
+
+*Three creatures appeared — pick A, B, or C to catch*
 </div>
 
-## Why Compi?
+Each card shows the creature's ASCII art, traits with rarity colors, energy cost, and catch rate. Type a letter to choose.
 
-- **Zero context-switching** — the game lives inside your coding agent, not a separate app
-- **Your work fuels the game** — compis spawn from your actual coding activity
-- **Real depth** — 7 species, 8 rarity tiers, weighted catch rates, breeding with rarity upgrades, cross-species hybrids, streaks, leveling
-- **Every compi is unique** — species × trait variants × 8 colors = hundreds of millions of combos
-- **Lightweight** — hooks only, no background processes, no performance impact
-- **Open source** — MIT licensed, community-driven
+### Catch Result
+
+<div align="center">
+<img src="docs/images/play-catch-result.png" alt="Successful catch followed by next cards" width="680" />
+
+*Caught! Next cards are dealt automatically*
+</div>
+
+### Breeding
+
+Sometimes you'll draw a breed card — a full-screen matchup between two of your creatures:
+
+<div align="center">
+<img src="docs/images/play-breed-card.png" alt="Breeding match card showing two parent creatures" width="680" />
+
+*Matching traits have a chance to upgrade rarity*
+</div>
+
+Cross-species breeding creates **hybrid species** with AI-generated names and art.
+
+### Collection
+
+Type **`/collection`** anytime to see your creatures:
+
+<div align="center">
+<img src="docs/images/play-collection.png" alt="Collection view showing creatures with art and traits" width="680" />
+</div>
+
+## Game Systems
+
+- **8 Rarity Tiers** — Common (gray) through Mythic (red). Each trait slot has independent rarity.
+- **Energy** — Max 30, regenerates over time. Each turn costs 1 energy. Catches cost 1-5 extra, breeds 3-11.
+- **Breeding** — Any two creatures can breed. Same trait = 35% upgrade chance. Cross-species = new hybrid.
+- **7 Base Species** — Compi, Flikk, Glich, Jinx, Monu, Pyrax, Whiski. Plus unlimited hybrids.
+- **Progression** — XP from catches and breeds. Leveling unlocks higher rarity breeding.
 
 ## Installation
 
@@ -54,106 +84,34 @@ Each compi belongs to one of **7 species** and is built from a handful of trait 
 /plugin install compi@compi
 ```
 
-Then enable auto-update so you always get the latest version:
+Then enable auto-update:
 1. Type `/plugin` to open the plugin manager
 2. Go to the **Marketplaces** tab
 3. Select **compi**
 4. Enable **auto-update**
 
-**Optional: add a dedicated `compi` alias**
-
-For the best experience, add a shell alias that launches a lightweight Compi-only session (Haiku model, Compi tools + file/CLI access):
-
-```bash
-alias compi='claude --model haiku --verbose --allowedTools "mcp__plugin_compi_compi__*" "Read" "Write" "Edit" "Bash"'
-```
-
-Add it to your shell profile (`~/.bashrc`, `~/.zshrc`, or `~/.profile`). **PowerShell** users — add this to your profile (`$PROFILE`) instead:
-
-```powershell
-function compi { & claude.cmd --model haiku --verbose --allowedTools "mcp__plugin_compi_compi__*" "Read" "Write" "Edit" "Bash" @args }
-```
-
-Then just run `compi` to start a dedicated session.
-
 ### Cursor
 
-> Requires **Cursor 2.5 or later** (plugins support was added in 2.5).
-
-Compi isn't on the official Cursor Marketplace yet, but Cursor's `/add-plugin` command can install any plugin directly from a GitHub repository. In an Agent chat, type:
+> Requires **Cursor 2.5 or later**.
 
 ```
 /add-plugin compi@https://github.com/amit221/compi
 ```
 
-> `/add-plugin` won't appear in autocomplete — type the full command.
-
-Then **restart Cursor** and verify it shows up under **Settings → Plugins**.
-
-On Cursor, Compi runs as a stdio MCP server that Cursor spawns on demand and renders output as an HTML panel via MCP Apps. The slash commands (`/scan`, `/catch`, `/collection`, …) work the same as in Claude Code.
-
-## Playing
-
-### `/play` — the AI companion (recommended)
-
-Just type **`/play`** and let the AI guide you. No commands to memorize — it reads your game state, shows what's happening, adds strategic insights, and asks what you'd like to do. You respond in plain English:
-
-```
-/play
-
-  ⚡ 25/30 | Lv.3 | 📦 4/15
-
-  A Flikk appeared!
-
-     \ _ /
-    ( •.• )
-    ( ^^^ )
-     ~░░~
-      \/
-
-  Blink (Rare) · Chatter (Superior)
-  Shiver (Common) · Whip (Uncommon)
-
-> catch it
-
-  ✦ CAUGHT! +10 XP · New species! +20 XP
-
-> breed 1 2
-
-  ★ HYBRID SPECIES BORN!
-  ↑ UP! eyes: Common → Rare
-```
-
-Scan, catch, breed — the AI handles everything. Just tell it what you want.
-
-### Other ways to play
-
-**Dedicated Compi session** — run the `compi` alias (see Installation) to open a lightweight Haiku-powered session focused on the game.
-
-**Play alongside your work** — Compi runs in the background of any Claude Code or Cursor session. Compis spawn as you work — interact with `/scan`, `/catch`, `/breed` at any time without interrupting your workflow.
+Then **restart Cursor** and verify under **Settings > Plugins**.
 
 ## Commands
 
-| Command | CLI | What it does |
-|---------|-----|-------------|
-| **`/play`** | — | **AI companion mode** — guided gameplay with strategic insights |
-| `/scan` | `compi scan` | Show one nearby creature — catch it or scan for the next |
-| `/catch` | `compi catch 1` | Catch the creature shown by scan |
-| `/collection` | `compi collection` | Browse your caught creatures and their traits |
-| `/breed [a] [b]` | `compi breed [a] [b]` | Breed any two creatures — same species upgrades rarity, cross-species creates hybrids |
-| `/species` | `compi species` | Species discovery index — track rarity tiers found per species |
-| `/archive [id]` | `compi archive [id]` | View your archive, or move a creature into it |
-| `/energy` | `compi energy` | Check your current energy level |
-| `/status` | `compi status` | Player profile, stats, and progress |
-| `/settings` | `compi settings` | Configure notifications and preferences |
-| `/create-species` | — | Generate a new creature species using AI |
-| `/list` | `compi list` | Show all available Compi commands |
+| Command | What it does |
+|---------|-------------|
+| **`/play`** | Draw cards — catch or breed creatures |
+| `/collection` | View your creatures (free) |
 
-> **Tip — just use `/play`.** It's the easiest way to experience Compi. The AI reads your game state, suggests moves, and executes them when you say yes. Individual commands are still available for power users who prefer direct control.
+That's it. Two commands. The game handles the rest.
 
 ## Contributing
 
-Compi is open source and contributions are welcome! Found a bug, have an idea for a new trait variant, or want to suggest a balance tweak? **[Open an issue](https://github.com/amit221/compi/issues/new)** — that's the best place to start a conversation before sending a PR.
+Compi is open source and contributions are welcome! **[Open an issue](https://github.com/amit221/compi/issues/new)** to start a conversation.
 
 <div align="center">
 
@@ -161,10 +119,8 @@ Compi is open source and contributions are welcome! Found a bug, have an idea fo
 
 ### Enjoying Compi? Help it grow.
 
-⭐ **[Star the repo](https://github.com/amit221/compi)** so others can find it
-🐦 **[Follow on X](https://x.com/AmitWagner)** for new compis and releases
-💬 **[Join r/compiCli](https://reddit.com/r/compiCli)** to show off rare catches and swap merge combos
+[Star the repo](https://github.com/amit221/compi) | [Follow on X](https://x.com/AmitWagner) | [Join r/compiCli](https://reddit.com/r/compiCli)
 
-<sub>Built for the terminal. MIT licensed. No telemetry, no background processes, no bullshit.</sub>
+<sub>Built for the terminal. MIT licensed. No telemetry, no background processes.</sub>
 
 </div>
