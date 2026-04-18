@@ -186,8 +186,8 @@ describe("getTraitDefinition", () => {
     expect(getTraitDefinition("compi", "tal_c01")?.name).toBe("Curl");
   });
 
-  it("returns undefined for unknown species", () => {
-    expect(getTraitDefinition("unknown", "eye_c01")).toBeUndefined();
+  it("returns undefined for completely unknown variant", () => {
+    expect(getTraitDefinition("unknown", "totally_fake_variant")).toBeUndefined();
   });
 
   it("returns undefined for unknown variant", () => {

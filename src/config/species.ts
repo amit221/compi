@@ -120,9 +120,18 @@ export function getTraitDefinition(
   variantId: string
 ): TraitDefinition | undefined {
   ensureLoaded();
+  // Direct lookup in the species' own trait pool
   const variantMap = _traitIndex.get(speciesId);
-  if (!variantMap) return undefined;
-  return variantMap.get(variantId);
+  if (variantMap) {
+    const found = variantMap.get(variantId);
+    if (found) return found;
+  }
+  // For hybrids: traits are inherited from parent species, search all species
+  for (const [, map] of _traitIndex) {
+    const found = map.get(variantId);
+    if (found) return found;
+  }
+  return undefined;
 }
 
 /**
